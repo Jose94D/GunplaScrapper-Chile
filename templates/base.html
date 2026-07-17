@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>{% block title %}Radar Gunpla Chile{% endblock %}</title>
+    {% block extra_head %}{% endblock %}
+    <style>
+        :root { 
+            --bg-body: #f8fafc; 
+            --bg-image: url('/static/Background_light.png');
+            --bg-container: rgba(255, 255, 255, 0.95);
+            --text-main: #1e293b; 
+            --text-muted: #64748b; 
+            --border-color: #e2e8f0; 
+            --link-color: #2563eb; 
+            --btn-bg: #2563eb; 
+            --btn-text: #ffffff; 
+            --search-bg: #f1f5f9; 
+            --search-border: #cbd5e1; 
+        }
+        [data-theme="dark"] { 
+            --bg-body: #0f172a; 
+            --bg-image: url('/static/Background_dark.png');
+            --bg-container: rgba(30, 41, 59, 0.95);
+            --text-main: #f8fafc; 
+            --text-muted: #94a3b8; 
+            --border-color: #334155; 
+            --link-color: #60a5fa; 
+            --btn-bg: #3b82f6; 
+            --search-bg: #0f172a; 
+            --search-border: #475569; 
+        }
+        body { 
+            font-family: sans-serif; 
+            margin: 40px; 
+            background-color: var(--bg-body); 
+            background-image: var(--bg-image);
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            color: var(--text-main); 
+            transition: background 0.3s, color 0.3s, background-image 0.3s; 
+        }
+        .container { max-width: 1000px; margin: 0 auto; background: var(--bg-container); border-radius: 12px; overflow: hidden; box-shadow: 0 8px 16px rgba(0,0,0,0.3); }
+        .content-padding { padding: 30px; }
+        .banner-img { width: 100%; display: block; border-bottom: 1px solid var(--border-color); }
+        .header-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .theme-btn { background: var(--bg-container); border: 1px solid var(--border-color); color: var(--text-main); padding: 8px 15px; border-radius: 8px; cursor: pointer; font-weight: bold; transition: 0.2s; }
+        .theme-btn:hover { background: var(--border-color); }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { padding: 12px; border-bottom: 1px solid var(--border-color); text-align: left; }
+        th { color: var(--text-muted); }
+        .enlace-grafico { color: var(--link-color); text-decoration: none; font-weight: bold; }
+        a { color: var(--link-color); }
+        .search-box { margin-bottom: 20px; display: flex; gap: 10px; align-items: center; background: var(--search-bg); padding: 15px; border-radius: 8px; }
+        .search-input { padding: 8px; width: 100%; max-width: 300px; border: 1px solid var(--search-border); border-radius: 4px; background: var(--bg-container); color: var(--text-main); }
+        .btn { padding: 8px 15px; background: var(--btn-bg); color: var(--btn-text); border: none; border-radius: 4px; cursor: pointer; font-weight: bold; }
+        .btn-clear { color: #ef4444; text-decoration: none; font-size: 14px; margin-left: 10px; }
+        .btn-danger { background: #ef4444; color: white; text-decoration: none; padding: 10px 20px; border-radius: 6px; font-weight: bold; display: inline-block; }
+        .btn-danger:hover { background: #dc2626; }
+        .stat-card { background: var(--search-bg); padding: 20px; border-radius: 8px; border: 1px solid var(--search-border); margin-bottom: 15px; }
+        .stat-value { font-size: 24px; font-weight: bold; color: var(--link-color); }
+        
+        /* ESTILOS DEL CARRUSEL */
+        .carousel-container { position: relative; width: 100%; max-height: 350px; overflow: hidden; border-radius: 8px; margin-bottom: 25px; border: 1px solid var(--border-color); background: var(--search-bg); }
+        .carousel-slides { display: flex; transition: transform 0.5s ease-in-out; height: 100%; }
+        .carousel-slide { min-width: 100%; box-sizing: border-box; display: flex; justify-content: center; align-items: center; }
+        .carousel-slide img { width: 100%; height: 100%; object-fit: cover; }
+        .carousel-btn { position: absolute; top: 50%; transform: translateY(-50%); background: rgba(0,0,0,0.5); color: white; border: none; padding: 12px 18px; cursor: pointer; border-radius: 50%; font-size: 18px; z-index: 10; transition: 0.3s; }
+        .carousel-btn:hover { background: rgba(0,0,0,0.8); }
+        .carousel-prev { left: 10px; }
+        .carousel-next { right: 10px; }
+    </style>
+    
+    {% block page_styles %}{% endblock %}
+</head>
+<body>
+    <div class="container">
+        <img id="main-banner" class="banner-img" src="/static/Banner_light.png" alt="Gunpla Scrapper Chile">
+        
+        {% block alertas %}{% endblock %}
+
+        <div class="content-padding">
+            {% block content %}{% endblock %}
+            
+            <footer style="margin-top: 40px; padding: 20px; border-top: 1px solid var(--border-color); text-align: center; color: var(--text-muted); font-size: 0.85em;">
+                <p><strong>Gunpla Scrapper Chile</strong> | Radar de precios no oficial</p>
+                <p>Radar de precios independiente. No estamos afiliados a ninguna tienda. Los precios y disponibilidad son referenciales y se obtienen mediante escaneos automatizados.</p>
+                <p style="margin-top: 10px;"><strong>Tecnologías utilizadas:</strong> Hecho con Python y Flask.</p>
+                <p style="margin-top: 10px;">Última actualización: <strong>{{ fecha }}</strong> | Visitas: <strong>{{ visitas }}</strong></p>
+                <p style="margin-top: 5px;">Construido para la comunidad de modelismo.</p>
+            </footer>
+        </div>
+    </div>
+
+    <script>
+        const themeBtn = document.getElementById('theme-toggle');
+        const bannerImg = document.getElementById('main-banner');
+        function applyTheme(theme) {
+            if (theme === 'dark') {
+                document.body.setAttribute('data-theme', 'dark');
+                if(bannerImg) bannerImg.src = '/static/Banner_dark.png';
+                if(themeBtn) themeBtn.innerHTML = '☀️ Modo Claro';
+            } else {
+                document.body.removeAttribute('data-theme');
+                if(bannerImg) bannerImg.src = '/static/Banner_light.png';
+                if(themeBtn) themeBtn.innerHTML = '🌙 Modo Oscuro';
+            }
+        }
+        const currentTheme = localStorage.getItem('theme') || 'light';
+        applyTheme(currentTheme);
+        if(themeBtn) {
+            themeBtn.addEventListener('click', () => {
+                let newTheme = document.body.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+                localStorage.setItem('theme', newTheme);
+                applyTheme(newTheme);
+                if(window.myChart) location.reload();
+            });
+        }
+    </script>
+    
+    {% block scripts %}{% endblock %}
+</body>
+</html>

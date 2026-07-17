@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="header-top">
+    <h1 style="margin:0;">🤖 Radar de Precios</h1>
+    <button id="theme-toggle" class="theme-btn">🌙 Modo Oscuro</button>
+</div>
+
+<form action="/" method="GET" class="search-box">
+    <input type="text" name="q" class="search-input" placeholder="Buscar modelo (ej. Zaku, RX-78)..." value="{{ search_query }}">
+    <input type="hidden" name="sort" value="{{ sort_order }}">
+    <button type="submit" class="btn">🔍 Buscar</button>
+    {% if search_query %}
+        <a href="/?sort={{ sort_order }}" class="btn-clear">✖ Limpiar filtro</a>
+    {% endif %}
+</form>
+
+{% if carrusel_imgs %}
+<div class="carousel-container">
+    <div class="carousel-slides" id="carousel-slides">
+        {% for img in carrusel_imgs %}
+        <div class="carousel-slide">
+            <img src="/static/carrusel/{{ img[0] }}" alt="Promoción">
+        </div>
+        {% endfor %}
+    </div>
+    {% if carrusel_imgs|length > 1 %}
+    <button class="carousel-btn carousel-prev" onclick="moveSlide(-1)">&#10094;</button>
+    <button class="carousel-btn carousel-next" onclick="moveSlide(1)">&#10095;</button>
+    {% endif %}
+</div>
+{% endif %}
+
+<div style="margin-bottom: 20px;">
+    <strong style="color: var(--text-muted);">Ordenar por precio:</strong> 
+    <a href="/?sort=asc{% if search_query %}&q={{ search_query }}{% endif %}">Menor a Mayor</a> | 
+    <a href="/?sort=desc{% if search_query %}&q={{ search_query }}{% endif %}">Mayor a Menor</a>
+</div>
+
+<table>
+    <tr><th>Modelo</th><th>Precio</th><th>Última Captura</th></tr>
+    {% for fila in datos %}
+    <tr>
+        <td><a href="{{ url_for('producto_bp.ver_grafico', nombre=fila[0]) }}" class="enlace-grafico">{{ fila[0] }}</a></td>
+        <td>{{ fila[1] }}</td>
+        <td>{{ fila[2] }}</td>
+    </tr>
+    {% else %}
+    <tr><td colspan="3" style="text-align: center; color: var(--text-muted); padding: 20px;">No se encontraron productos.</td></tr>
+    {% endfor %}
+</table>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    let currentSlide = 0;
+    const slides = document.getElementById('carousel-slides');
+    const totalSlides = document.querySelectorAll('.carousel-slide').length;
+
+    function moveSlide(direction) {
+        if (totalSlides === 0 || !slides) return;
+        currentSlide += direction;
+        if (currentSlide < 0) currentSlide = totalSlides - 1;
+        if (currentSlide >= totalSlides) currentSlide = 0;
+        slides.style.transform = `translateX(-${currentSlide * 100}%)`;
+    }
+
+    if (totalSlides > 1) {
+        setInterval(() => moveSlide(1), 5000);
+    }
+</script>
+{% endblock %}

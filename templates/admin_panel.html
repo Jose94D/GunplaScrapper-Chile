@@ -1,0 +1,203 @@
+{% extends "base.html" %}
+
+{% block title %}Panel de Control{% endblock %}
+
+{% block alertas %}
+{% if alerta_activa %}
+<div style="background-color: #ef4444; color: white; padding: 15px; text-align: center; font-weight: bold;">
+    {{ mensaje_alerta }}
+</div>
+{% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="header-top">
+    <h1>Panel de Control</h1>
+    <div>
+        <button id="theme-toggle" class="theme-btn">🌙</button>
+        <a href="/admin/logout" class="btn" style="background: var(--search-border); color: var(--text-main); margin-left: 10px;">Cerrar Sesión</a>
+    </div>
+</div>
+
+<p style="text-align: center;">Bienvenido, <strong>piloto</strong>.</p>
+<div style="text-align: center; margin-bottom: 20px;">
+    <img src="/static/Avatar_admin_dark.png" alt="Avatar Admin" style="width: 200px; height: 200px; object-fit: cover; border-radius: 0;">
+</div>
+
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-top: 30px;">
+    <div class="stat-card">
+        <div style="color: var(--text-muted); font-size: 0.9em;">Visitas Totales</div>
+        <div class="stat-value">{{ visitas }}</div>
+    </div>
+    <div class="stat-card">
+        <div style="color: var(--text-muted); font-size: 0.9em;">Productos en Catálogo</div>
+        <div class="stat-value">{{ total_productos }}</div>
+    </div>
+    <div class="stat-card">
+        <div style="color: var(--text-muted); font-size: 0.9em;">Escaneados Hoy</div>
+        <div class="stat-value">{{ escaneados_hoy }}</div>
+    </div>
+</div>
+
+<div style="margin-top: 40px; padding-top: 20px; border-top: 1px solid var(--border-color);">
+    <h2>📋 Últimos Eventos del Sistema</h2>
+    <div style="background: var(--search-bg); padding: 15px; border-radius: 8px; border: 1px solid var(--search-border); max-height: 200px; overflow-y: auto;">
+        {% for log in lista_logs %}
+            <div style="margin-bottom: 8px; font-size: 0.9em;">
+                <span style="color: var(--text-muted);">[{{ log[0] }}]</span> <strong>{{ log[1] }}</strong>
+            </div>
+        {% else %}
+            <p style="color: var(--text-muted);">No hay eventos registrados.</p>
+        {% endfor %}
+    </div>
+</div>
+
+<div style="margin-top: 40px; padding-top: 20px; border-top: 1px solid var(--border-color);">
+    <h2>🖼️ Gestión del Carrusel</h2>
+    <form action="/admin/carrusel/nuevo" method="POST" enctype="multipart/form-data" class="search-box" style="flex-wrap: wrap; gap: 10px;">
+        <input type="file" name="imagen" accept="image/*" class="search-input" required style="flex: 2; min-width: 200px;">
+        <button type="submit" class="btn">Subir Imagen</button>
+    </form>
+    <div style="display: flex; gap: 15px; flex-wrap: wrap; margin-top: 20px;">
+        {% for img in lista_carrusel %}
+        <div style="border: 1px solid var(--border-color); padding: 10px; border-radius: 8px; text-align: center; background: var(--search-bg); width: 180px;">
+            <img src="/static/carrusel/{{ img[1] }}" style="width: 100%; height: 100px; object-fit: cover; border-radius: 4px; margin-bottom: 10px;">
+            <a href="/admin/carrusel/eliminar/{{ img[0] }}" class="btn" style="background: #ef4444; font-size: 12px; padding: 5px 10px; display: block;" onclick="return confirm('¿Eliminar?');">🗑️ Eliminar</a>
+        </div>
+        {% else %}
+        <p style="color: var(--text-muted); width: 100%; text-align: center;">No hay imágenes.</p>
+        {% endfor %}
+    </div>
+</div>
+
+<div style="margin-top: 40px; padding-top: 20px; border-top: 1px solid var(--border-color);">
+    <h2>Gestión de Productos del Catálogo</h2>
+    <h3 style="margin-top: 20px; color: var(--text-muted); font-size: 1.1em;">➕ Agregar Producto Manualmente</h3>
+    <form action="/admin/producto/nuevo" method="POST" class="search-box" style="flex-wrap: wrap; gap: 10px; margin-bottom: 30px;">
+        <input type="text" name="producto" class="search-input" placeholder="Nombre (ej. HG Zaku II)" required style="flex: 2; min-width: 200px;">
+        <input type="text" name="precio" class="search-input" placeholder="Precio (ej. $24.990)" required style="flex: 1; min-width: 120px;">
+        <input type="url" name="url" class="search-input" placeholder="URL tienda (Opcional)" style="flex: 2; min-width: 200px;">
+        <button type="submit" class="btn">Guardar</button>
+    </form>
+    
+    <form action="/admin/panel" method="GET" class="search-box" style="background: transparent; padding: 0; margin-bottom: 25px; border: none; flex-wrap: wrap;">
+        <input type="text" name="q_admin" class="search-input" placeholder="Buscar producto..." value="{{ search_query }}">
+        <select name="sort_admin" class="search-input" style="width: auto;" onchange="this.form.submit()">
+            <option value="date_desc" {% if sort_admin == 'date_desc' %}selected{% endif %}>Más recientes</option>
+            <option value="price_asc" {% if sort_admin == 'price_asc' %}selected{% endif %}>Menor Precio</option>
+            <option value="price_desc" {% if sort_admin == 'price_desc' %}selected{% endif %}>Mayor Precio</option>
+        </select>
+        <select name="per_page" class="search-input" style="width: auto;" onchange="this.form.submit()">
+            <option value="24" {% if per_page == 24 %}selected{% endif %}>24 / pág</option>
+            <option value="48" {% if per_page == 48 %}selected{% endif %}>48 / pág</option>
+            <option value="120" {% if per_page == 120 %}selected{% endif %}>120 / pág</option>
+        </select>
+        <button type="submit" class="btn">🔍 Filtrar</button>
+        {% if search_query or sort_admin != 'date_desc' %}
+            <a href="/admin/panel?per_page={{ per_page }}" class="btn-clear">✖ Limpiar</a>
+        {% endif %}
+    </form>
+
+    <div style="overflow-x: auto; margin-top: 25px;">
+        <table>
+            <tr><th>Estado</th><th>Modelo</th><th>Último Precio</th><th>Última Captura</th><th style="text-align: center;">Acciones</th></tr>
+            {% for prod in lista_productos %}
+            <tr>
+                <td>
+                    {% if prod[4] == 1 %}<span style="color: #10b981; font-weight: bold;">🟢 Visible</span>
+                    {% else %}<span style="color: #ef4444; font-weight: bold;">🔴 Oculto</span>{% endif %}
+                </td>
+                <td>
+                    {% if prod[2] and prod[2] != '#' %}<a href="{{ prod[2] }}" target="_blank" style="text-decoration: none;">{{ prod[0] }} 🔗</a>
+                    {% else %}{{ prod[0] }}{% endif %}
+                </td>
+                <td><strong>{{ prod[1] }}</strong></td>
+                <td style="font-size: 0.9em; color: var(--text-muted);">{{ prod[3] }}</td>
+                <td style="text-align: center;">
+                    <div style="display: flex; gap: 8px; justify-content: center;">
+                        {% if prod[4] == 1 %}
+                            <a href="{{ url_for('admin_bp.toggle_visibilidad', nombre_producto=prod[0]) }}" class="btn" style="padding: 4px 10px; font-size: 13px; background: #64748b;" title="Ocultar">👁️‍🗨️</a>
+                        {% else %}
+                            <a href="{{ url_for('admin_bp.toggle_visibilidad', nombre_producto=prod[0]) }}" class="btn" style="padding: 4px 10px; font-size: 13px; background: #10b981;" title="Mostrar">👁️</a>
+                        {% endif %}
+                        <a href="{{ url_for('admin_bp.editar_producto', nombre_producto=prod[0]) }}" class="btn" style="padding: 4px 10px; font-size: 13px; background: #3b82f6;">✏️</a>
+                        <a href="{{ url_for('admin_bp.eliminar_producto', nombre_producto=prod[0]) }}" class="btn" style="padding: 4px 10px; font-size: 13px; background: #ef4444;" onclick="return confirm('¿Eliminar?');">🗑️</a>
+                    </div>
+                </td>
+            </tr>
+            {% else %}
+            <tr><td colspan="5" style="text-align: center; color: var(--text-muted); padding: 20px;">Sin registros.</td></tr>
+            {% endfor %}
+        </table>
+    </div>
+
+    {% if total_pages > 1 %}
+    <div style="display: flex; justify-content: center; gap: 8px; margin-top: 20px; align-items: center; flex-wrap: wrap;">
+        {% if page > 1 %}
+            <a href="?page={{ page - 1 }}&per_page={{ per_page }}&sort_admin={{ sort_admin }}{% if search_query %}&q_admin={{ search_query }}{% endif %}" class="btn" style="background: var(--search-border); color: var(--text-main); text-decoration: none; padding: 6px 12px;">⬅</a>
+        {% endif %}
+        
+        {% for p in range(1, total_pages + 1) %}
+            {% if p == page %}
+                <span class="btn" style="background: var(--link-color); color: white; padding: 6px 12px; font-weight: bold; cursor: default;">{{ p }}</span>
+            {% else %}
+                <a href="?page={{ p }}&per_page={{ per_page }}&sort_admin={{ sort_admin }}{% if search_query %}&q_admin={{ search_query }}{% endif %}" class="btn" style="background: var(--search-border); color: var(--text-main); text-decoration: none; padding: 6px 12px;">{{ p }}</a>
+            {% endif %}
+        {% endfor %}
+        
+        {% if page < total_pages %}
+            <a href="?page={{ page + 1 }}&per_page={{ per_page }}&sort_admin={{ sort_admin }}{% if search_query %}&q_admin={{ search_query }}{% endif %}" class="btn" style="background: var(--search-border); color: var(--text-main); text-decoration: none; padding: 6px 12px;">➡</a>
+        {% endif %}
+    </div>
+    {% endif %}
+</div>
+
+<div style="margin-top: 40px; padding-top: 20px; border-top: 1px solid var(--border-color);">
+    <h3>⚙️ Acciones del Sistema</h3>
+    <div style="display: flex; flex-wrap: wrap; gap: 20px; margin-top: 20px;">
+        <div style="flex: 1; min-width: 300px; background: var(--search-bg); padding: 20px; border-radius: 8px; border: 1px solid var(--search-border);">
+            <h4 style="margin-top: 0;">Cambiar Credenciales</h4>
+            <form action="/admin/credenciales/actualizar" method="POST" style="display: flex; flex-direction: column; gap: 10px;">
+                <input type="text" name="nuevo_usuario" class="search-input" placeholder="Nuevo Usuario" required>
+                <input type="password" name="nueva_password" class="search-input" placeholder="Nueva Contraseña" required>
+                <button type="submit" class="btn" style="width: 100%;">Actualizar Accesos</button>
+            </form>
+        </div>
+        <div style="flex: 1; min-width: 300px; display: flex; flex-direction: column; gap: 15px; justify-content: center;">
+            <a href="/admin/backup" class="btn" style="background: #10b981; color: white; text-align: center; text-decoration: none; padding: 12px;">💾 Backup DB</a>
+            <button id="btn-forzar-escaneo" class="btn-danger" style="text-align: center; border: none; cursor: pointer; width: 100%; padding: 12px; font-size: 16px;">⚡ Forzar Escaneo</button>
+        </div>
+    </div>
+</div>
+<div style="margin-top: 30px;"><a href="/">⬅ Volver al radar</a></div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.getElementById('btn-forzar-escaneo').addEventListener('click', function() {
+        const btn = this;
+        btn.innerText = '⏳ Escaneando... (revisa la terminal)';
+        btn.disabled = true;
+        btn.style.opacity = '0.7';
+
+        fetch('/admin/force-update')
+            .then(response => response.json())
+            .then(data => {
+                if(data.status === 'success') {
+                    alert('✅ ÉXITO:\n' + data.message);
+                    location.reload(); 
+                } else {
+                    alert('❌ ERROR:\n' + data.message);
+                }
+            })
+            .catch(error => {
+                alert('❌ ERROR CRÍTICO:\nNo se pudo conectar con el servidor para iniciar el escaneo.');
+            })
+            .finally(() => {
+                btn.innerText = '⚡ Forzar Escaneo';
+                btn.disabled = false;
+                btn.style.opacity = '1';
+            });
+    });
+</script>
+{% endblock %}

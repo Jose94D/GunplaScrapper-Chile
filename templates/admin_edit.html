@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+
+{% block title %}Editar Producto{% endblock %}
+
+{% block page_styles %}
+<style>
+    .container { max-width: 600px; margin-top: 50px; }
+</style>
+{% endblock %}
+
+{% block content %}
+<h2>✏️ Editar Producto</h2>
+<form method="POST" style="display: flex; flex-direction: column; gap: 15px;">
+    <input type="text" name="producto" class="search-input" value="{{ nombre_producto }}" required>
+    <input type="text" name="precio" class="search-input" value="{{ prod[0] }}" required>
+    <input type="url" name="url" class="search-input" value="{{ prod[1] if prod[1] != '#' else '' }}">
+    <div style="display: flex; gap: 10px; margin-top: 15px;">
+        <button type="submit" class="btn">Guardar Cambios</button>
+        <a href="/admin/panel" class="btn" style="background: var(--search-border); color: var(--text-main); text-decoration: none;">Cancelar</a>
+    </div>
+</form>
+{% endblock %}
