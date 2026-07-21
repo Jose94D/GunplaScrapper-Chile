@@ -1,26 +1,11 @@
-import sqlite3
-from datetime import datetime
 from flask import Blueprint, render_template, request, session, redirect, url_for
 
-def crear_blueprint_admin_login(DB_NAME, ADMIN_USER_FALLBACK, ADMIN_PASS_FALLBACK):
+# Importamos las herramientas de la capa core
+from core.database import execute_query
+from core.logger import registrar_log
+
+def crear_blueprint_admin_login(admin_user_fallback, admin_pass_fallback):
     admin_login_bp = Blueprint('admin_login_bp', __name__)
-
-    # ==========================================
-    # Funciones Auxiliares Locales
-    # ==========================================
-    def db_query(query, args=(), fetchone=False, commit=False):
-        conn = sqlite3.connect(DB_NAME)
-        c = conn.cursor()
-        c.execute(query, args)
-        resultado = c.fetchone() if fetchone else None
-        if commit:
-            conn.commit()
-        conn.close()
-        return resultado
-
-    def registrar_log(accion):
-        fecha_actual = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        db_query("INSERT INTO logs (fecha, accion) VALUES (?, ?)", (fecha_actual, accion), commit=True)
 
     # ==========================================
     # Ruta de Autenticación Principal
@@ -36,10 +21,20 @@ def crear_blueprint_admin_login(DB_NAME, ADMIN_USER_FALLBACK, ADMIN_PASS_FALLBAC
             user_input = request.form.get('username')
             pass_input = request.form.get('password')
             
-            # Consultamos las credenciales actuales directamente en la base de datos
-            cred = db_query('SELECT usuario, password FROM credenciales WHERE id = 1', fetchone=True)
+            # Consultamos las credenciales en la base de datos usando el core
+            cred = execute_query('SELECT usuario, password FROM credenciales WHERE id = 1', fetchone=True)
 
-            if cred and user_input == cred[0] and pass_input == cred[1]:
+            valido = False
+            # Si hay credenciales en DB, comparamos con ellas
+            if cred:
+                if user_input == cred[0] and pass_input == cred[1]:
+                    valido = True
+            # Si la DB está vacía, usamos las de config.py (Fallback)
+            else:
+                if user_input == admin_user_fallback and pass_input == admin_pass_fallback:
+                    valido = True
+
+            if valido:
                 session['admin_logged'] = True
                 registrar_log(f"Inicio de sesión exitoso: {user_input}")
                 return redirect(url_for('admin_bp.admin_panel'))

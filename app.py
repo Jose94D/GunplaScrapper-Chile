@@ -1,63 +1,57 @@
-import sqlite3
 from flask import Flask
 from apscheduler.schedulers.background import BackgroundScheduler
 
-# --- IMPORTAMOS LOS BLUEPRINTS ---
-from admin import crear_blueprint_admin
-from admin_login import crear_blueprint_admin_login
-from views_inicio import crear_blueprint_inicio
-from views_producto import crear_blueprint_producto
+# --- IMPORTAMOS CONFIGURACIÓN CENTRALIZADA ---
+from config import ADMIN_USER, ADMIN_PASS, SECRET_KEY
 
-# --- IMPORTAMOS LOS SCRAPERS MODULARES ---
-from scrappers.hangar import HangarScraper
+# --- IMPORTAMOS LOS BLUEPRINTS (Rutas) ---
+from routes.admin import crear_blueprint_admin
+from routes.admin_login import crear_blueprint_admin_login
+from routes.views_inicio import crear_blueprint_inicio
+from routes.views_producto import crear_blueprint_producto
 
-# --- CONFIGURACIÓN ---
-DB_NAME = "precios_comunidad.db"
-ADMIN_USER = "admin"
-ADMIN_PASS = "admin123"
+# --- IMPORTAMOS LOS MÓDULOS CORE ---
+from core.database import init_db, get_estadisticas_globales
+from core.scraper_manager import ScraperManager
 
 # --- INICIALIZACIÓN DE LA APLICACIÓN ---
 app = Flask(__name__)
-app.secret_key = 'gunpla_secreto_super_seguro_2026'
+app.secret_key = SECRET_KEY
 
-# Instanciamos nuestros scrapers pasándoles el nombre de la DB
-mi_scraper_hangar = HangarScraper(DB_NAME)
+# 1. Inicializamos la Base de Datos (Crea tablas y parches si no existen)
+init_db()
+
+# 2. Instanciamos el Orquestador de Scrapers
+scraper_manager = ScraperManager()
 
 # --- INYECCIÓN GLOBAL DE DATOS PARA JINJA2 ---
 @app.context_processor
 def inject_global_data():
     try:
-        conn = sqlite3.connect(DB_NAME)
-        c = conn.cursor()
-        
-        c.execute("SELECT contador FROM estadisticas WHERE id = 1")
-        res_visitas = c.fetchone()
-        visitas = res_visitas[0] if res_visitas else 0
-        
-        c.execute("SELECT MAX(fecha) FROM historial_precios")
-        res_fecha = c.fetchone()
-        fecha = res_fecha[0][:10] if res_fecha and res_fecha[0] else "N/A"
-        
-        conn.close()
+        # Delegamos la consulta a la capa core de datos
+        fecha, visitas = get_estadisticas_globales(incrementar_visita=False)
     except Exception:
+        # Fallback en caso de que la DB aún no tenga registros
         fecha, visitas = "N/A", 0
-
+        
     return dict(fecha=fecha, visitas=visitas)
 
 # --- REGISTRO DE RUTAS (BLUEPRINTS) ---
-app.register_blueprint(crear_blueprint_inicio(DB_NAME))
-app.register_blueprint(crear_blueprint_producto(DB_NAME))
+# Nota: Ya no le pasamos DB_NAME a los blueprints, ellos lo leen de config.py a través de core/database.py
+app.register_blueprint(crear_blueprint_inicio())
+app.register_blueprint(crear_blueprint_producto())
 
-# Blueprint del Login
-app.register_blueprint(crear_blueprint_admin_login(DB_NAME, ADMIN_USER, ADMIN_PASS))
+# Blueprint del Login (Le pasamos las credenciales por defecto desde config.py)
+app.register_blueprint(crear_blueprint_admin_login(ADMIN_USER, ADMIN_PASS))
 
-# Blueprint del Panel (Ya no requiere ADMIN_USER ni ADMIN_PASS)
-app.register_blueprint(crear_blueprint_admin(mi_scraper_hangar, DB_NAME))
+# Blueprint del Panel (Le inyectamos el orquestador en lugar del scraper individual)
+app.register_blueprint(crear_blueprint_admin(scraper_manager))
 
 # --- TAREAS PROGRAMADAS ---
 scheduler = BackgroundScheduler()
-# Ejecución automática cada 12 horas del scraper modular
-scheduler.add_job(func=mi_scraper_hangar.ejecutar_escaneo, trigger="interval", hours=12)
+
+# Ejecución automática cada 12 horas del Manager (recorre todas las tiendas)
+scheduler.add_job(func=scraper_manager.ejecutar_todos, trigger="interval", hours=12)
 scheduler.start()
 
 if __name__ == '__main__':
