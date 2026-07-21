@@ -1,29 +1,19 @@
-import sqlite3
 import json
 from flask import Blueprint, render_template
 
-def crear_blueprint_producto(DB_NAME):
-    producto_bp = Blueprint('producto_bp', __name__)
+# Importamos las herramientas de la capa core
+from core.database import execute_query, get_estadisticas_globales
 
-    def get_db_data(incrementar_visita=False):
-        conn = sqlite3.connect(DB_NAME)
-        c = conn.cursor()
-        if incrementar_visita:
-            c.execute("UPDATE estadisticas SET contador = contador + 1 WHERE id = 1")
-        c.execute("SELECT contador FROM estadisticas WHERE id = 1")
-        visitas = c.fetchone()[0]
-        c.execute("SELECT MAX(fecha) FROM historial_precios")
-        fecha = c.fetchone()[0]
-        conn.commit()
-        conn.close()
-        return fecha[:10] if fecha else "N/A", visitas
+def crear_blueprint_producto():
+    producto_bp = Blueprint('producto_bp', __name__)
 
     @producto_bp.route('/producto/<path:nombre>')
     def ver_grafico(nombre):
-        conn = sqlite3.connect(DB_NAME)
-        datos = conn.cursor().execute("SELECT precio, fecha, url FROM historial_precios WHERE producto = ? ORDER BY fecha ASC", (nombre,)).fetchall()
-        conn.close()
-        fecha, visitas = get_db_data(incrementar_visita=False)
+        # 1. Obtenemos los datos a través del core
+        datos = execute_query("SELECT precio, fecha, url FROM historial_precios WHERE producto = ? ORDER BY fecha ASC", (nombre,), fetchall=True)
+        
+        # 2. Obtenemos estadísticas globales a través del core
+        fecha, visitas = get_estadisticas_globales(incrementar_visita=False)
         
         precios_limpios = []
         for f in datos:

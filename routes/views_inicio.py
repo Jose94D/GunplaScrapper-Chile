@@ -1,31 +1,10 @@
-import sqlite3
 from flask import Blueprint, render_template, request
 
-def crear_blueprint_inicio(DB_NAME):
-    inicio_bp = Blueprint('inicio_bp', __name__)
+# Importamos las herramientas de la capa core
+from core.database import execute_query, get_estadisticas_globales
 
-    # ==========================================
-    # Funciones Auxiliares Locales
-    # ==========================================
-    def get_db_data(incrementar_visita=False):
-        conn = sqlite3.connect(DB_NAME)
-        c = conn.cursor()
-        
-        # Lógica del contador de visitas
-        if incrementar_visita:
-            c.execute("UPDATE estadisticas SET contador = contador + 1 WHERE id = 1")
-            
-        c.execute("SELECT contador FROM estadisticas WHERE id = 1")
-        visitas = c.fetchone()[0]
-        
-        # Extracción de la última fecha de actualización
-        c.execute("SELECT MAX(fecha) FROM historial_precios")
-        fecha = c.fetchone()[0]
-        
-        conn.commit()
-        conn.close()
-        
-        return fecha[:10] if fecha else "N/A", visitas
+def crear_blueprint_inicio():
+    inicio_bp = Blueprint('inicio_bp', __name__)
 
     # ==========================================
     # Ruta Principal (Inicio)
@@ -35,13 +14,11 @@ def crear_blueprint_inicio(DB_NAME):
         sort = request.args.get('sort', 'asc')
         q = request.args.get('q', '')
         
-        # Incrementamos la visita cada vez que alguien carga la página principal
-        fecha, visitas = get_db_data(incrementar_visita=True)
+        # Delegamos la lógica de contadores y fechas a core/database.py
+        fecha, visitas = get_estadisticas_globales(incrementar_visita=True)
         
-        conn = sqlite3.connect(DB_NAME)
-        
-        # Cargamos las imágenes del carrusel
-        carrusel_imgs = conn.cursor().execute("SELECT filename FROM carrusel ORDER BY id ASC").fetchall()
+        # Cargamos las imágenes del carrusel a través del conector centralizado
+        carrusel_imgs = execute_query("SELECT filename FROM carrusel ORDER BY id ASC", fetchall=True)
         
         # Consulta SQL blindada: Aísla el estado, precio y precio_base más recientes
         query = """
@@ -61,11 +38,11 @@ def crear_blueprint_inicio(DB_NAME):
             query += " AND hp.producto LIKE ?"
             params.append(f"%{q}%")
             
-        # Ordenamiento dinámico limpiando los símbolos de moneda y separadores de miles
+        # Ordenamiento dinámico
         query += f" ORDER BY CAST(REPLACE(REPLACE(hp.precio, '$', ''), '.', '') AS INTEGER) {sort}"
         
-        datos = conn.cursor().execute(query, params).fetchall()
-        conn.close()
+        # Ejecutamos la query pasando por execute_query() del core
+        datos = execute_query(query, params, fetchall=True)
         
         return render_template('inicio.html', 
                                datos=datos, 

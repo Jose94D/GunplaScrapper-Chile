@@ -1,0 +1,11 @@
+# Archivos de entorno y secretos
+.env
+
+# Base de datos SQLite local
+*.db
+*.sqlite3
+
+# Caché compilada de Python
+__pycache__/
+*.py[cod]
+*$py.class
