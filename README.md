@@ -1,5 +1,4 @@
-<img width="1774" height="448" alt="Gunpla Scrapper" src="https://github.com/user-attachments/assets/d759188d-5d69-4819-94b7-8a40f21381a6" />
-
+<img width="1774" height="448" alt="Banner_dark" src="https://github.com/user-attachments/assets/9c20d4d2-63f7-4aa2-bb6d-98a3a7d234e2" />
 
 # Radar de Precios: Gunpla Chile
 
