@@ -2,28 +2,32 @@
 
 {% block content %}
 <div class="header-top">
-    <h1 style="margin:0;">🤖 Radar de Precios</h1>
+    <h1 style="margin:0;">Radar de Precios</h1>
     <button id="theme-toggle" class="theme-btn">🌙 Modo Oscuro</button>
 </div>
-
-<form action="/" method="GET" class="search-box">
-    <input type="text" name="q" class="search-input" placeholder="Buscar modelo (ej. Zaku, RX-78)..." value="{{ search_query }}">
-    <input type="hidden" name="sort" value="{{ sort_order }}">
-    <button type="submit" class="btn">🔍 Buscar</button>
-    {% if search_query %}
-        <a href="/?sort={{ sort_order }}" class="btn-clear">✖ Limpiar filtro</a>
-    {% endif %}
-</form>
 
 {% if carrusel_imgs %}
 <div class="carousel-container">
     <div class="carousel-slides" id="carousel-slides">
         {% for img in carrusel_imgs %}
+
         <div class="carousel-slide">
-            <img src="/static/carrusel/{{ img[0] }}" alt="Promoción">
+            
+            <!-- img[0] es el nombre del archivo, img[1] es el enlace -->
+            {% if img[1] and img[1] != '' %}
+                <!-- Imagen CON enlace (Clickable) -->
+                <a href="{{ img[1] }}" target="_blank" style="display: block; width: 100%; height: 100%; cursor: pointer;">
+                    <img src="/static/carrusel/{{ img[0] }}" alt="Promoción" style="width: 100%; height: 100%; object-fit: cover;">
+                </a>
+            {% else %}
+                <!-- Imagen SIN enlace (No clickable) -->
+                <img src="/static/carrusel/{{ img[0] }}" alt="Promoción" style="width: 100%; height: 100%; object-fit: cover;">
+            {% endif %}
+            
         </div>
         {% endfor %}
     </div>
+    
     {% if carrusel_imgs|length > 1 %}
     <button class="carousel-btn carousel-prev" onclick="moveSlide(-1)">&#10094;</button>
     <button class="carousel-btn carousel-next" onclick="moveSlide(1)">&#10095;</button>
@@ -31,24 +35,112 @@
 </div>
 {% endif %}
 
-<div style="margin-bottom: 20px;">
-    <strong style="color: var(--text-muted);">Ordenar por precio:</strong> 
-    <a href="/?sort=asc{% if search_query %}&q={{ search_query }}{% endif %}">Menor a Mayor</a> | 
-    <a href="/?sort=desc{% if search_query %}&q={{ search_query }}{% endif %}">Mayor a Menor</a>
+<!-- FILTROS POR GRADO -->
+<div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin: 30px 0;">
+    {% set grados = ['EG', 'HG', 'RG', 'MG', 'PG', 'FM', 'SD', 'Sin Grado'] %}
+    
+    <!-- Botón "Todos" -->
+    <a href="/?per_page={{ per_page }}&sort={{ sort_order }}{% if search_query %}&q={{ search_query }}{% endif %}" 
+       class="btn" 
+       style="border-radius: 25px; padding: 8px 20px; font-weight: bold; text-decoration: none; {% if not grado_filtro or grado_filtro == 'Todos' %}background: var(--link-color); color: white; border: none;{% else %}background: var(--search-bg); color: var(--text-main); border: 1px solid var(--border-color);{% endif %}">
+       Todos
+    </a>
+    
+    <!-- Botones Dinámicos por Grado -->
+    {% for g in grados %}
+    <a href="/?grado={{ g }}&per_page={{ per_page }}&sort={{ sort_order }}{% if search_query %}&q={{ search_query }}{% endif %}" 
+       class="btn" 
+       style="border-radius: 25px; padding: 8px 20px; font-weight: bold; text-decoration: none; {% if grado_filtro == g %}background: var(--link-color); color: white; border: none;{% else %}background: var(--search-bg); color: var(--text-main); border: 1px solid var(--border-color);{% endif %}">
+       {{ g }}
+    </a>
+    {% endfor %}
 </div>
 
+<!-- BUSCADOR -->
+<!-- CONTROLES UNIFICADOS EN UNA SOLA CAJA: BUSCADOR, ORDEN Y CANTIDAD -->
+<form action="/" method="GET" class="search-box" style="margin-bottom: 20px; display: flex; align-items: center; gap: 20px; flex-wrap: wrap; justify-content: space-between; padding: 15px;">
+    
+    <!-- Mantenemos el grado activo si existe -->
+    {% if grado_filtro %}
+        <input type="hidden" name="grado" value="{{ grado_filtro }}">
+    {% endif %}
+
+    <!-- 1. Buscador (Alineado a la izquierda) -->
+    <div style="display: flex; align-items: center; gap: 10px; flex-grow: 1; min-width: 250px;">
+        <input type="text" name="q" class="search-input" placeholder="Buscar modelo..." value="{{ search_query }}" style="flex-grow: 1; margin: 0;">
+        <button type="submit" class="btn" style="margin: 0;">Buscar</button>
+        {% if search_query %}
+            <a href="/?sort={{ sort_order }}&per_page={{ per_page }}{% if grado_filtro %}&grado={{ grado_filtro }}{% endif %}" class="btn-clear" style="margin: 0;">✖ Limpiar</a>
+        {% endif %}
+    </div>
+
+    <!-- 2. Selectores de Orden y Mostrar (Alineados a la derecha) -->
+    <div style="display: flex; align-items: center; gap: 20px; flex-wrap: wrap;">
+        
+        <!-- Selector de Orden -->
+        <div style="display: flex; align-items: center; gap: 8px;">
+            <label for="sort" style="color: var(--text-main); font-weight: bold; white-space: nowrap; margin: 0;">Ordenar por:</label>
+            <select name="sort" id="sort" class="search-input" style="width: auto; border-radius: 8px; padding: 6px 10px; margin: 0;" onchange="this.form.submit()">
+                <option value="price_asc" {% if sort_order == 'price_asc' or sort_order == 'asc' %}selected{% endif %}>Precio: Menor a Mayor</option>
+                <option value="price_desc" {% if sort_order == 'price_desc' or sort_order == 'desc' %}selected{% endif %}>Precio: Mayor a Menor</option>
+                <option value="alpha_asc" {% if sort_order == 'alpha_asc' %}selected{% endif %}>Nombre: A - Z</option>
+                <option value="alpha_desc" {% if sort_order == 'alpha_desc' %}selected{% endif %}>Nombre: Z - A</option>
+            </select>
+        </div>
+
+        <!-- Selector de Mostrar -->
+        <div style="display: flex; align-items: center; gap: 8px;">
+            <label for="per_page" style="color: var(--text-main); font-weight: bold; white-space: nowrap; margin: 0;">Mostrar:</label>
+            <select name="per_page" id="per_page" class="search-input" style="width: auto; border-radius: 8px; padding: 6px 10px; margin: 0;" onchange="this.form.submit()">
+                <option value="24" {% if per_page == 24 %}selected{% endif %}>24 por página</option>
+                <option value="48" {% if per_page == 48 %}selected{% endif %}>48 por página</option>
+                <option value="120" {% if per_page == 120 %}selected{% endif %}>120 por página</option>
+            </select>
+        </div>
+        
+    </div>
+</form>
+
+<!-- TABLA DE PRODUCTOS -->
 <table>
-    <tr><th>Modelo</th><th>Precio</th><th>Última Captura</th></tr>
+    <tr>
+        <th style="text-align: left;">Modelo</th>
+        <th style="text-align: center;">Grado</th>
+        <th style="text-align: center;">Mejor Precio Actual</th>
+    </tr>
     {% for fila in datos %}
     <tr>
-        <td><a href="{{ url_for('producto_bp.ver_grafico', nombre=fila[0]) }}" class="enlace-grafico">{{ fila[0] }}</a></td>
-        <td>{{ fila[1] }}</td>
-        <td>{{ fila[2] }}</td>
+        <td style="text-align: left;"><a href="{{ url_for('producto_bp.ver_grafico', id=fila[0], q=search_query, grado=grado_filtro, sort=sort_order, per_page=per_page, page=page) }}" class="enlace-grafico">{{ fila[1] }}</a></td>
+        <td style="text-align: center;"><span style="background: var(--search-border); padding: 3px 8px; border-radius: 12px; font-size: 0.85em; font-weight: bold;">{{ fila[2] }}</span></td>
+        <td style="text-align: center;"><strong style="color: #10b981;">{{ fila[3] }}</strong></td>
     </tr>
     {% else %}
-    <tr><td colspan="3" style="text-align: center; color: var(--text-muted); padding: 20px;">No se encontraron productos.</td></tr>
+    <tr><td colspan="3" style="text-align: center; color: var(--text-muted); padding: 20px;">No se encontraron productos con estos filtros.</td></tr>
     {% endfor %}
 </table>
+
+<!-- BOTONES DE PAGINACIÓN -->
+<div style="margin-top: 40px; margin-bottom: 40px; display: flex; flex-direction: column; align-items: center; gap: 20px;">
+    {% if total_pages > 1 %}
+    <div style="display: flex; justify-content: center; gap: 8px; align-items: center; flex-wrap: wrap;">
+        {% if page > 1 %}
+            <a href="/?page={{ page - 1 }}&per_page={{ per_page }}&sort={{ sort_order }}{% if search_query %}&q={{ search_query }}{% endif %}{% if grado_filtro %}&grado={{ grado_filtro }}{% endif %}" class="btn" style="background: var(--search-border); color: var(--text-main); text-decoration: none; padding: 6px 12px; border-radius: 8px;">⬅</a>
+        {% endif %}
+        
+        {% for p in range(1, total_pages + 1) %}
+            {% if p == page %}
+                <span class="btn" style="background: var(--link-color); color: white; padding: 6px 12px; font-weight: bold; border-radius: 8px; cursor: default;">{{ p }}</span>
+            {% else %}
+                <a href="/?page={{ p }}&per_page={{ per_page }}&sort={{ sort_order }}{% if search_query %}&q={{ search_query }}{% endif %}{% if grado_filtro %}&grado={{ grado_filtro }}{% endif %}" class="btn" style="background: var(--search-border); color: var(--text-main); text-decoration: none; padding: 6px 12px; border-radius: 8px;">{{ p }}</a>
+            {% endif %}
+        {% endfor %}
+        
+        {% if page < total_pages %}
+            <a href="/?page={{ page + 1 }}&per_page={{ per_page }}&sort={{ sort_order }}{% if search_query %}&q={{ search_query }}{% endif %}{% if grado_filtro %}&grado={{ grado_filtro }}{% endif %}" class="btn" style="background: var(--search-border); color: var(--text-main); text-decoration: none; padding: 6px 12px; border-radius: 8px;">➡</a>
+        {% endif %}
+    </div>
+    {% endif %}
+</div>
 {% endblock %}
 
 {% block scripts %}
