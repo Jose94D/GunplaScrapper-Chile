@@ -19,7 +19,7 @@
     </div>
 </div>
 
-<p style="text-align: center;">Bienvenido, <strong>piloto</strong>.</p>
+<p style="text-align: center;">Bienvenido, <strong>{{ usuario }}</strong>.</p>
 <div style="text-align: center; margin-bottom: 20px;">
     <img src="/static/Avatar_admin_dark.png" alt="Avatar Admin" style="width: 200px; height: 200px; object-fit: cover; border-radius: 0;">
 </div>
@@ -30,7 +30,7 @@
         <div class="stat-value">{{ visitas }}</div>
     </div>
     <div class="stat-card">
-        <div style="color: var(--text-muted); font-size: 0.9em;">Productos en Catálogo</div>
+        <div style="color: var(--text-muted); font-size: 0.9em;">Modelos en Catálogo</div>
         <div class="stat-value">{{ total_productos }}</div>
     </div>
     <div class="stat-card">
@@ -54,15 +54,29 @@
 
 <div style="margin-top: 40px; padding-top: 20px; border-top: 1px solid var(--border-color);">
     <h2>🖼️ Gestión del Carrusel</h2>
+    
+    <!-- 1. FORMULARIO ACTUALIZADO: Agregamos el input para el link -->
     <form action="/admin/carrusel/nuevo" method="POST" enctype="multipart/form-data" class="search-box" style="flex-wrap: wrap; gap: 10px;">
-        <input type="file" name="imagen" accept="image/*" class="search-input" required style="flex: 2; min-width: 200px;">
+        <input type="file" name="imagen" accept="image/*" class="search-input" required style="flex: 1; min-width: 200px;">
+        <input type="url" name="link" class="search-input" placeholder="Enlace de destino (Ej: https://tienda.cl/promo)" style="flex: 2; min-width: 200px;">
         <button type="submit" class="btn">Subir Imagen</button>
     </form>
+    
+    <!-- 2. VISOR ACTUALIZADO: Con edición inline del enlace -->
     <div style="display: flex; gap: 15px; flex-wrap: wrap; margin-top: 20px;">
         {% for img in lista_carrusel %}
-        <div style="border: 1px solid var(--border-color); padding: 10px; border-radius: 8px; text-align: center; background: var(--search-bg); width: 180px;">
-            <img src="/static/carrusel/{{ img[1] }}" style="width: 100%; height: 100px; object-fit: cover; border-radius: 4px; margin-bottom: 10px;">
-            <a href="/admin/carrusel/eliminar/{{ img[0] }}" class="btn" style="background: #ef4444; font-size: 12px; padding: 5px 10px; display: block;" onclick="return confirm('¿Eliminar?');">🗑️ Eliminar</a>
+        <div style="border: 1px solid var(--border-color); padding: 10px; border-radius: 8px; text-align: center; background: var(--search-bg); width: 220px; display: flex; flex-direction: column; justify-content: space-between;">
+            <div>
+                <img src="/static/carrusel/{{ img[1] }}" style="width: 100%; height: 100px; object-fit: cover; border-radius: 4px; margin-bottom: 10px;">
+                
+                <!-- Mini-formulario para actualizar el enlace directamente -->
+                <form action="/admin/carrusel/editar_link/{{ img[0] }}" method="POST" style="margin-bottom: 15px; display: flex; flex-direction: column; gap: 8px;">
+                    <input type="url" name="nuevo_link" class="search-input" value="{{ img[2] if img[2] else '' }}" placeholder="Sin enlace asignado..." style="width: 100%; box-sizing: border-box; font-size: 12px; padding: 6px;">
+                    <button type="submit" class="btn" style="background: #3b82f6; font-size: 12px; padding: 5px 8px;">💾 Actualizar Enlace</button>
+                </form>
+            </div>
+            
+            <a href="/admin/carrusel/eliminar/{{ img[0] }}" class="btn" style="background: #ef4444; font-size: 12px; padding: 5px 10px; display: block;" onclick="return confirm('¿Eliminar esta imagen del carrusel?');">🗑️ Eliminar Imagen</a>
         </div>
         {% else %}
         <p style="color: var(--text-muted); width: 100%; text-align: center;">No hay imágenes.</p>
@@ -74,9 +88,10 @@
     <h2>Gestión de Productos del Catálogo</h2>
     <h3 style="margin-top: 20px; color: var(--text-muted); font-size: 1.1em;">➕ Agregar Producto Manualmente</h3>
     <form action="/admin/producto/nuevo" method="POST" class="search-box" style="flex-wrap: wrap; gap: 10px; margin-bottom: 30px;">
-        <input type="text" name="producto" class="search-input" placeholder="Nombre (ej. HG Zaku II)" required style="flex: 2; min-width: 200px;">
+        <input type="text" name="producto" class="search-input" placeholder="Nombre (ej. Zaku II)" required style="flex: 2; min-width: 200px;">
+        <input type="text" name="grado" class="search-input" placeholder="Grado (ej. HG)" required style="flex: 1; min-width: 80px;">
         <input type="text" name="precio" class="search-input" placeholder="Precio (ej. $24.990)" required style="flex: 1; min-width: 120px;">
-        <input type="url" name="url" class="search-input" placeholder="URL tienda (Opcional)" style="flex: 2; min-width: 200px;">
+        <input type="url" name="url" class="search-input" placeholder="URL tienda (Opcional)" style="flex: 2; min-width: 150px;">
         <button type="submit" class="btn">Guardar</button>
     </form>
     
@@ -100,33 +115,36 @@
 
     <div style="overflow-x: auto; margin-top: 25px;">
         <table>
-            <tr><th>Estado</th><th>Modelo</th><th>Último Precio</th><th>Última Captura</th><th style="text-align: center;">Acciones</th></tr>
+            <tr><th>Estado</th><th>Modelo</th><th>Grado</th><th>Mejor Precio</th><th>Última Captura</th><th style="text-align: center;">Acciones</th></tr>
             {% for prod in lista_productos %}
             <tr>
                 <td>
-                    {% if prod[4] == 1 %}<span style="color: #10b981; font-weight: bold;">🟢 Visible</span>
+                    {% if prod[5] == 1 %}<span style="color: #10b981; font-weight: bold;">🟢 Visible</span>
                     {% else %}<span style="color: #ef4444; font-weight: bold;">🔴 Oculto</span>{% endif %}
                 </td>
                 <td>
-                    {% if prod[2] and prod[2] != '#' %}<a href="{{ prod[2] }}" target="_blank" style="text-decoration: none;">{{ prod[0] }} 🔗</a>
-                    {% else %}{{ prod[0] }}{% endif %}
+                    <a href="/producto/{{ prod[0] }}" target="_blank" style="text-decoration: none;">{{ prod[1] }} 🔗</a>
                 </td>
-                <td><strong>{{ prod[1] }}</strong></td>
-                <td style="font-size: 0.9em; color: var(--text-muted);">{{ prod[3] }}</td>
+                <td><span style="background: var(--search-border); padding: 3px 8px; border-radius: 12px; font-size: 0.85em;">{{ prod[2] }}</span></td>
+                <td><strong>{{ prod[3] }}</strong></td>
+                <td style="font-size: 0.9em; color: var(--text-muted);">{{ prod[4] }}</td>
                 <td style="text-align: center;">
                     <div style="display: flex; gap: 8px; justify-content: center;">
-                        {% if prod[4] == 1 %}
-                            <a href="{{ url_for('admin_bp.toggle_visibilidad', nombre_producto=prod[0]) }}" class="btn" style="padding: 4px 10px; font-size: 13px; background: #64748b;" title="Ocultar">👁️‍🗨️</a>
+                        {% if prod[5] == 1 %}
+                            <a href="{{ url_for('admin_bp.toggle_visibilidad', id=prod[0], page=page, q_admin=search_query, sort_admin=sort_admin, per_page=per_page) }}" class="btn" style="padding: 4px 10px; font-size: 13px; background: #64748b;" title="Ocultar">👁️‍🗨️</a>
                         {% else %}
-                            <a href="{{ url_for('admin_bp.toggle_visibilidad', nombre_producto=prod[0]) }}" class="btn" style="padding: 4px 10px; font-size: 13px; background: #10b981;" title="Mostrar">👁️</a>
+                            <a href="{{ url_for('admin_bp.toggle_visibilidad', id=prod[0], page=page, q_admin=search_query, sort_admin=sort_admin, per_page=per_page) }}" class="btn" style="padding: 4px 10px; font-size: 13px; background: #10b981;" title="Mostrar">👁️</a>
                         {% endif %}
-                        <a href="{{ url_for('admin_bp.editar_producto', nombre_producto=prod[0]) }}" class="btn" style="padding: 4px 10px; font-size: 13px; background: #3b82f6;">✏️</a>
-                        <a href="{{ url_for('admin_bp.eliminar_producto', nombre_producto=prod[0]) }}" class="btn" style="padding: 4px 10px; font-size: 13px; background: #ef4444;" onclick="return confirm('¿Eliminar?');">🗑️</a>
+                        <a href="{{ url_for('admin_bp.editar_producto', id=prod[0], page=page, q_admin=search_query, sort_admin=sort_admin, per_page=per_page) }}" class="btn" style="padding: 4px 10px; font-size: 13px; background: #3b82f6;" title="Editar">✏️</a>
+                        <a href="{{ url_for('admin_bp.eliminar_producto', id=prod[0], page=page, q_admin=search_query, sort_admin=sort_admin, per_page=per_page) }}" class="btn" style="padding: 4px 10px; font-size: 13px; background: #ef4444;" onclick="return confirm('¿Eliminar producto y todo su historial vinculado?');" title="Eliminar">🗑️</a>
+                        
+                        <!-- NUEVO BOTÓN: FUSIÓN DE PRODUCTO -->
+                        <button type="button" onclick="abrirModalFusion('{{ prod[0] }}', '{{ prod[1] }} {{ prod[2] }}')" class="btn" style="padding: 4px 10px; font-size: 13px; background: #f59e0b; border: none; cursor: pointer; color: white;" title="Fusionar con otro producto">🔗</button>
                     </div>
                 </td>
             </tr>
             {% else %}
-            <tr><td colspan="5" style="text-align: center; color: var(--text-muted); padding: 20px;">Sin registros.</td></tr>
+            <tr><td colspan="6" style="text-align: center; color: var(--text-muted); padding: 20px;">Sin registros en el catálogo.</td></tr>
             {% endfor %}
         </table>
     </div>
@@ -169,11 +187,67 @@
         </div>
     </div>
 </div>
+
+<!-- INICIO MODAL FUSIÓN -->
+<div id="modalFusion" style="display: none; position: fixed; top: 20%; left: 50%; transform: translate(-50%, 0); width: 90%; max-width: 500px; background: var(--search-bg); padding: 25px; border: 1px solid var(--border-color); box-shadow: 0px 5px 15px rgba(0,0,0,0.5); z-index: 1000; border-radius: 8px;">
+    <h3 style="margin-top: 0; color: var(--text-main);">Fusionar Producto</h3>
+    
+    <p style="color: var(--text-main);">Todas las tiendas vinculadas a <strong id="textoDuplicado" style="color: #ef4444;"></strong> pasarán al producto que selecciones abajo. El producto original desaparecerá.</p>
+    
+    <form action="/admin/fusionar" method="POST">
+        <input type="hidden" name="id_duplicado" id="input_id_duplicado">
+        <input type="hidden" name="page" value="{{ page }}">
+        <input type="hidden" name="q_admin" value="{{ search_query }}">
+        <input type="hidden" name="sort_admin" value="{{ sort_admin }}">
+        <input type="hidden" name="per_page" value="{{ per_page }}">
+        
+        <label for="id_principal" style="font-weight: bold; display: block; margin-bottom: 8px; color: var(--text-main);">Mantener e integrar al producto:</label>
+        
+        <select name="id_principal" id="id_principal" required class="search-input" style="width: 100%; padding: 8px; margin-bottom: 20px; background: var(--search-bg); color: var(--text-main);">
+            <option value="">-- Selecciona el producto destino --</option>
+            <!-- catalogo_completo proviene de inject_global_data en app.py -->
+            {% for p in catalogo_completo %}
+                <option value="{{ p[0] }}">{{ p[1] }} {{ p[2] }}</option>
+            {% endfor %}
+        </select>
+        
+        <div style="text-align: right;">
+            <button type="button" onclick="cerrarModalFusion()" class="btn" style="background-color: #64748b; margin-right: 10px;">
+                Cancelar
+            </button>
+            <button type="submit" class="btn" style="background-color: #ef4444;">
+                Confirmar Fusión
+            </button>
+        </div>
+    </form>
+</div>
+
+<!-- Capa oscura para el fondo -->
+<div id="fondoModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 999;" onclick="cerrarModalFusion()"></div>
+<!-- FIN MODAL FUSIÓN -->
+
 <div style="margin-top: 30px;"><a href="/">⬅ Volver al radar</a></div>
 {% endblock %}
 
 {% block scripts %}
 <script>
+    // --- NUEVAS FUNCIONES PARA EL MODAL DE FUSIÓN ---
+    function abrirModalFusion(idDuplicado, nombreDuplicado) {
+        document.getElementById('input_id_duplicado').value = idDuplicado;
+        document.getElementById('textoDuplicado').innerText = nombreDuplicado;
+        
+        document.getElementById('modalFusion').style.display = 'block';
+        document.getElementById('fondoModal').style.display = 'block';
+    }
+
+    function cerrarModalFusion() {
+        document.getElementById('modalFusion').style.display = 'none';
+        document.getElementById('fondoModal').style.display = 'none';
+        
+        document.getElementById('id_principal').value = '';
+    }
+
+    // --- FUNCIÓN ORIGINAL DEL BOTÓN DE ESCANEO ---
     document.getElementById('btn-forzar-escaneo').addEventListener('click', function() {
         const btn = this;
         btn.innerText = '⏳ Escaneando... (revisa la terminal)';

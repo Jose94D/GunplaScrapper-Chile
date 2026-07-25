@@ -1,22 +1,38 @@
 {% extends "base.html" %}
 
-{% block title %}Historial: {{ nombre }}{% endblock %}
+{% block title %}Comparativa: {{ nombre_estandar }}{% endblock %}
 
 {% block extra_head %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 {% endblock %}
 
-{% block container_style %}max-width: 800px;{% endblock %}
+{% block container_style %}max-width: 900px;{% endblock %}
 
 {% block content %}
 <div class="header-top">
-    <a href="/">⬅ Volver al radar</a>
+    <a href="{{ url_for('inicio_bp.index', q=q, grado=grado, sort=sort, per_page=per_page, page=page) }}">⬅ Volver al radar</a>
     <button id="theme-toggle" class="theme-btn">🌙 Modo Oscuro</button>
 </div>
 
-<h2 style="margin-top: 20px;">{{ nombre }}</h2>
-<p><a href="{{ url_producto }}" target="_blank">🔗 Ver producto original en tienda</a></p>
+<h2 style="margin-top: 20px;">{{ nombre_estandar }}</h2>
 
+<!-- SECCIÓN: Tarjetas por Tienda -->
+<div style="display: flex; gap: 15px; flex-wrap: wrap; margin-top: 20px; margin-bottom: 30px;">
+    {% for tienda in tiendas %}
+    <div class="stat-card" style="flex: 1; min-width: 250px; display: flex; flex-direction: column; justify-content: space-between;">
+        <div>
+            <h3 style="margin-top: 0; color: var(--text-main);">🏪 {{ tienda.nombre }}</h3>
+            <div class="stat-value" style="font-size: 28px;">{{ tienda.precio }}</div>
+            <p style="color: var(--text-muted); font-size: 0.85em;">{{ tienda.nombre_original }}</p>
+        </div>
+        <a href="{{ tienda.url }}" target="_blank" class="btn" style="text-align: center; margin-top: 15px; display: block; text-decoration: none;">🛒 Ir a la tienda</a>
+    </div>
+    {% else %}
+    <p style="color: var(--text-muted);">No hay tiendas vinculadas a este producto.</p>
+    {% endfor %}
+</div>
+
+<!-- SECCIÓN: Gráfico Múltiple -->
 <div style="background: var(--bg-container); padding: 15px; border-radius: 8px; border: 1px solid var(--border-color); margin-top: 20px;">
     <canvas id="graficoPrecios"></canvas>
 </div>
@@ -26,36 +42,45 @@
 <script id="datos-fechas" type="application/json">
     {{ fechas_json | safe }}
 </script>
-<script id="datos-precios" type="application/json">
-    {{ precios_json | safe }}
+<script id="datos-datasets" type="application/json">
+    {{ datasets_json | safe }}
 </script>
 
 <script>
     const rawFechas = document.getElementById('datos-fechas').textContent;
-    const rawPrecios = document.getElementById('datos-precios').textContent;
+    const rawDatasets = document.getElementById('datos-datasets').textContent;
     
     const chartFechas = JSON.parse(rawFechas);
-    const chartPrecios = JSON.parse(rawPrecios);
+    const chartDatasets = JSON.parse(rawDatasets);
 
     const isDark = localStorage.getItem('theme') === 'dark';
     Chart.defaults.color = isDark ? '#94a3b8' : '#64748b';
     Chart.defaults.borderColor = isDark ? '#334155' : '#e2e8f0';
     
+    // Paleta de colores para las distintas líneas
+    const colores = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'];
+    
+    chartDatasets.forEach((dataset, index) => {
+        dataset.borderColor = colores[index % colores.length];
+        dataset.backgroundColor = dataset.borderColor + '20';
+        dataset.tension = 0.3;
+        dataset.fill = true;
+    });
+
     const ctx = document.getElementById('graficoPrecios').getContext('2d');
     window.myChart = new Chart(ctx, {
         type: 'line',
         data: {
             labels: chartFechas,
-            datasets: [{
-                label: 'Precio en CLP',
-                data: chartPrecios,
-                borderColor: isDark ? '#60a5fa' : '#2563eb',
-                backgroundColor: isDark ? 'rgba(96, 165, 250, 0.1)' : 'rgba(37, 99, 235, 0.1)',
-                tension: 0.3,
-                fill: true
-            }]
+            datasets: chartDatasets
         },
-        options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: false } } }
+        options: { 
+            responsive: true, 
+            plugins: { 
+                legend: { display: true, labels: { color: isDark ? '#f8fafc' : '#1e293b' } } 
+            }, 
+            scales: { y: { beginAtZero: false } } 
+        }
     });
 </script>
 {% endblock %}

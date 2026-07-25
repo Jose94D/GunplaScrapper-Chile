@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Editar Producto{% endblock %}
+{% block title %}Editar Catálogo{% endblock %}
 
 {% block page_styles %}
 <style>
@@ -9,14 +9,25 @@
 {% endblock %}
 
 {% block content %}
-<h2>✏️ Editar Producto</h2>
-<form method="POST" style="display: flex; flex-direction: column; gap: 15px;">
-    <input type="text" name="producto" class="search-input" value="{{ nombre_producto }}" required>
-    <input type="text" name="precio" class="search-input" value="{{ prod[0] }}" required>
-    <input type="url" name="url" class="search-input" value="{{ prod[1] if prod[1] != '#' else '' }}">
+<h2>✏️ Editar Modelo del Catálogo</h2>
+<p style="color: var(--text-muted); font-size: 0.9em; margin-bottom: 20px;">
+    Estás modificando el registro central. Los precios se sincronizarán automáticamente según las tiendas vinculadas a este modelo.
+</p>
+<form method="POST" action="{{ url_for('admin_bp.editar_producto', id=prod[0]) }}" style="display: flex; flex-direction: column; gap: 15px;">
+    <input type="hidden" name="page" value="{{ params.page }}">
+    <input type="hidden" name="q_admin" value="{{ params.q_admin }}">
+    <input type="hidden" name="sort_admin" value="{{ params.sort_admin }}">
+    <input type="hidden" name="per_page" value="{{ params.per_page }}">
+    
+    <label style="color: var(--text-main); font-weight: bold;">Nombre del Modelo</label>
+    <input type="text" name="producto" class="search-input" value="{{ prod[1] }}" required>
+    
+    <label style="color: var(--text-main); font-weight: bold;">Grado (Ej. HG, MG, RG)</label>
+    <input type="text" name="grado" class="search-input" value="{{ prod[2] }}" required>
+    
     <div style="display: flex; gap: 10px; margin-top: 15px;">
         <button type="submit" class="btn">Guardar Cambios</button>
-        <a href="/admin/panel" class="btn" style="background: var(--search-border); color: var(--text-main); text-decoration: none;">Cancelar</a>
+        <a href="{{ url_for('admin_bp.admin_panel', page=params.page, q_admin=params.q_admin, sort_admin=params.sort_admin, per_page=params.per_page) }}" class="btn" style="background: var(--search-border); color: var(--text-main); text-decoration: none;">Cancelar</a>
     </div>
 </form>
 {% endblock %}
