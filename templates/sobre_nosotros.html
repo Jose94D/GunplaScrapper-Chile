@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+
+{% block title %}Sobre Nosotros - Gunpla Scrapper Chile{% endblock %}
+
+{% block content %}
+<div class="header-top">
+    <a href="{{ url_for('inicio_bp.index') }}">⬅ Volver al radar</a>
+    <button id="theme-toggle" class="theme-btn">🌙 Modo Oscuro</button>
+</div>
+
+<h2 style="margin-top: 20px;">Sobre Nosotros</h2>
+<p style="color: var(--text-muted);">Conoce el proyecto, la tecnología detrás y quién lo desarrolló.</p>
+
+<!-- 1. QUÉ ES EL PROYECTO -->
+<div class="project-card" style="margin-top: 25px;">
+    <h3 style="margin-top: 0; color: var(--text-main);"> ¿Qué es Gunpla Scrapper Chile?</h3>
+    <p>
+        Esta herramienta no solo permite realizar un seguimiento histórico de productos mediante
+        scraping automatizado, sino que ofrece un catálogo global estandarizado que unifica las
+        publicaciones de distintas tiendas bajo un mismo modelo. Con esa base, los usuarios pueden
+        visualizar las fluctuaciones de precio de cada modelo mediante gráficos interactivos,
+        filtrar el catálogo por grado, y comparar de un vistazo qué tienda ofrece el mejor precio
+        en cada momento.
+    </p>
+    <p>
+        Del otro lado, el equipo administrador cuenta con un panel de control dedicado para
+        gestionar el catálogo: fusionar productos duplicados, ocultar publicaciones, y monitorear
+        el estado de cada scraper y su disponibilidad por tienda.
+    </p>
+</div>
+
+<!-- 2. STACK TÉCNICO -->
+<div class="project-card">
+    <h3 style="margin-top: 0; color: var(--text-main);"> Stack Técnico</h3>
+    <p>El proyecto está construido íntegramente en Python, con un enfoque simple y mantenible:</p>
+    <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-top: 10px;">
+        <span class="theme-btn" style="cursor: default;">Python</span>
+        <span class="theme-btn" style="cursor: default;">Flask</span>
+        <span class="theme-btn" style="cursor: default;">Jinja2</span>
+        <span class="theme-btn" style="cursor: default;">BeautifulSoup</span>
+        <span class="theme-btn" style="cursor: default;">SQLite</span>
+        <span class="theme-btn" style="cursor: default;">APScheduler</span>
+        <span class="theme-btn" style="cursor: default;">Chart.js</span>
+    </div>
+    <p style="margin-top: 15px;">
+        <strong>Flask</strong> expone el sitio y el panel administrativo, <strong>Jinja2</strong>
+        arma las vistas, <strong>BeautifulSoup</strong> se encarga de la extracción de datos desde
+        las tiendas objetivo, y <strong>APScheduler</strong> orquesta las corridas automáticas de
+        scraping dos veces al día. Todo el historial de precios queda persistido en
+        <strong>SQLite</strong> y se grafica con <strong>Chart.js</strong> en el detalle de cada producto.
+    </p>
+</div>
+
+<!-- 3. USO ÉTICO Y RESPONSABLE -->
+<div class="project-card">
+    <h3 style="margin-top: 0; color: var(--text-main);"> Uso Ético y Responsable</h3>
+    <p>
+        Este proyecto fue desarrollado con fines educativos y de análisis personal. Como único
+        responsable de la extracción de datos, me comprometo a respetar las políticas de uso de
+        los sitios web objetivo y a no saturar sus servidores con peticiones excesivas.
+    </p>
+    <p>
+        En línea con eso, los módulos de recolección de este proyecto incluyen pausas
+        (<code>time.sleep</code>) entre página y página durante el scraping, para asegurar un
+        comportamiento respetuoso con el tráfico de red de cada tienda y no comportarse como un
+        bot agresivo.
+    </p>
+</div>
+
+<!-- 4. SOBRE EL DESARROLLADOR -->
+<div class="stat-card" style="margin-top: 25px;">
+    <h3 style="margin-top: 0; color: var(--text-main);"> Sobre el Desarrollador</h3>
+    <p style="font-size: 1.1em; font-weight: 700; margin-bottom: 0;">Jose Manuel Dinamarca Ortega</p>
+    <p style="color: var(--text-muted); margin-top: 2px;">Ingeniero en Computación · Desarrollador Full Stack</p>
+    <p style="margin-top: 15px;">
+        Soy ingeniero en computación y desarrollador full stack, con base en diseño de
+        arquitectura de software, bases de datos relacionales y metodologías ágiles. Tengo
+        experiencia en liderazgo técnico, control de calidad (QA) y resolución de problemas
+        complejos, además de un fuerte enfoque en documentación técnica y buenas prácticas de
+        código (SOLID, Clean Code).
+    </p>
+    <p>
+        Fuera del código, soy amante de las maquetas y en particular de Gundam — Gunpla Scrapper
+        Chile nace de esa afición y es un proyecto que desarrollo por mi cuenta, de punta a punta:
+        extracción de datos, procesamiento, persistencia y visualización.
+    </p>
+    <div style="display: flex; gap: 12px; flex-wrap: wrap; margin-top: 20px;">
+        <a href="https://www.linkedin.com/in/jose-dinamarca-ortega/" target="_blank" class="btn" style="text-decoration: none;"> LinkedIn</a>
+        <a href="https://github.com/Jose94D" target="_blank" class="btn" style="text-decoration: none;"> GitHub</a>
+        <a href="https://jose94d.github.io/" target="_blank" class="btn" style="text-decoration: none;"> Portafolio Dev</a>
+    </div>
+</div>
+
+<!-- 5. CONTACTO / VOLVER -->
+<div style="text-align: center; margin-top: 30px;">
+    <a href="{{ url_for('inicio_bp.index') }}" class="btn" style="text-decoration: none;">⬅ Volver al catálogo</a>
+</div>
+{% endblock %}

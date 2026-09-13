@@ -1,0 +1,166 @@
+{% extends "base.html" %}
+
+{% block title %}Preguntas Frecuentes - Gunpla Scrapper Chile{% endblock %}
+
+{% block page_styles %}
+<style>
+    .faq-item {
+        background: var(--search-bg);
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius);
+        margin-bottom: 12px;
+        overflow: hidden;
+    }
+    .faq-item summary {
+        list-style: none;
+        cursor: pointer;
+        padding: 16px 20px;
+        font-weight: 700;
+        font-family: 'Plus Jakarta Sans', sans-serif;
+        color: var(--text-main);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+    }
+    .faq-item summary::-webkit-details-marker { display: none; }
+    .faq-item summary::after {
+        content: '+';
+        font-size: 1.4em;
+        color: var(--accent);
+        transition: var(--transition);
+        flex-shrink: 0;
+    }
+    .faq-item[open] summary::after { content: '−'; }
+    .faq-item .faq-answer {
+        padding: 0 20px 18px 20px;
+        color: var(--text-muted);
+    }
+    .faq-answer ul { margin: 8px 0 0 0; padding-left: 20px; }
+    .faq-answer li { margin-bottom: 6px; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="header-top">
+    <a href="{{ url_for('inicio_bp.index') }}">⬅ Volver al radar</a>
+    <button id="theme-toggle" class="theme-btn">🌙 Modo Oscuro</button>
+</div>
+
+<h2 style="margin-top: 20px;">Preguntas Frecuentes</h2>
+<p style="color: var(--text-muted); margin-bottom: 25px;">Todo lo que deberías saber sobre cómo funciona este radar de precios.</p>
+
+<details class="faq-item">
+    <summary>¿Qué tiendas revisa esta página?</summary>
+    <div class="faq-answer">
+        <p>Actualmente el radar monitorea 8 tiendas chilenas:</p>
+        <ul>
+            <li>Hangar019</li>
+            <li>Blaster Chile</li>
+            <li>ChileRobots</li>
+            <li>Irion Juguetería</li>
+            <li>Geekz</li>
+            <li>Weplay</li>
+            <li>LuffyToys</li>
+            <li>HobbyToys</li>
+        </ul>
+    </div>
+</details>
+
+<details class="faq-item">
+    <summary>¿Qué tiendas no están en la página, y por qué?</summary>
+    <div class="faq-answer">
+        <p>Evaluamos otras tiendas que decidimos dejar fuera por una razón ética y legal, no por falta de interés:</p>
+        <ul>
+            <li><strong>Mirax:</strong> su archivo <code>robots.txt</code> bloquea explícitamente el acceso automatizado a la página donde están los precios. Scrapearla de todas formas no sería ético y podría acarrear problemas legales.</li>
+            <li><strong>Top8:</strong> mismo motivo — su <code>robots.txt</code> solo permite el acceso a la portada para bots genéricos; el resto del sitio, incluido el catálogo de productos, está bloqueado.</li>
+        </ul>
+        <p>Si en algún momento estas tiendas habilitan el acceso a su catálogo, se evaluará incorporarlas.</p>
+    </div>
+</details>
+
+<details class="faq-item">
+    <summary>¿Esta página afecta los servidores de las tiendas?</summary>
+    <div class="faq-answer">
+        <p>
+            No es la intención, y está pensado para que no ocurra. Los scrapers de este proyecto están hechos de
+            forma respetuosa con el tráfico de red de cada tienda: incluyen pausas (<code>time.sleep</code>) entre
+            cada página visitada durante la recolección, en vez de disparar peticiones de forma agresiva o continua.
+        </p>
+    </div>
+</details>
+
+<details class="faq-item">
+    <summary>¿Cuál es la razón de la creación de este proyecto?</summary>
+    <div class="faq-answer">
+        <p>
+            Nace de una afición personal por el modelismo y por Gundam en particular, junto con las ganas de
+            construir de punta a punta un proyecto real de datos: extracción, procesamiento, persistencia y
+            visualización. También funciona como pieza de portafolio para mostrar trabajo full stack concreto.
+        </p>
+    </div>
+</details>
+
+<details class="faq-item">
+    <summary>¿Con qué frecuencia se actualizan los precios?</summary>
+    <div class="faq-answer">
+        <p>De forma automática, dos veces al día: a las 00:00 y a las 12:00.</p>
+    </div>
+</details>
+
+<details class="faq-item">
+    <summary>¿Los precios mostrados incluyen el despacho?</summary>
+    <div class="faq-answer">
+        <p>
+            No. Los precios corresponden a lo publicado por cada tienda al momento del escaneo, sin incluir costos
+            de despacho, que varían según la tienda y tu ubicación.
+        </p>
+    </div>
+</details>
+
+<details class="faq-item">
+    <summary>¿Puedo comprar directamente en este sitio?</summary>
+    <div class="faq-answer">
+        <p>
+            No. Este es un comparador de precios, no una tienda. El botón "Ir a la tienda" te lleva directo a la
+            publicación original para completar la compra ahí.
+        </p>
+    </div>
+</details>
+
+<details class="faq-item">
+    <summary>¿Qué significa que un producto aparezca como "No disponible"?</summary>
+    <div class="faq-answer">
+        <p>
+            Significa que, en el último escaneo, ninguna de las tiendas registradas tenía ese producto activo en su
+            catálogo. Este estado se recalcula automáticamente después de cada corrida de scraping, y el producto
+            vuelve a aparecer apenas alguna tienda lo vuelva a listar.
+        </p>
+    </div>
+</details>
+
+<details class="faq-item">
+    <summary>¿Este sitio es oficial de alguna tienda o de Bandai?</summary>
+    <div class="faq-answer">
+        <p>
+            No. Es un proyecto independiente y sin fines de lucro, sin afiliación con ninguna de las tiendas
+            listadas ni con Bandai. Los precios y la disponibilidad son referenciales.
+        </p>
+    </div>
+</details>
+
+<details class="faq-item">
+    <summary>Encontré un precio incorrecto o un error, ¿cómo lo reporto?</summary>
+    <div class="faq-answer">
+        <p>
+            Puedes escribirle directamente al desarrollador a través de su
+            <a href="{{ url_for('institucional_bp.sobre_nosotros') }}">LinkedIn o GitHub</a>, disponibles en la
+            página "Sobre Nosotros".
+        </p>
+    </div>
+</details>
+
+<div style="text-align: center; margin-top: 30px;">
+    <a href="{{ url_for('inicio_bp.index') }}" class="btn" style="text-decoration: none;">⬅ Volver al catálogo</a>
+</div>
+{% endblock %}
