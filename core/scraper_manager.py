@@ -1,88 +1,122 @@
+import time
 from datetime import datetime
+
 from scrapers.hangar import HangarScraper
 from scrapers.blaster import BlasterScraper
-from core.database import execute_query
+from scrapers.chilerobots import ChileRobotsScraper
+from scrapers.irion import IrionScraper
+from scrapers.geekz import GeekzScraper
+from scrapers.weplay import WeplayScraper
+from scrapers.luffytoys import LuffyToysScraper
+from scrapers.hobbytoys import HobbyToysScraper
+
+from core.database import execute_query, actualizar_disponibilidad_productos
 from core.logger import registrar_log
+# Importamos el gestor de catálogo (ajusta la ruta según la ubicación exacta en tu estructura)
 from core.catalog_manager import CatalogManager
+
 
 class ScraperManager:
     def __init__(self):
-        # Aquí se agregarán los futuros scrapers
-        self.scrapers = [
-            HangarScraper(),
-            BlasterScraper()
-        ]
+        # Instanciamos los motores de extracción con sus URLs base
+        self.scrapers = {
+            "Hangar019": (HangarScraper(), "https://www.hangar019.cl"),
+            "Blaster": (BlasterScraper(), "https://www.blasterchile.cl"),
+            "ChileRobots": (ChileRobotsScraper(), "https://www.chilerobots.cl"),
+            "Irion": (IrionScraper(), "https://irion.cl"),
+            "Geekz": (GeekzScraper(), "https://geekz.cl"),
+            "Weplay": (WeplayScraper(), "https://www.weplay.cl"),
+            "LuffyToys": (LuffyToysScraper(), "https://luffytoys.cl"),
+            "HobbyToys": (HobbyToysScraper(), "https://www.hobbytoys.cl")
+        }
 
-    def _guardar_producto_db(self, producto_dict, nombre_tienda):
-        """Busca o crea la publicación, y luego guarda el registro del precio histórico."""
-        prod_nombre = producto_dict['producto']
-        prod_url = producto_dict['url']
-        precio = producto_dict['precio']
-        precio_base = producto_dict['precio_base']
+    def guardar_datos(self, nombre_tienda, url_base, datos):
+        """Procesa y guarda los datos de publicaciones e historial en la base de datos."""
+        
+        # 1. Asegurar la existencia de la tienda en DB y obtener su ID
+        tienda_res = execute_query("SELECT id FROM tiendas WHERE nombre = ?", (nombre_tienda,), fetchone=True)
+        if not tienda_res:
+            execute_query("INSERT INTO tiendas (nombre, url_base) VALUES (?, ?)", (nombre_tienda, url_base), commit=True)
+            tienda_id = execute_query("SELECT MAX(id) FROM tiendas", fetchone=True)[0]
+        else:
+            tienda_id = tienda_res[0]
+
         fecha_actual = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        items_procesados = 0
 
-        # 1. Buscar si la publicación ya existe en la base de datos usando la URL única
-        publicacion = execute_query("SELECT id FROM publicaciones_tiendas WHERE url = ?", (prod_url,), fetchone=True)
-        
-        # 2. Si no existe, la creamos (quedará con catalogo_id en NULL inicialmente)
-        if not publicacion:
-            execute_query('''
-                INSERT INTO publicaciones_tiendas (tienda, nombre_original, url) 
-                VALUES (?, ?, ?)''', 
-                (nombre_tienda, prod_nombre, prod_url), 
-                commit=True)
+        # 2. Desactivar URLs de esta tienda para identificar publicaciones agotadas o retiradas
+        execute_query("UPDATE publicacion_producto SET es_url_activa = 0 WHERE tienda_id = ?", (tienda_id,), commit=True)
+
+        for item in datos:
+            nombre_orig = item['nombre_original']
+            url = item['url']
+            precio = item['precio']
+
+            # 3. Buscar si la publicación existe usando su URL única
+            pub_res = execute_query("SELECT id FROM publicacion_producto WHERE url = ?", (url,), fetchone=True)
             
-            # Volvemos a consultar para obtener el ID recién creado
-            publicacion = execute_query("SELECT id FROM publicaciones_tiendas WHERE url = ?", (prod_url,), fetchone=True)
-        
-        publicacion_id = publicacion[0]
+            if pub_res:
+                pub_id = pub_res[0]
+                # Reactivar URL y actualizar precio y título original
+                execute_query(
+                    "UPDATE publicacion_producto SET precio = ?, es_url_activa = 1, nombre_original = ? WHERE id = ?", 
+                    (precio, nombre_orig, pub_id), 
+                    commit=True
+                )
+            else:
+                # 4. Crear publicación nueva dejando producto_id en NULL.
+                # CatalogManager se encargará de normalizar el nombre y asignarle un producto.
+                execute_query(
+                    "INSERT INTO publicacion_producto (producto_id, tienda_id, nombre_original, url, precio, es_url_activa) VALUES (NULL, ?, ?, ?, ?, 1)", 
+                    (tienda_id, nombre_orig, url, precio), 
+                    commit=True
+                )
+                pub_id = execute_query("SELECT MAX(id) FROM publicacion_producto", fetchone=True)[0]
 
-        # 3. Recuperar el estado 'activo' del último registro de esta publicación
-        estado = execute_query("SELECT activo FROM historial_precios WHERE publicacion_id = ? ORDER BY fecha DESC LIMIT 1", (publicacion_id,), fetchone=True)
-        estado_activo = estado[0] if estado and estado[0] is not None else 1
-        
-        # 4. Insertar el precio en el historial usando el ID relacional
-        execute_query('''
-            INSERT INTO historial_precios (publicacion_id, precio, precio_base, fecha, activo) 
-            VALUES (?, ?, ?, ?, ?)''', 
-            (publicacion_id, precio, precio_base, fecha_actual, estado_activo), 
-            commit=True)
+            # 5. Insertar registro en el historial de precios
+            execute_query(
+                "INSERT INTO historial_precios (publicacion_producto_id, precio, fecha_registro) VALUES (?, ?, ?)", 
+                (pub_id, precio, fecha_actual), 
+                commit=True
+            )
+            items_procesados += 1
+
+        return items_procesados
 
     def ejecutar_todos(self):
-        """Recorre todos los scrapers, captura errores y guarda en DB relacional."""
-        inicio = datetime.now()
-        total_productos = 0
-        registrar_log("Iniciando ejecución del Scraper Manager...")
-        
-        for scraper in self.scrapers:
-            # Limpiamos el nombre de la clase para obtener el nombre de la tienda (Ej: 'HangarScraper' -> 'Hangar')
-            nombre_scraper = scraper.__class__.__name__
-            nombre_tienda = nombre_scraper.replace("Scraper", "")
-            
-            registrar_log(f"Iniciando recolección en: {nombre_scraper}")
+        """Ejecuta los scrapers en secuencia, guarda datos y ejecuta la estandarización de catálogo."""
+        inicio = time.time()
+        total_items = 0
+
+        for nombre_tienda, (scraper_obj, url_base) in self.scrapers.items():
             try:
-                # 1. Ejecutamos el scraper
-                productos = scraper.extraer_datos()
+                registrar_log(f"Iniciando recolección en: {nombre_tienda}")
+                datos = scraper_obj.extraer_datos()
                 
-                if not productos:
-                    registrar_log(f"Advertencia: {nombre_scraper} no devolvió ningún producto.")
-                    continue
-
-                # 2. Guardamos en la DB
-                for p in productos:
-                    self._guardar_producto_db(p, nombre_tienda)
-                    
-                total_productos += len(productos)
-                registrar_log(f"{nombre_scraper} terminó con éxito. {len(productos)} obtenidos.")
-                
+                if datos:
+                    items_guardados = self.guardar_datos(nombre_tienda, url_base, datos)
+                    total_items += items_guardados
+                    registrar_log(f"Scraper {nombre_tienda} completado. {len(datos)} items procesados.")
+                else:
+                    registrar_log(f"Advertencia: {nombre_tienda} no devolvió productos.")
             except Exception as e:
-                registrar_log(f"FALLO CRÍTICO en {nombre_scraper}: {str(e)}")
+                registrar_log(f"FALLO CRÍTICO en scraper {nombre_tienda}: {str(e)}")
 
-        duracion = (datetime.now() - inicio).total_seconds()
-        registrar_log(f"Escaneo global finalizado. Tiempo: {duracion:.1f}s. Total: {total_productos}")
-        
-        # 3. Ejecutar algoritmo de emparejamiento automático de catálogo
-        manager_catalogo = CatalogManager()
-        manager_catalogo.procesar_pendientes()
-        
-        return total_productos, duracion
+        duracion = time.time() - inicio
+        registrar_log(f"Escaneo masivo finalizado. Tiempo: {duracion:.1f}s, Total registros historizados: {total_items}")
+
+        # 6. Invocar el algoritmo de normalización y vinculación de catálogo
+        try:
+            catalog_mgr = CatalogManager()
+            catalog_mgr.procesar_pendientes()
+        except Exception as e:
+            registrar_log(f"Error durante el procesamiento de catálogo: {str(e)}")
+
+        # 7. Recalcular el estado "No disponible" según la disponibilidad real por tienda,
+        # ahora que ya se actualizó es_url_activa en todas las tiendas de esta corrida.
+        try:
+            actualizar_disponibilidad_productos()
+        except Exception as e:
+            registrar_log(f"Error al recalcular disponibilidad de productos: {str(e)}")
+
+        return total_items, duracion

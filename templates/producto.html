@@ -10,7 +10,8 @@
 
 {% block content %}
 <div class="header-top">
-    <a href="{{ url_for('inicio_bp.index', q=q, grado=grado, sort=sort, per_page=per_page, page=page) }}">⬅ Volver al radar</a>
+    <!-- SE AÑADIÓ _anchor='seccion-filtros' AL FINAL DEL url_for -->
+    <a href="{{ url_for('inicio_bp.index', q=q, grado=grado, sort=sort, per_page=per_page, page=page, _anchor='seccion-filtros') }}">⬅ Volver al radar</a>
     <button id="theme-toggle" class="theme-btn">🌙 Modo Oscuro</button>
 </div>
 
@@ -19,13 +20,24 @@
 <!-- SECCIÓN: Tarjetas por Tienda -->
 <div style="display: flex; gap: 15px; flex-wrap: wrap; margin-top: 20px; margin-bottom: 30px;">
     {% for tienda in tiendas %}
-    <div class="stat-card" style="flex: 1; min-width: 250px; display: flex; flex-direction: column; justify-content: space-between;">
+    <div class="stat-card" style="flex: 1; min-width: 250px; display: flex; flex-direction: column; justify-content: space-between; {% if not tienda.disponible %}opacity: 0.6;{% endif %}">
         <div>
-            <h3 style="margin-top: 0; color: var(--text-main);">🏪 {{ tienda.nombre }}</h3>
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 10px;">
+                <h3 style="margin-top: 0; color: var(--text-main);">🏪 {{ tienda.nombre }}</h3>
+                {% if tienda.disponible %}
+                    <span style="color: #10b981; font-weight: bold; font-size: 0.8em; white-space: nowrap;">✅ Disponible</span>
+                {% else %}
+                    <span style="color: #ef4444; font-weight: bold; font-size: 0.8em; white-space: nowrap;">❌ No disponible</span>
+                {% endif %}
+            </div>
             <div class="stat-value" style="font-size: 28px;">{{ tienda.precio }}</div>
             <p style="color: var(--text-muted); font-size: 0.85em;">{{ tienda.nombre_original }}</p>
         </div>
-        <a href="{{ tienda.url }}" target="_blank" class="btn" style="text-align: center; margin-top: 15px; display: block; text-decoration: none;">🛒 Ir a la tienda</a>
+        {% if tienda.disponible %}
+            <a href="{{ tienda.url }}" target="_blank" class="btn" style="text-align: center; margin-top: 15px; display: block; text-decoration: none;">🛒 Ir a la tienda</a>
+        {% else %}
+            <span class="btn" style="text-align: center; margin-top: 15px; display: block; background: var(--search-border); color: var(--text-muted); cursor: not-allowed;" title="Esta tienda ya no tiene el producto listado en su última revisión">Agotado / Retirado</span>
+        {% endif %}
     </div>
     {% else %}
     <p style="color: var(--text-muted);">No hay tiendas vinculadas a este producto.</p>

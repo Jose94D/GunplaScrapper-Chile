@@ -1,9 +1,12 @@
 import json
 import math
-from flask import Blueprint, render_template, request
+from datetime import datetime
+from flask import Blueprint, render_template, request, make_response
 
 # Importamos las herramientas de la base de datos y métricas
 from core.database import execute_query, get_estadisticas_globales
+
+COOKIE_VISITA = 'visita_contada'
 
 # =====================================================================
 # 1. BLUEPRINT DE INICIO (Página principal y Catálogo)
@@ -12,13 +15,13 @@ def crear_blueprint_inicio():
     """
     Controla la ruta principal ('/'). 
     Se encarga de mostrar el catálogo de productos, manejar el motor de búsqueda, 
-    los filtros, la paginación y cargar el carrusel de imágenes.
+    los filtros, la paginación y cargar los banners.
     """
     inicio_bp = Blueprint('inicio_bp', __name__)
 
     @inicio_bp.route('/')
     def index():
-        # --- A. Captura de parámetros GET (La "mochila" de la URL) ---
+        # --- A. Captura de parámetros GET ---
         search_query = request.args.get('q', '').strip()
         grado_filtro = request.args.get('grado', '')
         if grado_filtro == 'Todos':
@@ -28,84 +31,95 @@ def crear_blueprint_inicio():
         page = request.args.get('page', 1, type=int)
         per_page = request.args.get('per_page', 24, type=int)
         
-        # Validamos que los ítems por página sean los permitidos, si no, por defecto 24
+        # Validamos que los ítems por página sean los permitidos
         if per_page not in [24, 48, 120]:
             per_page = 24
             
         offset = (page - 1) * per_page
 
         # --- B. Estadísticas y Componentes Globales ---
-        # Registramos que alguien visitó la página de inicio
-        get_estadisticas_globales(incrementar_visita=True)
+        # 4.2: Solo contamos una visita por navegador por día (evita inflar el
+        # contador con recargas, F5, o vueltas atrás del mismo visitante).
+        fecha_hoy_str = datetime.now().strftime("%Y-%m-%d")
+        ya_contada_hoy = request.cookies.get(COOKIE_VISITA) == fecha_hoy_str
+        get_estadisticas_globales(incrementar_visita=not ya_contada_hoy)
 
-        # Obtenemos las imágenes y links del carrusel para el banner
-        carrusel_imgs = execute_query("SELECT filename, link FROM carrusel ORDER BY id ASC", fetchall=True)
+        # Obtenemos las imágenes adaptado a la nueva tabla 'banners'
+        carrusel_imgs = execute_query("SELECT nombre_archivo, enlace FROM banners ORDER BY id ASC", fetchall=True)
 
         # --- C. Construcción dinámica de la consulta SQL del Catálogo ---
-        # Buscamos los productos y calculamos el precio mínimo activo para cada uno
+        # Como el precio ahora es un número (REAL) en historial_precios, la consulta es directa
         query_select = """
             SELECT 
-                c.id, 
-                c.nombre_estandar, 
-                c.grado,
-                MIN(CAST(REPLACE(REPLACE(hp.precio, '$', ''), '.', '') AS INTEGER)) as precio_min_int
-            FROM catalogo_global c
-            LEFT JOIN publicaciones_tiendas pt ON c.id = pt.catalogo_id
-            LEFT JOIN historial_precios hp ON pt.id = hp.publicacion_id
+                p.id, 
+                p.nombre_estandar, 
+                p.grado,
+                MIN(hl.precio) as precio_min_int
+            FROM productos p
+            LEFT JOIN publicacion_producto pp ON p.id = pp.producto_id
+            LEFT JOIN historial_precios hl ON pp.id = hl.publicacion_producto_id
         """
         
-        # Solo tomamos en cuenta precios activos
-        where_conditions = ["(hp.activo = 1 OR hp.activo IS NULL)"]
+        # Filtramos por visibilidad Y por disponibilidad: los productos "No disponible"
+        # (sin ninguna tienda activa) no deben aparecer en el módulo de inicio.
+        where_conditions = ["p.es_visible = 1", "p.disponible = 1"]
         params = []
         
-        # Aplicamos el filtro de texto (Buscador)
         if search_query:
-            where_conditions.append("c.nombre_estandar LIKE ?")
+            where_conditions.append("p.nombre_estandar LIKE ?")
             params.append(f"%{search_query}%")
             
-        # Aplicamos el filtro de categoría/grado
         if grado_filtro:
-            where_conditions.append("c.grado = ?")
+            where_conditions.append("p.grado = ?")
             params.append(grado_filtro)
             
         where_clause = " WHERE " + " AND ".join(where_conditions)
-        group_by_clause = " GROUP BY c.id, c.nombre_estandar, c.grado"
+        group_by_clause = " GROUP BY p.id, p.nombre_estandar, p.grado"
         
         # --- D. Ordenamiento de Resultados ---
         if sort_order in ['price_asc', 'asc']: order_clause = " ORDER BY precio_min_int ASC"
         elif sort_order in ['price_desc', 'desc']: order_clause = " ORDER BY precio_min_int DESC"
-        elif sort_order == 'alpha_asc': order_clause = " ORDER BY c.nombre_estandar ASC"
-        elif sort_order == 'alpha_desc': order_clause = " ORDER BY c.nombre_estandar DESC"
+        elif sort_order == 'alpha_asc': order_clause = " ORDER BY p.nombre_estandar ASC"
+        elif sort_order == 'alpha_desc': order_clause = " ORDER BY p.nombre_estandar DESC"
         else: order_clause = " ORDER BY precio_min_int ASC"
 
         # --- E. Paginación: Cálculo del total de páginas ---
         count_query = """
-            SELECT COUNT(DISTINCT c.id) 
-            FROM catalogo_global c
-            LEFT JOIN publicaciones_tiendas pt ON c.id = pt.catalogo_id
-            LEFT JOIN historial_precios hp ON pt.id = hp.publicacion_id
+            SELECT COUNT(DISTINCT p.id) 
+            FROM productos p
+            LEFT JOIN publicacion_producto pp ON p.id = pp.producto_id
+            LEFT JOIN historial_precios hl ON pp.id = hl.publicacion_producto_id
             """ + where_clause
             
         total_items_result = execute_query(count_query, tuple(params), fetchone=True)
         total_items = total_items_result[0] if total_items_result and total_items_result[0] else 0
         total_pages = max(1, math.ceil(total_items / per_page))
 
-        # --- F. Ejecución de la consulta final con Límite y Offset ---
+        # --- F. Ejecución de la consulta final ---
         final_query = f"{query_select} {where_clause} {group_by_clause} {order_clause} LIMIT ? OFFSET ?"
         params.extend([per_page, offset])
         resultados_db = execute_query(final_query, tuple(params), fetchall=True)
         
-        # Formateamos el precio para que se vea legible en el HTML (ej: $15.000)
+        # Formateamos el número para la vista HTML
         datos = []
         for row in resultados_db:
-            precio_texto = f"${row[3]:,.0f}".replace(",", ".") if row[3] is not None else "N/A"
+            precio_texto = f"${int(row[3]):,.0f}".replace(",", ".") if row[3] is not None else "N/A"
             datos.append((row[0], row[1], row[2], precio_texto))
 
-        # Renderizamos la plantilla de inicio
-        return render_template('inicio.html', datos=datos, carrusel_imgs=carrusel_imgs, 
+        response = make_response(render_template('inicio.html', datos=datos, carrusel_imgs=carrusel_imgs, 
                                search_query=search_query, grado_filtro=grado_filtro, 
                                sort_order=sort_order, page=page, per_page=per_page, 
-                               total_pages=total_pages)
+                               total_pages=total_pages))
+
+        if not ya_contada_hoy:
+            # La cookie expira a medianoche (hora local del servidor): al día
+            # siguiente vuelve a contar una visita nueva para ese navegador.
+            ahora = datetime.now()
+            medianoche = ahora.replace(hour=23, minute=59, second=59, microsecond=0)
+            segundos_hasta_medianoche = int((medianoche - ahora).total_seconds()) + 1
+            response.set_cookie(COOKIE_VISITA, fecha_hoy_str, max_age=segundos_hasta_medianoche)
+
+        return response
 
     return inicio_bp
 
@@ -123,67 +137,69 @@ def crear_blueprint_producto():
 
     @producto_bp.route('/producto/<int:id>')
     def ver_grafico(id):
-        # --- A. Mantener parámetros para el botón de "Volver atrás" ---
+        # --- A. Mantener parámetros ---
         q = request.args.get('q', '')
         grado = request.args.get('grado', '')
         sort = request.args.get('sort', '')
         per_page = request.args.get('per_page', '')
         page = request.args.get('page', '')
 
-        # Obtenemos estadísticas globales (sin sumar visita porque ya sumó en el inicio)
         fecha, visitas = get_estadisticas_globales(incrementar_visita=False)
         
-        # --- B. Búsqueda del producto en el catálogo ---
-        cat_data = execute_query("SELECT nombre_estandar FROM catalogo_global WHERE id = ?", (id,), fetchone=True)
+        # --- B. Búsqueda del producto ---
+        cat_data = execute_query("SELECT nombre_estandar FROM productos WHERE id = ?", (id,), fetchone=True)
         if not cat_data:
             return "Producto no encontrado", 404
         nombre_estandar = cat_data[0]
 
-        # --- C. Búsqueda de publicaciones (Tiendas que venden el producto) ---
-        tiendas_db = execute_query("SELECT id, tienda, nombre_original, url FROM publicaciones_tiendas WHERE catalogo_id = ?", (id,), fetchall=True)
+        # --- C. Búsqueda de publicaciones (usando JOIN con tabla de tiendas) ---
+        query_tiendas = """
+            SELECT pp.id, t.nombre, pp.nombre_original, pp.url, pp.es_url_activa 
+            FROM publicacion_producto pp
+            JOIN tiendas t ON pp.tienda_id = t.id
+            WHERE pp.producto_id = ?
+        """
+        tiendas_db = execute_query(query_tiendas, (id,), fetchall=True)
         
         tiendas = []
         datasets = []
         todas_las_fechas = set()
         tienda_historial = {}
         
-        # --- D. Recopilación de precios históricos por tienda ---
+        # --- D. Recopilación de precios históricos ---
         for t in tiendas_db:
-            pub_id, t_nombre, t_orig, t_url = t[0], t[1], t[2], t[3]
+            pub_id, t_nombre, t_orig, t_url, t_activa = t[0], t[1], t[2], t[3], t[4]
             
-            # Buscamos el historial ordenado de más antiguo a más reciente
-            historial = execute_query("SELECT precio, fecha FROM historial_precios WHERE publicacion_id = ? ORDER BY fecha ASC", (pub_id,), fetchall=True)
+            historial = execute_query("SELECT precio, fecha_registro FROM historial_precios WHERE publicacion_producto_id = ? ORDER BY fecha_registro ASC", (pub_id,), fetchall=True)
             
-            # Último precio conocido para mostrar en la tarjeta estática
-            ultimo_precio = historial[-1][0] if historial else "N/A"
+            # Formateamos el último precio extraído para la tarjeta estática
+            ultimo_precio = f"${int(historial[-1][0]):,.0f}".replace(",", ".") if historial and historial[-1][0] is not None else "N/A"
             tiendas.append({
                 "nombre": t_nombre,
                 "nombre_original": t_orig,
                 "precio": ultimo_precio,
-                "url": t_url
+                "url": t_url,
+                "disponible": bool(t_activa)  # Registro de disponibilidad por tienda para el frontend
             })
             
-            # Limpiamos el texto del precio (convertir "$15.000" a entero 15000) para el gráfico
+            # El precio ya es numérico, lo pasamos directo a Chart.js
             precios_dict = {}
             for h in historial:
-                precio_str = h[0].replace('$', '').replace('.', '').replace(' ', '')
-                precio_int = int(precio_str) if precio_str.isdigit() else 0
-                fecha_str = h[1]
+                precio_int = int(h[0]) if h[0] is not None else 0
+                fecha_str = h[1][:10] if h[1] else "" # Aseguramos formato 'YYYY-MM-DD'
                 
                 precios_dict[fecha_str] = precio_int
-                todas_las_fechas.add(fecha_str) # Agrupamos todas las fechas detectadas
+                todas_las_fechas.add(fecha_str) 
                 
             tienda_historial[t_nombre] = precios_dict
 
-        # --- E. Preparación de datos para Chart.js (Ejes X e Y) ---
-        fechas_ordenadas = sorted(list(todas_las_fechas)) # Eje X: Fechas de menor a mayor
+        # --- E. Preparación de datos para Chart.js ---
+        fechas_ordenadas = sorted(list(todas_las_fechas)) 
         
         for t_nombre, precios_dict in tienda_historial.items():
             data_array = []
             ultimo_conocido = None
             
-            # Alineamos los precios con las fechas globales. 
-            # Si una tienda no se escaneó un día específico, mantiene el precio del día anterior.
             for f in fechas_ordenadas:
                 if f in precios_dict:
                     ultimo_conocido = precios_dict[f]
@@ -194,10 +210,9 @@ def crear_blueprint_producto():
             datasets.append({
                 "label": t_nombre,
                 "data": data_array,
-                "spanGaps": True # Propiedad de Chart.js para evitar cortes en la línea
+                "spanGaps": True 
             })
 
-        # Convertimos las listas a formato JSON para que Javascript las pueda leer
         fechas_json = json.dumps(fechas_ordenadas)
         datasets_json = json.dumps(datasets)
 
