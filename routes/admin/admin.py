@@ -159,7 +159,7 @@ def crear_blueprint_admin(scraper_manager):
 
         catalogo_completo = execute_query("SELECT id, nombre_estandar, grado FROM productos ORDER BY nombre_estandar ASC", fetchall=True)
 
-        return render_template('admin_panel.html', 
+        return render_template('admin/admin_panel.html', 
                                usuario=admin_actual, escaneados_hoy=escaneados_hoy, 
                                total_productos=total_productos_unicos, ultima_fecha=ultima_fecha_completa, 
                                lista_productos=lista_productos, lista_carrusel=lista_carrusel, 
@@ -332,7 +332,7 @@ def crear_blueprint_admin(scraper_manager):
             'sort_admin': request.args.get('sort_admin', 'date_desc'),
             'per_page': request.args.get('per_page', 24)
         }
-        return render_template('admin_edit.html', prod=prod, params=params)
+        return render_template('admin/admin_edit.html', prod=prod, params=params)
 
     @admin_bp.route('/admin/producto/toggle/<int:id>')
     @login_required

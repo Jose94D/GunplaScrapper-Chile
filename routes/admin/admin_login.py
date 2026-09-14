@@ -47,6 +47,6 @@ def crear_blueprint_admin_login(admin_user_fallback, admin_pass_fallback):
                 registrar_log(f"Intento de inicio de sesión fallido con usuario/email: {user_input}")
 
         # Si no es POST o falló el login, renderizamos la plantilla de acceso
-        return render_template('admin_login.html', error=error)
+        return render_template('admin/admin_login.html', error=error)
 
     return admin_login_bp

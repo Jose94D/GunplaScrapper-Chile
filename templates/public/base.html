@@ -2,6 +2,25 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
+
+     <title id="page-title" data-es="Jose Manuel Dinamarca Ortega | Desarrollador Full Stack" data-en="Jose Manuel Dinamarca Ortega | Full Stack Developer">Jose Manuel Dinamarca Ortega | Desarrollador Full Stack</title>
+    <meta name="description" id="meta-desc" content="Portfolio of Jose Manuel Dinamarca, Full Stack Developer and Data Engineer." data-es="Ingeniero en Computación y Desarrollador Full Stack. Explora mi experiencia profesional, habilidades técnicas y proyectos." data-en="Computer Science Engineer and Full Stack Developer. Explore my professional experience, technical skills, and projects.">
+    
+    <!-- Open Graph / LinkedIn / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="">
+    <meta property="og:title" id="og-title" content="Gunpla Scraper Chile">
+    <meta property="og:description" id="og-desc" content="Herramienta de automatización y web scraping para monitoreo de mercado en tiempo real de coleccionables (Gunpla) en Chile. Desarrollo enfocado en extracción de datos, procesamiento, normalización y centralización de información." >
+    <meta property="og:image" content="">
+
+    <!-- Twitter -->
+	<meta name="twitter:card" content="summary_large_image">
+	<meta name="twitter:url" content="">
+	<meta name="twitter:title" id="tw-title" content="Gunpla Scraper Chile" >
+	<meta name="twitter:description" id="tw-desc" content= "Herramienta de automatización y web scraping para monitoreo de mercado en tiempo real de coleccionables (Gunpla) en Chile. Desarrollo enfocado en extracción de datos, procesamiento, normalización y centralización de información." >
+	<meta name="twitter:image" content="">
+
+
     <title>{% block title %}Gunpla Scraper Chile{% endblock %}</title>
     <link rel="icon" type="image/png" href="{{ url_for('static', filename='favicon.png') }}">
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -24,12 +43,12 @@
             {% block content %}{% endblock %}
             
             <footer style="margin-top: 50px; padding: 25px 0; border-top: 1px solid var(--border-color); text-align: center; color: var(--text-muted); font-size: 0.85em;">
-                <p><strong>Gunpla Scrapper Chile</strong> | Radar de precios no oficial</p>
-                <p>Radar de precios independiente. No estamos afiliados a ninguna tienda. Los precios y disponibilidad son referenciales y se obtienen mediante escaneos automatizados.</p>
+                <p><strong>Gunpla Scraper Chile</strong> | Radar de precios no oficial</p>
+                <p>Herramienta de automatización y web scraping para monitoreo de mercado en tiempo real de coleccionables (Gunpla) en Chile. Desarrollo enfocado en extracción de datos, procesamiento, normalización y centralización de información.</p>
                 <p style="margin-top: 10px;"><strong>Tecnologías utilizadas:</strong> Hecho con Python, Flask y BeautifulSoup.</p>
                 <p style="margin-top: 10px;"><a href="{{ url_for('institucional_bp.sobre_nosotros') }}" class="enlace-grafico">Sobre Nosotros</a> · <a href="{{ url_for('institucional_bp.faq') }}" class="enlace-grafico">FAQ</a> · <a href="{{ url_for('institucional_bp.condiciones_servicio') }}" class="enlace-grafico">Condiciones de Servicio</a> · <a href="{{ url_for('institucional_bp.politicas') }}" class="enlace-grafico">Políticas de Privacidad</a></p>
                 <p style="margin-top: 10px;">Última actualización: <strong>{{ fecha }}</strong> | Visitas mensuales: <strong>{{ visitas }}</strong></p>
-                <p style="margin-top: 5px;">Construido para la comunidad de modelismo.</p>
+                <p style="margin-top: 5px;">Construido por Jose Dinamarca para la comunidad de modelismo.</p>
             </footer>
         </div>
     </div>

@@ -5,11 +5,11 @@ from apscheduler.schedulers.background import BackgroundScheduler
 from config import ADMIN_USER, ADMIN_PASS, SECRET_KEY
 
 # --- IMPORTAMOS LOS BLUEPRINTS (Rutas) ---
-from routes.admin import crear_blueprint_admin
-from routes.admin_login import crear_blueprint_admin_login
+from routes.admin.admin import crear_blueprint_admin
+from routes.admin.admin_login import crear_blueprint_admin_login
 # Importamos ambos blueprints desde views_inicio.py según la nueva estructura
-from routes.views_inicio import crear_blueprint_inicio, crear_blueprint_producto
-from routes.views_institucional import crear_blueprint_institucional
+from routes.public.views_inicio import crear_blueprint_inicio, crear_blueprint_producto
+from routes.public.views_institucional import crear_blueprint_institucional
 
 # --- IMPORTAMOS LOS MÓDULOS CORE ---
 from core.database import init_db, get_estadisticas_globales, execute_query

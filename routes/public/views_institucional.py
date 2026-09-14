@@ -13,18 +13,18 @@ def crear_blueprint_institucional():
 
     @institucional_bp.route('/sobre-nosotros')
     def sobre_nosotros():
-        return render_template('sobre_nosotros.html')
+        return render_template('public/sobre_nosotros.html')
 
     @institucional_bp.route('/faq')
     def faq():
-        return render_template('faq.html')
+        return render_template('public/faq.html')
 
     @institucional_bp.route('/condiciones-de-servicio')
     def condiciones_servicio():
-        return render_template('condiciones_servicio.html')
+        return render_template('public/condiciones_servicio.html')
 
     @institucional_bp.route('/politicas')
     def politicas():
-        return render_template('politicas.html')
+        return render_template('public/public/politicas.html')
 
     return institucional_bp
