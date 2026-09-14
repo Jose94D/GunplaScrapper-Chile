@@ -1,21 +1,25 @@
 {% extends "base.html" %}
 
-{% block title %}Políticas de Privacidad - Gunpla Scrapper Chile{% endblock %}
+{% block title %}Políticas de Privacidad - Gunpla Scrapper Chile[cite: 9]{% endblock %}
+
+{% block page_styles %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/footer_views.css') }}">
+{% endblock %}
 
 {% block content %}
 <div class="header-top">
-    <a href="{{ url_for('inicio_bp.index') }}">⬅ Volver al radar</a>
+    <a href=""></a>
     <button id="theme-toggle" class="theme-btn">🌙 Modo Oscuro</button>
 </div>
 
-<h2 style="margin-top: 20px;">Políticas de Privacidad</h2>
-<p style="color: var(--text-muted); margin-bottom: 25px;">
+<h2 class="footer_views-title">Políticas de Privacidad</h2>
+<p class="footer_views-subtitle">
     Para funcionar correctamente, este sitio guarda cierta información sobre sus visitantes en el navegador. Esta
     página detalla qué se guarda y para qué se usa.
 </p>
 
 <div class="project-card">
-    <h3 style="margin-top: 0; color: var(--text-main);"> Información almacenada</h3>
+    <h3 class="footer_views-card-title">Información almacenada</h3>
     <p>
         Gunpla Scrapper Chile no tiene registro de usuarios ni sistema de suscripción por correo para el público
         general. Lo único que se guarda en tu navegador es una cookie técnica (<code>visita_contada</code>) que
@@ -26,8 +30,8 @@
 </div>
 
 <div class="project-card">
-    <h3 style="margin-top: 0; color: var(--text-main);"> Sobre el uso de la información guardada</h3>
-    <ul style="padding-left: 20px; margin: 0; display: flex; flex-direction: column; gap: 10px;">
+    <h3 class="footer_views-card-title">Sobre el uso de la información guardada</h3>
+    <ul class="footer_views-bullet-list">
         <li>No se comparte ningún tipo de información con terceros, ya que no se recopila información identificable de los visitantes en primer lugar.</li>
         <li>No existen envíos de correos, ofertas ni notificaciones, porque el sitio no cuenta con sistema de registro ni de suscripción.</li>
         <li>La única estadística que se extrae del tráfico del sitio es el conteo de visitas mensuales, de forma agregada y anónima.</li>
@@ -35,7 +39,7 @@
 </div>
 
 <div class="project-card">
-    <h3 style="margin-top: 0; color: var(--text-main);"> Sobre el acceso a sitios de terceros</h3>
+    <h3 class="footer_views-card-title">Sobre el acceso a sitios de terceros</h3>
     <p>
         Como parte de su funcionamiento, Gunpla Scrapper Chile redirige a sitios de e-commerce de terceros (las
         tiendas listadas en el radar), cada una con sus propias políticas de privacidad y condiciones de uso.
@@ -44,7 +48,7 @@
     </p>
 </div>
 
-<div style="text-align: center; margin-top: 30px;">
-    <a href="{{ url_for('inicio_bp.index') }}" class="btn" style="text-decoration: none;">⬅ Volver al catálogo</a>
+<div class="text-center mt-30">
+    <a href="{{ url_for('inicio_bp.index') }}" class="btn no-underline">⬅ Volver al catálogo</a>
 </div>
 {% endblock %}

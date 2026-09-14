@@ -4,48 +4,48 @@
 
 {% block extra_head %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/producto.css') }}">
 {% endblock %}
 
 {% block container_style %}max-width: 900px;{% endblock %}
 
 {% block content %}
 <div class="header-top">
-    <!-- SE AÑADIÓ _anchor='seccion-filtros' AL FINAL DEL url_for -->
     <a href="{{ url_for('inicio_bp.index', q=q, grado=grado, sort=sort, per_page=per_page, page=page, _anchor='seccion-filtros') }}">⬅ Volver al radar</a>
     <button id="theme-toggle" class="theme-btn">🌙 Modo Oscuro</button>
 </div>
 
-<h2 style="margin-top: 20px;">{{ nombre_estandar }}</h2>
+<h2 class="product-title">{{ nombre_estandar }}</h2>
 
 <!-- SECCIÓN: Tarjetas por Tienda -->
-<div style="display: flex; gap: 15px; flex-wrap: wrap; margin-top: 20px; margin-bottom: 30px;">
+<div class="stores-grid">
     {% for tienda in tiendas %}
-    <div class="stat-card" style="flex: 1; min-width: 250px; display: flex; flex-direction: column; justify-content: space-between; {% if not tienda.disponible %}opacity: 0.6;{% endif %}">
+    <div class="stat-card store-card {% if not tienda.disponible %}store-unavailable{% endif %}">
         <div>
-            <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 10px;">
-                <h3 style="margin-top: 0; color: var(--text-main);">🏪 {{ tienda.nombre }}</h3>
+            <div class="store-card-header">
+                <h3 class="store-name">🏪 {{ tienda.nombre }}</h3>
                 {% if tienda.disponible %}
-                    <span style="color: #10b981; font-weight: bold; font-size: 0.8em; white-space: nowrap;">✅ Disponible</span>
+                    <span class="badge-available">✅ Disponible</span>
                 {% else %}
-                    <span style="color: #ef4444; font-weight: bold; font-size: 0.8em; white-space: nowrap;">❌ No disponible</span>
+                    <span class="badge-unavailable">❌ No disponible</span>
                 {% endif %}
             </div>
-            <div class="stat-value" style="font-size: 28px;">{{ tienda.precio }}</div>
-            <p style="color: var(--text-muted); font-size: 0.85em;">{{ tienda.nombre_original }}</p>
+            <div class="stat-value store-price">{{ tienda.precio }}</div>
+            <p class="store-original-name">{{ tienda.nombre_original }}</p>
         </div>
         {% if tienda.disponible %}
-            <a href="{{ tienda.url }}" target="_blank" class="btn" style="text-align: center; margin-top: 15px; display: block; text-decoration: none;">🛒 Ir a la tienda</a>
+            <a href="{{ tienda.url }}" target="_blank" class="btn store-btn-action">🛒 Ir a la tienda</a>
         {% else %}
-            <span class="btn" style="text-align: center; margin-top: 15px; display: block; background: var(--search-border); color: var(--text-muted); cursor: not-allowed;" title="Esta tienda ya no tiene el producto listado en su última revisión">Agotado / Retirado</span>
+            <span class="btn store-btn-disabled" title="Esta tienda ya no tiene el producto listado en su última revisión">Agotado / Retirado</span>
         {% endif %}
     </div>
     {% else %}
-    <p style="color: var(--text-muted);">No hay tiendas vinculadas a este producto.</p>
+    <p class="no-stores-text">No hay tiendas vinculadas a este producto.</p>
     {% endfor %}
 </div>
 
 <!-- SECCIÓN: Gráfico Múltiple -->
-<div style="background: var(--bg-container); padding: 15px; border-radius: 8px; border: 1px solid var(--border-color); margin-top: 20px;">
+<div class="chart-container">
     <canvas id="graficoPrecios"></canvas>
 </div>
 {% endblock %}
@@ -57,42 +57,5 @@
 <script id="datos-datasets" type="application/json">
     {{ datasets_json | safe }}
 </script>
-
-<script>
-    const rawFechas = document.getElementById('datos-fechas').textContent;
-    const rawDatasets = document.getElementById('datos-datasets').textContent;
-    
-    const chartFechas = JSON.parse(rawFechas);
-    const chartDatasets = JSON.parse(rawDatasets);
-
-    const isDark = localStorage.getItem('theme') === 'dark';
-    Chart.defaults.color = isDark ? '#94a3b8' : '#64748b';
-    Chart.defaults.borderColor = isDark ? '#334155' : '#e2e8f0';
-    
-    // Paleta de colores para las distintas líneas
-    const colores = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'];
-    
-    chartDatasets.forEach((dataset, index) => {
-        dataset.borderColor = colores[index % colores.length];
-        dataset.backgroundColor = dataset.borderColor + '20';
-        dataset.tension = 0.3;
-        dataset.fill = true;
-    });
-
-    const ctx = document.getElementById('graficoPrecios').getContext('2d');
-    window.myChart = new Chart(ctx, {
-        type: 'line',
-        data: {
-            labels: chartFechas,
-            datasets: chartDatasets
-        },
-        options: { 
-            responsive: true, 
-            plugins: { 
-                legend: { display: true, labels: { color: isDark ? '#f8fafc' : '#1e293b' } } 
-            }, 
-            scales: { y: { beginAtZero: false } } 
-        }
-    });
-</script>
+<script src="{{ url_for('static', filename='js/producto.js') }}"></script>
 {% endblock %}

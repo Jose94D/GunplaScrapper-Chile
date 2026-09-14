@@ -82,7 +82,10 @@ def crear_blueprint_admin(scraper_manager):
         
         order_clause = {
             'price_asc': "precio_min_int ASC",
-            'price_desc': "precio_min_int DESC"
+            'price_desc': "precio_min_int DESC",
+            'alpha_asc': "c.nombre_estandar ASC",
+            'alpha_desc': "c.nombre_estandar DESC",
+            'date_desc': "ultima_fecha DESC"
         }.get(sort_admin, "ultima_fecha DESC")
 
         # 2.6: Orden de estado fijo, sin importar el filtro/orden elegido por el usuario:

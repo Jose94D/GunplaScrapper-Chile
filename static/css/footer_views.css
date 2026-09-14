@@ -1,0 +1,131 @@
+/* --- ESTILOS PARA VISTAS ESTÁTICAS DEL FOOTER --- */
+.text-center { text-align: center; }
+.no-underline { text-decoration: none; }
+.mt-30 { margin-top: 30px; }
+
+.footer_views-title {
+    margin-top: 20px;
+    color: var(--text-main);
+}
+
+.footer_views-subtitle {
+    color: var(--text-muted);
+    margin-bottom: 25px;
+}
+
+.footer_views-list {
+    padding-left: 20px;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    color: var(--text-main);
+}
+
+.footer_views-list li {
+    line-height: 1.6;
+}
+
+/* --- COMPONENTE ACORDEÓN (FAQ) --- */
+.faq-item {
+    background: var(--search-bg);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius);
+    margin-bottom: 12px;
+    overflow: hidden;
+}
+
+.faq-item summary {
+    list-style: none;
+    cursor: pointer;
+    padding: 16px 20px;
+    font-weight: 700;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    color: var(--text-main);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+}
+
+.faq-item summary::-webkit-details-marker { 
+    display: none; 
+}
+
+.faq-item summary::after {
+    content: '+';
+    font-size: 1.4em;
+    color: var(--accent);
+    transition: var(--transition);
+    flex-shrink: 0;
+}
+
+.faq-item[open] summary::after { 
+    content: '−'; 
+}
+
+.faq-item .faq-answer {
+    padding: 0 20px 18px 20px;
+    color: var(--text-muted);
+}
+
+.faq-answer ul { 
+    margin: 8px 0 0 0; 
+    padding-left: 20px; 
+}
+
+.faq-answer li { 
+    margin-bottom: 6px; 
+}
+
+.footer_views-card-title {
+    margin-top: 0;
+    color: var(--text-main);
+}
+
+.footer_views-bullet-list {
+    padding-left: 20px;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    color: var(--text-main);
+}
+
+.footer_views-bullet-list li {
+    line-height: 1.6;
+}
+
+/* --- COMPONENTES ESPECÍFICOS PARA SOBRE NOSOTROS --- */
+.mt-25 { margin-top: 25px; }
+.mt-15 { margin-top: 15px; }
+
+.tech-tags-container {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: 10px;
+}
+
+.tech-tag-static {
+    cursor: default;
+}
+
+.dev-name {
+    font-size: 1.1em;
+    font-weight: 700;
+    margin-bottom: 0;
+    color: var(--text-main);
+}
+
+.dev-role {
+    color: var(--text-muted);
+    margin-top: 2px;
+}
+
+.dev-links-container {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-top: 20px;
+}
