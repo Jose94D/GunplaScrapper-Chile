@@ -106,7 +106,7 @@ def crear_blueprint_inicio():
             precio_texto = f"${int(row[3]):,.0f}".replace(",", ".") if row[3] is not None else "N/A"
             datos.append((row[0], row[1], row[2], precio_texto))
 
-        response = make_response(render_template('inicio.html', datos=datos, carrusel_imgs=carrusel_imgs, 
+        response = make_response(render_template('public/inicio.html', datos=datos, carrusel_imgs=carrusel_imgs, 
                                search_query=search_query, grado_filtro=grado_filtro, 
                                sort_order=sort_order, page=page, per_page=per_page, 
                                total_pages=total_pages))
@@ -216,7 +216,7 @@ def crear_blueprint_producto():
         fechas_json = json.dumps(fechas_ordenadas)
         datasets_json = json.dumps(datasets)
 
-        return render_template('producto.html',
+        return render_template('public/producto.html',
                                nombre_estandar=nombre_estandar,
                                tiendas=tiendas,
                                fecha=fecha,

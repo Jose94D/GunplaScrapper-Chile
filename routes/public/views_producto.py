@@ -91,7 +91,7 @@ def crear_blueprint_producto():
         datasets_json = json.dumps(datasets)
 
         # 8. PASAMOS LOS PARÁMETROS A LA PLANTILLA PARA MANTENER LA PERSISTENCIA
-        return render_template('producto.html',
+        return render_template('public/producto.html',
                                nombre_estandar=nombre_estandar,
                                tiendas=tiendas,
                                fecha=fecha,
