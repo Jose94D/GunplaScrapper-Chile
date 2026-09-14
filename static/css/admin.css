@@ -1,0 +1,103 @@
+/* Utilidades Generales Admin */
+.text-center { text-align: center; }
+.text-right { text-align: right; }
+.text-muted { color: var(--text-muted); }
+.text-danger { color: #ef4444; }
+.text-wrap { word-break: break-word; }
+.small-text { font-size: 0.9em; }
+.no-underline { text-decoration: none; }
+.w-100 { width: 100%; }
+.full-width { width: 100%; max-width: none; box-sizing: border-box; }
+.mt-0 { margin-top: 0; }
+.mt-30 { margin-top: 30px; }
+.mb-20 { margin-bottom: 20px; }
+.mr-10 { margin-right: 10px; }
+.shrink-0 { flex-shrink: 0; white-space: nowrap; }
+
+/* Alertas y Botones Específicos */
+.admin-alert { background-color: #ef4444; color: white; padding: 15px; text-align: center; font-weight: bold; }
+.btn-logout { background: var(--search-border); color: var(--text-main); margin-left: 10px; }
+.btn-sm { font-size: 12px; padding: 5px 8px; }
+.btn-lg { padding: 12px; text-decoration: none; }
+.btn-block { display: block; }
+.btn-icon { padding: 4px 10px; font-size: 13px; border: none; cursor: pointer; color: white; }
+
+/* Colores de Botones */
+.btn-blue { background: #3b82f6; }
+.btn-red { background: #ef4444; }
+.btn-green { background: #10b981; }
+.btn-gray { background: #64748b; }
+.btn-orange { background: #f59e0b; }
+
+/* Avatares */
+.avatar-container { margin-bottom: 20px; }
+.admin-avatar { width: 200px; height: 200px; object-fit: cover; }
+.admin-avatar-light { display: inline-block; }
+.admin-avatar-dark { display: none; }
+body[data-theme="dark"] .admin-avatar-light { display: none !important; }
+body[data-theme="dark"] .admin-avatar-dark { display: inline-block !important; }
+
+/* Grillas y Secciones */
+.admin-section { margin-top: 40px; padding-top: 20px; border-top: 1px solid var(--border-color); }
+.admin-stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-top: 30px; }
+.stat-label { color: var(--text-muted); font-size: 0.9em; }
+
+/* Logs */
+.log-viewer { background: var(--search-bg); padding: 15px; border-radius: 8px; border: 1px solid var(--search-border); max-height: 200px; overflow-y: auto; }
+.log-entry { margin-bottom: 8px; font-size: 0.9em; }
+.log-date { color: var(--text-muted); }
+
+/* Carrusel Admin */
+.form-wrap { flex-wrap: wrap; gap: 10px; }
+.file-input { flex: 1; min-width: 200px; }
+.url-input { flex: 2; min-width: 200px; }
+.carousel-admin-grid { display: flex; gap: 15px; flex-wrap: nowrap; overflow-x: auto; margin-top: 20px; padding-bottom: 15px; scrollbar-width: thin; }
+.carousel-admin-card { flex-shrink: 0; border: 1px solid var(--border-color); padding: 10px; border-radius: 8px; text-align: center; background: var(--search-bg); width: 220px; display: flex; flex-direction: column; justify-content: space-between; }
+.carousel-preview { width: 100%; height: 100px; object-fit: cover; border-radius: 4px; margin-bottom: 10px; }
+.carousel-edit-form { margin-bottom: 15px; display: flex; flex-direction: column; gap: 8px; }
+.mini-input { width: 100%; box-sizing: border-box; font-size: 12px; padding: 6px; }
+
+/* Tabla de Productos Admin */
+.table-responsive { overflow-x: auto; margin-top: 25px; }
+.tier-divider { text-align: center; padding: 8px; background: var(--search-bg); color: var(--text-muted); font-size: 0.8em; text-transform: uppercase; letter-spacing: 0.5px; }
+.row-faded { opacity: 0.55; }
+.status-badge { font-weight: bold; }
+.status-unavailable { color: #f59e0b; }
+.status-visible { color: #10b981; }
+.status-hidden { color: #ef4444; }
+.action-buttons { display: flex; gap: 8px; justify-content: center; }
+
+/* Acciones del Sistema */
+.system-actions-grid { display: flex; flex-wrap: wrap; gap: 20px; margin-top: 20px; }
+.credentials-card { flex: 1; min-width: 300px; background: var(--search-bg); padding: 20px; border-radius: 8px; border: 1px solid var(--search-border); }
+.credentials-form { display: flex; flex-direction: column; gap: 10px; width: 100%; }
+.actions-group { flex: 1; min-width: 300px; display: flex; flex-direction: column; gap: 15px; justify-content: center; }
+
+/* Modal Fusión */
+.admin-modal { display: none; position: fixed; top: 20%; left: 50%; transform: translate(-50%, 0); width: 90%; max-width: 500px; background: var(--search-bg); padding: 25px; border: 1px solid var(--border-color); box-shadow: 0px 5px 15px rgba(0,0,0,0.5); z-index: 1000; border-radius: 8px; }
+.admin-modal h3 { color: var(--text-main); }
+.admin-modal p { color: var(--text-main); }
+.modal-label { font-weight: bold; display: block; margin-bottom: 8px; color: var(--text-main); }
+.modal-backdrop { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 999; }
+
+/* --- VISTA DE LOGIN --- */
+.login-container {
+    max-width: 400px;
+    margin: 80px auto 0 auto;
+}
+
+.login-form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.admin-login-error {
+    color: #ef4444;
+    text-align: center;
+    font-weight: bold;
+}
+
+.mt-20 { 
+    margin-top: 20px; 
+}

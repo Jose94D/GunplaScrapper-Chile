@@ -1,19 +1,23 @@
 {% extends "base.html" %}
 
-{% block title %}Sobre Nosotros - Gunpla Scrapper Chile{% endblock %}
+{% block title %}Sobre Nosotros - Gunpla Scrapper Chile[cite: 10]{% endblock %}
+
+{% block page_styles %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/footer_views.css') }}">
+{% endblock %}
 
 {% block content %}
 <div class="header-top">
-    <a href="{{ url_for('inicio_bp.index') }}">⬅ Volver al radar</a>
+    <a href=""></a>
     <button id="theme-toggle" class="theme-btn">🌙 Modo Oscuro</button>
 </div>
 
-<h2 style="margin-top: 20px;">Sobre Nosotros</h2>
-<p style="color: var(--text-muted);">Conoce el proyecto, la tecnología detrás y quién lo desarrolló.</p>
+<h2 class="footer_views-title">Sobre Nosotros</h2>
+<p class="footer_views-subtitle">Conoce el proyecto, la tecnología detrás y quién lo desarrolló.</p>
 
 <!-- 1. QUÉ ES EL PROYECTO -->
-<div class="project-card" style="margin-top: 25px;">
-    <h3 style="margin-top: 0; color: var(--text-main);"> ¿Qué es Gunpla Scrapper Chile?</h3>
+<div class="project-card mt-25">
+    <h3 class="footer_views-card-title">¿Qué es Gunpla Scrapper Chile?</h3>
     <p>
         Esta herramienta no solo permite realizar un seguimiento histórico de productos mediante
         scraping automatizado, sino que ofrece un catálogo global estandarizado que unifica las
@@ -31,18 +35,18 @@
 
 <!-- 2. STACK TÉCNICO -->
 <div class="project-card">
-    <h3 style="margin-top: 0; color: var(--text-main);"> Stack Técnico</h3>
+    <h3 class="footer_views-card-title">Stack Técnico</h3>
     <p>El proyecto está construido íntegramente en Python, con un enfoque simple y mantenible:</p>
-    <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-top: 10px;">
-        <span class="theme-btn" style="cursor: default;">Python</span>
-        <span class="theme-btn" style="cursor: default;">Flask</span>
-        <span class="theme-btn" style="cursor: default;">Jinja2</span>
-        <span class="theme-btn" style="cursor: default;">BeautifulSoup</span>
-        <span class="theme-btn" style="cursor: default;">SQLite</span>
-        <span class="theme-btn" style="cursor: default;">APScheduler</span>
-        <span class="theme-btn" style="cursor: default;">Chart.js</span>
+    <div class="tech-tags-container">
+        <span class="theme-btn tech-tag-static">Python</span>
+        <span class="theme-btn tech-tag-static">Flask</span>
+        <span class="theme-btn tech-tag-static">Jinja2</span>
+        <span class="theme-btn tech-tag-static">BeautifulSoup</span>
+        <span class="theme-btn tech-tag-static">SQLite</span>
+        <span class="theme-btn tech-tag-static">APScheduler</span>
+        <span class="theme-btn tech-tag-static">Chart.js</span>
     </div>
-    <p style="margin-top: 15px;">
+    <p class="mt-15">
         <strong>Flask</strong> expone el sitio y el panel administrativo, <strong>Jinja2</strong>
         arma las vistas, <strong>BeautifulSoup</strong> se encarga de la extracción de datos desde
         las tiendas objetivo, y <strong>APScheduler</strong> orquesta las corridas automáticas de
@@ -53,7 +57,7 @@
 
 <!-- 3. USO ÉTICO Y RESPONSABLE -->
 <div class="project-card">
-    <h3 style="margin-top: 0; color: var(--text-main);"> Uso Ético y Responsable</h3>
+    <h3 class="footer_views-card-title">Uso Ético y Responsable</h3>
     <p>
         Este proyecto fue desarrollado con fines educativos y de análisis personal. Como único
         responsable de la extracción de datos, me comprometo a respetar las políticas de uso de
@@ -68,11 +72,11 @@
 </div>
 
 <!-- 4. SOBRE EL DESARROLLADOR -->
-<div class="stat-card" style="margin-top: 25px;">
-    <h3 style="margin-top: 0; color: var(--text-main);"> Sobre el Desarrollador</h3>
-    <p style="font-size: 1.1em; font-weight: 700; margin-bottom: 0;">Jose Manuel Dinamarca Ortega</p>
-    <p style="color: var(--text-muted); margin-top: 2px;">Ingeniero en Computación · Desarrollador Full Stack</p>
-    <p style="margin-top: 15px;">
+<div class="stat-card mt-25">
+    <h3 class="footer_views-card-title">Sobre el Desarrollador</h3>
+    <p class="dev-name">Jose Manuel Dinamarca Ortega</p>
+    <p class="dev-role">Ingeniero en Computación · Desarrollador Full Stack</p>
+    <p class="mt-15">
         Soy ingeniero en computación y desarrollador full stack, con base en diseño de
         arquitectura de software, bases de datos relacionales y metodologías ágiles. Tengo
         experiencia en liderazgo técnico, control de calidad (QA) y resolución de problemas
@@ -84,15 +88,15 @@
         Chile nace de esa afición y es un proyecto que desarrollo por mi cuenta, de punta a punta:
         extracción de datos, procesamiento, persistencia y visualización.
     </p>
-    <div style="display: flex; gap: 12px; flex-wrap: wrap; margin-top: 20px;">
-        <a href="https://www.linkedin.com/in/jose-dinamarca-ortega/" target="_blank" class="btn" style="text-decoration: none;"> LinkedIn</a>
-        <a href="https://github.com/Jose94D" target="_blank" class="btn" style="text-decoration: none;"> GitHub</a>
-        <a href="https://jose94d.github.io/" target="_blank" class="btn" style="text-decoration: none;"> Portafolio Dev</a>
+    <div class="dev-links-container">
+        <a href="https://www.linkedin.com/in/jose-dinamarca-ortega/" target="_blank" class="btn no-underline">LinkedIn</a>
+        <a href="https://github.com/Jose94D" target="_blank" class="btn no-underline">GitHub</a>
+        <a href="https://jose94d.github.io/" target="_blank" class="btn no-underline">Portafolio Dev</a>
     </div>
 </div>
 
 <!-- 5. CONTACTO / VOLVER -->
-<div style="text-align: center; margin-top: 30px;">
-    <a href="{{ url_for('inicio_bp.index') }}" class="btn" style="text-decoration: none;">⬅ Volver al catálogo</a>
+<div class="text-center mt-30">
+    <a href="{{ url_for('inicio_bp.index') }}" class="btn no-underline">⬅ Volver al catálogo</a>
 </div>
 {% endblock %}

@@ -3,23 +3,26 @@
 {% block title %}Admin Login{% endblock %}
 
 {% block page_styles %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
 <style>
     .container { max-width: 400px; margin-top: 100px; }
 </style>
 {% endblock %}
 
 {% block content %}
-<h2 style="text-align: center;">Acceso Administrador</h2>
+<h2 class="text-center">Acceso Administrador</h2>
 
 {% if error %}
-    <p style="color: #ef4444; text-align: center;">{{ error }}</p>
+    <p class="admin-login-error">{{ error }}</p>
 {% endif %}
 
-<form method="POST" style="display: flex; flex-direction: column; gap: 15px;">
-    <input type="text" name="username" class="search-input" placeholder="Usuario" required style="width: 100%; max-width: none; box-sizing: border-box;">
-    <input type="password" name="password" class="search-input" placeholder="Contraseña" required style="width: 100%; max-width: none; box-sizing: border-box;">
-    <button type="submit" class="btn" style="width: 100%;">Ingresar</button>
+<form method="POST" class="login-form">
+    <input type="text" name="username" class="search-input full-width" placeholder="Usuario" required autocomplete="username">
+    <input type="password" name="password" class="search-input full-width" placeholder="Contraseña" required autocomplete="current-password">
+    <button type="submit" class="btn full-width">Ingresar</button>
 </form>
 
-<div style="text-align: center; margin-top: 20px;"><a href="/">⬅ Volver al inicio</a></div>
+<div class="text-center mt-20">
+    <a href="/">⬅ Volver al inicio</a>
+</div>
 {% endblock %}

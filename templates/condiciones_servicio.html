@@ -2,20 +2,24 @@
 
 {% block title %}Condiciones de Servicio - Gunpla Scrapper Chile{% endblock %}
 
+{% block page_styles %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/footer_views.css') }}">
+{% endblock %}
+
 {% block content %}
 <div class="header-top">
-    <a href="{{ url_for('inicio_bp.index') }}">⬅ Volver al radar</a>
+    <a href=""></a>
     <button id="theme-toggle" class="theme-btn">🌙 Modo Oscuro</button>
 </div>
 
-<h2 style="margin-top: 20px;">Condiciones de Servicio</h2>
-<p style="color: var(--text-muted); margin-bottom: 25px;">
+<h2 class="footer_views-title">Condiciones de Servicio</h2>
+<p class="footer_views-subtitle">
     El uso de este sitio implica la aceptación plena de las condiciones descritas a continuación, aplicables
     también a la información y funcionalidades disponibles en él.
 </p>
 
 <div class="project-card">
-    <ol style="padding-left: 20px; margin: 0; display: flex; flex-direction: column; gap: 16px;">
+    <ol class="footer_views-list">
         <li>
             Gunpla Scrapper Chile hace su mejor esfuerzo por mantener los precios y la disponibilidad
             actualizados y libres de errores, pero no puede garantizar la exactitud ni la integridad de esta
@@ -47,7 +51,7 @@
     </ol>
 </div>
 
-<div style="text-align: center; margin-top: 30px;">
-    <a href="{{ url_for('inicio_bp.index') }}" class="btn" style="text-decoration: none;">⬅ Volver al catálogo</a>
+<div class="text-center mt-30">
+    <a href="{{ url_for('inicio_bp.index') }}" class="btn no-underline">⬅ Volver al catálogo</a>
 </div>
 {% endblock %}

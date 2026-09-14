@@ -33,7 +33,7 @@ Esta herramienta no solo permite realizar un **seguimiento histórico** de produ
  
 Hangar019 · Blaster Chile · ChileRobots · Irion Juguetería · Geekz · Weplay · LuffyToys · HobbyToys
  
-Algunas tiendas evaluadas quedaron fuera deliberadamente por su `robots.txt` (Mirax, Top8): bloquean explícitamente el acceso automatizado a sus catálogos, y scrapearlas de todas formas no sería ético. El detalle está en la página de [Preguntas Frecuentes](/faq) del sitio.
+Algunas tiendas evaluadas quedaron fuera deliberadamente por su `robots.txt` (Mirax, Top8, Bluecard, Wargaming): bloquean explícitamente el acceso automatizado a sus catálogos, y scrapearlas de todas formas no sería ético. El detalle está en la página de Preguntas Frecuentes del sitio.
  
 ---
  
@@ -100,4 +100,4 @@ El escaneo completo de las 8 tiendas corre automáticamente dos veces al día (0
 ---
  
 ## Nota de Uso
-Este proyecto ha sido desarrollado con fines educativos y de análisis personal. Como único responsable de la extracción de datos, me comprometo a respetar las políticas de uso de los sitios web objetivo y a no saturar sus servidores con peticiones excesivas. Los módulos de recolección incluyen pausas (`time.sleep`) entre páginas para asegurar un comportamiento respetuoso con el tráfico de red. Más detalles en las páginas [Sobre Nosotros](/sobre-nosotros) y [FAQ](/faq) del sitio.
+Este proyecto ha sido desarrollado con fines educativos y de análisis personal. Como único responsable de la extracción de datos, me comprometo a respetar las políticas de uso de los sitios web objetivo y a no saturar sus servidores con peticiones excesivas. Los módulos de recolección incluyen pausas (`time.sleep`) entre páginas para asegurar un comportamiento respetuoso con el tráfico de red. Más detalles en las páginas Sobre Nosotros y FAQ del sitio.
