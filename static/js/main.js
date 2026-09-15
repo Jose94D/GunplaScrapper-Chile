@@ -1,33 +1,53 @@
 document.addEventListener("DOMContentLoaded", () => {
-    // Lógica del Cambio de Tema
+    // --- Lógica del Cambio de Tema ---
     const themeBtn = document.getElementById('theme-toggle');
     const bannerImg = document.getElementById('main-banner');
 
-    function applyTheme(theme) {
-        if (theme === 'dark') {
-            document.body.setAttribute('data-theme', 'dark');
-            if(bannerImg) bannerImg.src = '/static/Banner_dark.png';
-            if(themeBtn) themeBtn.innerHTML = '☀️ Modo Claro';
-        } else {
-            document.body.removeAttribute('data-theme');
-            if(bannerImg) bannerImg.src = '/static/Banner_light.png';
-            if(themeBtn) themeBtn.innerHTML = '🌙 Modo Oscuro';
-        }
+    // 1. Sincronizar UI (Imágenes y botones) al cargar la página
+    // No manipulamos el fondo principal aquí para evitar el parpadeo blanco.
+    // El script en el <head> de base.html ya aplicó el data-theme a la etiqueta html.
+    const currentTheme = localStorage.getItem('theme') || 'dark'; 
+    
+    if (currentTheme === 'dark') {
+        // Aseguramos que el body también tenga el atributo por si tu CSS depende de él
+        document.body.setAttribute('data-theme', 'dark');
+        if (bannerImg) bannerImg.src = '/static/Banner_dark.png';
+        if (themeBtn) themeBtn.innerHTML = '☀️ Modo Claro';
+    } else {
+        document.body.removeAttribute('data-theme');
+        if (bannerImg) bannerImg.src = '/static/Banner_light.png';
+        if (themeBtn) themeBtn.innerHTML = '🌙 Modo Oscuro';
     }
 
-    const currentTheme = localStorage.getItem('theme') || 'dark';
-    applyTheme(currentTheme);
-
-    if(themeBtn) {
+    // 2. Evento de Clic para alternar el tema
+    if (themeBtn) {
         themeBtn.addEventListener('click', () => {
-            let newTheme = document.body.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+            // Verificamos el estado actual
+            const isDark = document.documentElement.getAttribute('data-theme') === 'dark' || document.body.getAttribute('data-theme') === 'dark';
+            const newTheme = isDark ? 'light' : 'dark';
+            
+            // Aplicamos los cambios al DOM (html y body para máxima compatibilidad)
+            if (newTheme === 'dark') {
+                document.documentElement.setAttribute('data-theme', 'dark');
+                document.body.setAttribute('data-theme', 'dark');
+                if (bannerImg) bannerImg.src = '/static/Banner_dark.png';
+                if (themeBtn) themeBtn.innerHTML = '☀️ Modo Claro';
+            } else {
+                document.documentElement.removeAttribute('data-theme');
+                document.body.removeAttribute('data-theme');
+                if (bannerImg) bannerImg.src = '/static/Banner_light.png';
+                if (themeBtn) themeBtn.innerHTML = '🌙 Modo Oscuro';
+            }
+
+            // Guardamos la preferencia
             localStorage.setItem('theme', newTheme);
-            applyTheme(newTheme);
-            if(window.myChart) location.reload();
+
+            // Si existe un gráfico (Chart.js), recargamos la página para que tome los nuevos colores
+            if (window.myChart) location.reload();
         });
     }
 
-    // Lógica del Efecto Spotlight (Cursor en Tarjetas)
+    // --- Lógica del Efecto Spotlight (Cursor en Tarjetas) ---
     document.addEventListener('mousemove', (e) => {
         const cards = document.querySelectorAll('.stat-card, .project-card');
         
@@ -41,7 +61,7 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     });
 
-    // Lógica del Carrusel
+    // --- Lógica del Carrusel ---
     const slides = document.getElementById('carousel-slides');
     const prevBtn = document.getElementById('btn-carousel-prev');
     const nextBtn = document.getElementById('btn-carousel-next');
