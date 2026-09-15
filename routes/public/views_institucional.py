@@ -25,6 +25,6 @@ def crear_blueprint_institucional():
 
     @institucional_bp.route('/politicas')
     def politicas():
-        return render_template('public/public/politicas.html')
+        return render_template('public/politicas.html')
 
     return institucional_bp

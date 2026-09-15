@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
 
-     <title id="page-title" data-es="Jose Manuel Dinamarca Ortega | Desarrollador Full Stack" data-en="Jose Manuel Dinamarca Ortega | Full Stack Developer">Jose Manuel Dinamarca Ortega | Desarrollador Full Stack</title>
-    <meta name="description" id="meta-desc" content="Portfolio of Jose Manuel Dinamarca, Full Stack Developer and Data Engineer." data-es="Ingeniero en Computación y Desarrollador Full Stack. Explora mi experiencia profesional, habilidades técnicas y proyectos." data-en="Computer Science Engineer and Full Stack Developer. Explore my professional experience, technical skills, and projects.">
+     <title id="page-title" data-es="Gunpla Scraper - Chile"> Gunpla Scraper - Chile</title>
+    <meta name="description" id="meta-desc" content="Herramienta de automatización y web scraping para monitoreo de mercado en tiempo real de coleccionables (Gunpla) en Chile. Desarrollo enfocado en extracción de datos, procesamiento, normalización y centralización de información." >
     
     <!-- Open Graph / LinkedIn / Facebook -->
     <meta property="og:type" content="website">
@@ -14,11 +14,11 @@
     <meta property="og:image" content="">
 
     <!-- Twitter -->
-	<meta name="twitter:card" content="summary_large_image">
-	<meta name="twitter:url" content="">
-	<meta name="twitter:title" id="tw-title" content="Gunpla Scraper Chile" >
-	<meta name="twitter:description" id="tw-desc" content= "Herramienta de automatización y web scraping para monitoreo de mercado en tiempo real de coleccionables (Gunpla) en Chile. Desarrollo enfocado en extracción de datos, procesamiento, normalización y centralización de información." >
-	<meta name="twitter:image" content="">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:url" content="">
+    <meta name="twitter:title" id="tw-title" content="Gunpla Scraper Chile" >
+    <meta name="twitter:description" id="tw-desc" content= "Herramienta de automatización y web scraping para monitoreo de mercado en tiempo real de coleccionables (Gunpla) en Chile. Desarrollo enfocado en extracción de datos, procesamiento, normalización y centralización de información." >
+    <meta name="twitter:image" content="">
 
 
     <title>{% block title %}Gunpla Scraper Chile{% endblock %}</title>
@@ -34,9 +34,24 @@
     {% block page_styles %}{% endblock %}
 </head>
 <body>
+    <!-- SCRIPT 1: Aplica el fondo oscuro al instante en el body -->
+    <script>
+        if (localStorage.getItem('theme') === 'dark') {
+            document.documentElement.setAttribute('data-theme', 'dark');
+            document.body.setAttribute('data-theme', 'dark');
+        }
+    </script>
+
     <div class="container">
         <img id="main-banner" class="banner-img" src="{{ url_for('static', filename='Banner_light.png') }}" alt="Gunpla Scrapper Chile">
         
+        <!-- SCRIPT 2: Intercepta y cambia la imagen ANTES de que el navegador la dibuje -->
+        <script>
+            if (localStorage.getItem('theme') === 'dark') {
+                document.getElementById('main-banner').src = "{{ url_for('static', filename='Banner_dark.png') }}";
+            }
+        </script>
+
         {% block alertas %}{% endblock %}
 
         <div class="content-padding">
