@@ -59,8 +59,11 @@ class BlasterScraper:
                     intentos += 1
                     time.sleep(5)
 
-            if not res or res.status_code != 200:
-                break
+            # Un fallo a mitad de la paginación no puede devolver una lista parcial:
+            # ScraperManager marcaría como agotado todo lo que faltó por leer
+            if res is None or res.status_code != 200:
+                estado = res.status_code if res is not None else "sin respuesta"
+                raise RuntimeError(f"Blaster falló en la página {pagina} ({estado})")
 
             try:
                 soup = BeautifulSoup(res.text, 'html.parser')
@@ -127,6 +130,7 @@ class BlasterScraper:
                 time.sleep(random.uniform(3.5, 7.2)) 
                 
             except Exception as e:
-                break 
+                registrar_log(f"Error en Blaster (Pág {pagina}): {str(e)}")
+                raise
 
         return productos_extraidos

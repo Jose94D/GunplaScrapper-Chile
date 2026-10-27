@@ -279,17 +279,26 @@ def crear_blueprint_admin(scraper_manager):
         grado = request.form.get('grado') or 'S/G'
         precio_raw = request.form.get('precio')
         precio = limpiar_precio_num(precio_raw)
-        url = request.form.get('url') or '#'
-        
+        # NULL y no '#': la columna url es UNIQUE y SQLite sí admite varios NULL
+        url = request.form.get('url') or None
+
+        if url and execute_query("SELECT id FROM publicacion_producto WHERE url = ?", (url,), fetchone=True):
+            registrar_log(f"Producto manual no creado: la URL ya está registrada ({url})")
+            return redirect(url_for('admin_bp.admin_panel'))
+
         if producto and precio > 0:
             fecha_actual = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-            
+
             execute_query("INSERT INTO productos (nombre_estandar, grado) VALUES (?, ?)", (producto, grado), commit=True)
             cat_id = execute_query("SELECT MAX(id) FROM productos", fetchone=True)[0]
-            
-            execute_query("INSERT OR IGNORE INTO tiendas (nombre, url_base) VALUES ('Manual', '#')", commit=True)
-            tienda_id = execute_query("SELECT id FROM tiendas WHERE nombre = 'Manual'", fetchone=True)[0]
-            
+
+            # tiendas.nombre no es UNIQUE, así que INSERT OR IGNORE creaba una tienda 'Manual' por producto
+            tienda_res = execute_query("SELECT id FROM tiendas WHERE nombre = 'Manual'", fetchone=True)
+            if not tienda_res:
+                execute_query("INSERT INTO tiendas (nombre, url_base) VALUES ('Manual', '#')", commit=True)
+                tienda_res = execute_query("SELECT id FROM tiendas WHERE nombre = 'Manual'", fetchone=True)
+            tienda_id = tienda_res[0]
+
             execute_query(
                 "INSERT INTO publicacion_producto (producto_id, tienda_id, nombre_original, url, precio, es_url_activa) VALUES (?, ?, ?, ?, ?, 1)", 
                 (cat_id, tienda_id, producto, url, precio), 

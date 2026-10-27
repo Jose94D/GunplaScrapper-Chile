@@ -8,7 +8,8 @@ class CatalogManager:
         # 1. Correcciones de orden y nombres rebeldes (Se aplica antes de todo)
         # Formato: { 'Lo que viene del scraper' : 'Nombre que queremos' }
         self.correcciones = {
-            r'\bGUNDAM TURN\b': 'TURN A GUNDAM',
+            # La "A" es opcional: sin ella, "GUNDAM TURN A" quedaba como "TURN A GUNDAM A"
+            r'\bGUNDAM TURN(?: A\b)?': 'TURN A GUNDAM',
             r'\bHI-ZACK HOBBY RE-BOOT VER\b': 'HOBBY HI-ZACK A.O.Z RE-BOOT',
             r'\bAGE-?2 GUNDAM NORMAL\b': 'GUNDAM AGE-2 NORMAL',
             r'\bGRIFFIN ARBALEST CUSTOM\b': ''

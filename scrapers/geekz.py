@@ -37,6 +37,9 @@ class GeekzScraper:
                     url_pagina = f"{self.base_url}{self.categoria_path}/page/{pagina}{self.query_params}"
 
                 res = requests.get(url_pagina, headers=self.headers, timeout=15)
+                if res.status_code == 404 and pagina > 1:
+                    break  # algunas tiendas responden 404 al pasar la última página
+                res.raise_for_status()
                 soup = BeautifulSoup(res.text, 'html.parser')
 
                 # Cada producto es un <form class="... oe_product_cart ...">
@@ -94,6 +97,6 @@ class GeekzScraper:
 
             except Exception as e:
                 registrar_log(f"Error en Geekz (Pág {pagina}): {str(e)}")
-                break
+                raise
 
         return productos_extraidos

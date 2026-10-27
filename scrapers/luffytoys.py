@@ -37,6 +37,9 @@ class LuffyToysScraper:
                 url_pagina = self.coleccion_url if pagina == 1 else f"{self.coleccion_url}?page={pagina}"
 
                 res = requests.get(url_pagina, headers=self.headers, timeout=15)
+                if res.status_code == 404 and pagina > 1:
+                    break  # algunas tiendas responden 404 al pasar la última página
+                res.raise_for_status()
                 soup = BeautifulSoup(res.text, 'html.parser')
 
                 # Cada producto viene envuelto en un contenedor con clase 'thumbnail'
@@ -88,6 +91,6 @@ class LuffyToysScraper:
 
             except Exception as e:
                 registrar_log(f"Error en LuffyToys (Pág {pagina}): {str(e)}")
-                break
+                raise
 
         return productos_extraidos

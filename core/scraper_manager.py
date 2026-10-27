@@ -100,7 +100,8 @@ class ScraperManager:
                 else:
                     registrar_log(f"Advertencia: {nombre_tienda} no devolvió productos.")
             except Exception as e:
-                registrar_log(f"FALLO CRÍTICO en scraper {nombre_tienda}: {str(e)}")
+                # Sin guardar_datos sus publicaciones conservan el estado anterior en vez de quedar como agotadas
+                registrar_log(f"FALLO CRÍTICO en scraper {nombre_tienda}: {str(e)}. Sus publicaciones no se modificaron.")
 
         duracion = time.time() - inicio
         registrar_log(f"Escaneo masivo finalizado. Tiempo: {duracion:.1f}s, Total registros historizados: {total_items}")

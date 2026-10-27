@@ -34,7 +34,9 @@
             <p class="store-original-name">{{ tienda.nombre_original }}</p>
         </div>
         {% if tienda.disponible %}
+            {% if tienda.url %}
             <a href="{{ tienda.url }}" target="_blank" class="btn store-btn-action">🛒 Ir a la tienda</a>
+            {% endif %}
         {% else %}
             <span class="btn store-btn-disabled" title="Esta tienda ya no tiene el producto listado en su última revisión">Agotado / Retirado</span>
         {% endif %}

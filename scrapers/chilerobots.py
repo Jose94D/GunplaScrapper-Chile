@@ -61,6 +61,9 @@ class ChileRobotsScraper:
                     url_pagina = f"{self.categoria_url}?page={pagina}&cr_view=all"
 
                 res = requests.get(url_pagina, headers=self.headers, timeout=15)
+                if res.status_code == 404 and pagina > 1:
+                    break  # algunas tiendas responden 404 al pasar la última página
+                res.raise_for_status()
                 soup = BeautifulSoup(res.text, 'html.parser')
 
                 titulos = soup.find_all('h2', class_='product-title')
@@ -121,6 +124,6 @@ class ChileRobotsScraper:
 
             except Exception as e:
                 registrar_log(f"Error en ChileRobots (Pág {pagina}): {str(e)}")
-                break
+                raise
 
         return productos_extraidos

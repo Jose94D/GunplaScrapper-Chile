@@ -29,6 +29,9 @@ class HangarScraper:
         while True:
             try:
                 res = requests.get(f"{self.base_url}/8-gunpla?p={pagina}", headers=self.headers, timeout=15)
+                if res.status_code == 404 and pagina > 1:
+                    break  # algunas tiendas responden 404 al pasar la última página
+                res.raise_for_status()
                 soup = BeautifulSoup(res.text, 'html.parser')
                 nombres = soup.find_all('a', class_='product-name')
                 
@@ -70,6 +73,6 @@ class HangarScraper:
                 
             except Exception as e:
                 registrar_log(f"Error en Hangar019 (Pág {pagina}): {str(e)}")
-                break 
+                raise 
 
         return productos_extraidos
