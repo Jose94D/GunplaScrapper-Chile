@@ -1,30 +1,18 @@
-import os
-import io
-import pandas as pd
 from datetime import datetime
 from functools import wraps
-from werkzeug.utils import secure_filename
-from werkzeug.security import generate_password_hash
 from flask import Blueprint, render_template, request, session, redirect, url_for, send_file, jsonify
 
 from config import DB_NAME 
-from core.database import execute_query
-from core.logger import registrar_log
+from core.logger import registrar_log, ultimos_eventos
+from core.precios import limpiar_precio
+from core import carrusel, catalogo, duplicados, imagenes, estadisticas, exportar, productos, usuarios
 
-CARRUSEL_FOLDER = os.path.join('static', 'carrusel')
-os.makedirs(CARRUSEL_FOLDER, exist_ok=True)
+FILTROS_PANEL = ('page', 'q_admin', 'grado_admin', 'sort_admin', 'per_page')
 
-def limpiar_precio_num(precio_val):
-    """Auxiliar para asegurar que el precio ingresado manualmente sea un valor flotante/numérico."""
-    if isinstance(precio_val, (int, float)):
-        return float(precio_val)
-    if not precio_val:
-        return 0.0
-    p_limpio = str(precio_val).replace('$', '').replace('.', '').replace(' ', '')
-    try:
-        return float(p_limpio)
-    except ValueError:
-        return 0.0
+
+def volver_al_panel(datos):
+    """Redirige al listado del panel conservando la página y los filtros que traía la petición."""
+    return redirect(url_for('admin_bp.admin_panel', **{k: datos.get(k) for k in FILTROS_PANEL}))
 
 def crear_blueprint_admin(scraper_manager):
     admin_bp = Blueprint('admin_bp', __name__)
@@ -40,132 +28,31 @@ def crear_blueprint_admin(scraper_manager):
     @admin_bp.route('/admin/panel')
     @login_required
     def admin_panel():
-        admin_actual = execute_query("SELECT email FROM usuarios WHERE id = 1", fetchone=True)
-        admin_actual = admin_actual[0] if admin_actual else "Administrador"
+        credenciales = usuarios.obtener_credenciales_admin()
+        admin_actual = credenciales[0] if credenciales else "Administrador"
         
-        ultima_fecha_res = execute_query("SELECT MAX(fecha_registro) FROM historial_precios", fetchone=True)
-        ultima_fecha_completa = ultima_fecha_res[0] if ultima_fecha_res and ultima_fecha_res[0] else "Sin escaneos aún"
-        
-        total_productos_unicos = execute_query("SELECT COUNT(id) FROM productos", fetchone=True)[0]
-        
-        fecha_hoy = datetime.now().strftime("%Y-%m-%d")
-        escaneados_hoy = execute_query(
-            "SELECT COUNT(DISTINCT publicacion_producto_id) FROM historial_precios WHERE fecha_registro LIKE ?", 
-            (f"{fecha_hoy}%",), 
-            fetchone=True
-        )[0]
-        
-        alerta_activa = False
-        mensaje_alerta = ""
-        if ultima_fecha_completa == "Sin escaneos aún":
-            alerta_activa = True
-            mensaje_alerta = "El sistema aún no tiene registros. Ejecuta un escaneo manual."
-        else:
-            try:
-                fecha_obj = datetime.strptime(ultima_fecha_completa, "%Y-%m-%d %H:%M:%S")
-                if (datetime.now() - fecha_obj).total_seconds() > 172800:
-                    alerta_activa = True
-                    mensaje_alerta = f"⚠️ ¡Atención! El último escaneo exitoso fue hace más de 48 horas ({ultima_fecha_completa}). Verifica los scrapers."
-            except ValueError:
-                pass 
-
-        lista_logs = execute_query("SELECT fecha_registro, accion FROM logs ORDER BY id DESC LIMIT 10", fetchall=True)
-        lista_carrusel = execute_query("SELECT id, nombre_archivo, enlace FROM banners ORDER BY id ASC", fetchall=True)
+        resumen = estadisticas.resumen_panel()
+        lista_logs = ultimos_eventos(10)
+        lista_carrusel = carrusel.listar_imagenes()
         
         q_admin = request.args.get('q_admin', '').strip()
         grado_admin = request.args.get('grado_admin', '')
         if grado_admin == 'Todos': 
             grado_admin = ''
-            
         page = request.args.get('page', 1, type=int)
         sort_admin = request.args.get('sort_admin', 'date_desc')
-        
-        order_clause = {
-            'price_asc': "precio_min_int ASC",
-            'price_desc': "precio_min_int DESC",
-            'alpha_asc': "c.nombre_estandar ASC",
-            'alpha_desc': "c.nombre_estandar DESC",
-            'date_desc': "ultima_fecha DESC"
-        }.get(sort_admin, "ultima_fecha DESC")
+        per_page = catalogo.por_pagina_valida(request.args.get('per_page', 24, type=int))
 
-        # 2.6: Orden de estado fijo, sin importar el filtro/orden elegido por el usuario:
-        # 1) Visibles  2) No disponibles  3) Ocultos.
-        # "No disponible" pisa a "Oculto" para mantener coherencia con lo que se muestra
-        # en la columna Estado (un producto oculto y sin stock se ve como "No disponible").
-        orden_estado = """
-            CASE 
-                WHEN c.disponible = 0 THEN 1
-                WHEN c.es_visible = 1 THEN 0
-                ELSE 2
-            END
-        """
-        order_clause = f"{orden_estado} ASC, {order_clause}"
-        
-        per_page = request.args.get('per_page', 24, type=int)
-        if per_page not in [24, 48, 120]: per_page = 24
-        offset = (page - 1) * per_page
-
-        # CONSULTA CORREGIDA: Usa pt.precio directo de la publicación activa
-        base_query = """
-            SELECT 
-                c.id, 
-                c.nombre_estandar, 
-                c.grado,
-                MIN(pt.precio) as precio_min_int,
-                MAX(hp.fecha_registro) as ultima_fecha,
-                c.es_visible as estado_activo,
-                c.disponible as estado_disponible
-            FROM productos c
-            LEFT JOIN publicacion_producto pt ON c.id = pt.producto_id AND pt.es_url_activa = 1
-            LEFT JOIN historial_precios hp ON pt.id = hp.publicacion_producto_id
-        """
-
-        where_conditions = []
-        params = []
-
-        if q_admin:
-            where_conditions.append("c.nombre_estandar LIKE ?")
-            params.append(f"%{q_admin}%")
-
-        if grado_admin:
-            where_conditions.append("c.grado = ?")
-            params.append(grado_admin)
-
-        where_clause = ""
-        if where_conditions:
-            where_clause = " WHERE " + " AND ".join(where_conditions)
-
-        count_query = f"SELECT COUNT(id) FROM productos c {where_clause}"
-        total_items = execute_query(count_query, tuple(params), fetchone=True)[0]
-        total_pages = max(1, (total_items + per_page - 1) // per_page)
-
-        query = f"{base_query} {where_clause} GROUP BY c.id, c.nombre_estandar, c.grado ORDER BY {order_clause} LIMIT ? OFFSET ?"
-        params.extend([per_page, offset])
-        lista_cruda = execute_query(query, tuple(params), fetchall=True)
-
-        lista_productos = []
-        for p in lista_cruda:
-            precio_val = p[3]
-            precio_formateado = f"${precio_val:,.0f}".replace(",", ".") if precio_val is not None and precio_val > 0 else "N/A"
-            # Tier de estado, mismo criterio que el ORDER BY: 0=Visible, 1=No disponible, 2=Oculto
-            es_visible_val, disponible_val = p[5], p[6]
-            if disponible_val == 0:
-                tier_estado = 1
-            elif es_visible_val == 1:
-                tier_estado = 0
-            else:
-                tier_estado = 2
-            lista_productos.append((p[0], p[1], p[2], precio_formateado, p[4] or 'Sin datos', es_visible_val, disponible_val, tier_estado))
-
-        catalogo_completo = execute_query("SELECT id, nombre_estandar, grado FROM productos ORDER BY nombre_estandar ASC", fetchall=True)
+        lista_productos, total_pages = catalogo.listar_productos_panel(q_admin, grado_admin, sort_admin, page, per_page)
+        catalogo_completo = catalogo.listar_catalogo_completo()
 
         return render_template('admin/admin_panel.html', 
-                               usuario=admin_actual, escaneados_hoy=escaneados_hoy, 
-                               total_productos=total_productos_unicos, ultima_fecha=ultima_fecha_completa, 
+                               usuario=admin_actual, escaneados_hoy=resumen["escaneados_hoy"], 
+                               total_productos=resumen["total_productos"], ultima_fecha=resumen["ultima_fecha"], 
                                lista_productos=lista_productos, lista_carrusel=lista_carrusel, 
-                               lista_logs=lista_logs, search_query=q_admin, grado_admin=grado_admin,
-                               page=page, total_pages=total_pages, alerta_activa=alerta_activa, 
-                               mensaje_alerta=mensaje_alerta, per_page=per_page, sort_admin=sort_admin,
+                               lista_logs=lista_logs, tiendas=estadisticas.estado_tiendas(), duplicados=duplicados.sugerir_duplicados(), search_query=q_admin, grado_admin=grado_admin,
+                               page=page, total_pages=total_pages, alerta_activa=resumen["alerta_activa"], 
+                               mensaje_alerta=resumen["mensaje_alerta"], per_page=per_page, sort_admin=sort_admin,
                                catalogo_completo=catalogo_completo)
 
     @admin_bp.route('/admin/credenciales/actualizar', methods=['POST'])
@@ -174,25 +61,7 @@ def crear_blueprint_admin(scraper_manager):
         nuevo_user = request.form.get('nuevo_usuario')
         nueva_pass = request.form.get('nueva_password')
         if nuevo_user and nueva_pass:
-            hash_clave = generate_password_hash(nueva_pass)
-
-            # La fila id=1 puede no existir todavía tras la migración: verificamos primero.
-            existe = execute_query("SELECT id FROM usuarios WHERE id = 1", fetchone=True)
-
-            if existe:
-                execute_query(
-                    "UPDATE usuarios SET email = ?, hash_clave = ? WHERE id = 1",
-                    (nuevo_user, hash_clave),
-                    commit=True
-                )
-            else:
-                execute_query(
-                    "INSERT INTO usuarios (id, email, hash_clave, rol, fecha_creacion) VALUES (1, ?, ?, 'admin', ?)",
-                    (nuevo_user, hash_clave, datetime.now().strftime("%Y-%m-%d %H:%M:%S")),
-                    commit=True
-                )
-
-            registrar_log(f"Se actualizaron las credenciales. Nuevo usuario: {nuevo_user}")
+            usuarios.guardar_credenciales_admin(nuevo_user, nueva_pass)
         return redirect(url_for('admin_bp.admin_panel'))
 
     @admin_bp.route('/admin/backup')
@@ -204,30 +73,7 @@ def crear_blueprint_admin(scraper_manager):
     @admin_bp.route('/admin/exportar_excel')
     @login_required
     def exportar_excel():
-        query = """
-            SELECT 
-                p.nombre_estandar AS 'Modelo', 
-                p.grado AS 'Grado', 
-                t.nombre AS 'Tienda', 
-                hl.precio AS 'Precio Registrado', 
-                hl.fecha_registro AS 'Fecha de Captura',
-                pp.url AS 'Enlace'
-            FROM historial_precios hl
-            JOIN publicacion_producto pp ON hl.publicacion_producto_id = pp.id
-            JOIN productos p ON pp.producto_id = p.id
-            JOIN tiendas t ON pp.tienda_id = t.id
-            ORDER BY hl.fecha_registro DESC;
-        """
-        
-        datos_crudos = execute_query(query, fetchall=True)
-        columnas = ['Modelo', 'Grado', 'Tienda', 'Precio Registrado', 'Fecha de Captura', 'Enlace']
-        df = pd.DataFrame(datos_crudos, columns=columnas)
-        
-        output = io.BytesIO()
-        with pd.ExcelWriter(output, engine='openpyxl') as writer:
-            df.to_excel(writer, index=False, sheet_name='Historial Global')
-        
-        output.seek(0)
+        output = exportar.historial_excel()
         registrar_log("Se exportó el historial completo a Excel.")
         nombre_archivo = f"Reporte_Precios_{datetime.now().strftime('%Y%m%d_%H%M')}.xlsx"
         
@@ -241,97 +87,42 @@ def crear_blueprint_admin(scraper_manager):
     @admin_bp.route('/admin/carrusel/nuevo', methods=['POST'])
     @login_required
     def subir_carrusel():
-        file = request.files.get('imagen')
-        link = request.form.get('link') or ''
-        
-        if file and file.filename:
-            filename = secure_filename(file.filename)
-            file.save(os.path.join(CARRUSEL_FOLDER, filename))
-            
-            execute_query("INSERT INTO banners (nombre_archivo, enlace) VALUES (?, ?)", (filename, link), commit=True)
-            registrar_log(f"Imagen subida a banners con enlace: {filename}")
-            
+        carrusel.agregar_imagen(request.files.get('imagen'), request.form.get('link') or '')
         return redirect(url_for('admin_bp.admin_panel') + '#seccion-carrusel')
     
     @admin_bp.route('/admin/carrusel/editar_link/<int:img_id>', methods=['POST'])
     @login_required
     def editar_link_carrusel(img_id):
-        nuevo_link = request.form.get('nuevo_link') or ''
-        execute_query("UPDATE banners SET enlace = ? WHERE id = ?", (nuevo_link, img_id), commit=True)
-        registrar_log(f"Enlace actualizado en banner (ID imagen: {img_id})")
+        carrusel.actualizar_enlace(img_id, request.form.get('nuevo_link') or '')
         return redirect(url_for('admin_bp.admin_panel') + '#seccion-carrusel')
 
-    @admin_bp.route('/admin/carrusel/eliminar/<int:img_id>')
+    @admin_bp.route('/admin/carrusel/eliminar/<int:img_id>', methods=['POST'])
     @login_required
     def eliminar_carrusel(img_id):
-        img = execute_query("SELECT nombre_archivo FROM banners WHERE id = ?", (img_id,), fetchone=True)
-        if img:
-            try: os.remove(os.path.join(CARRUSEL_FOLDER, img[0]))
-            except FileNotFoundError: pass
-            execute_query("DELETE FROM banners WHERE id = ?", (img_id,), commit=True)
-            registrar_log(f"Imagen eliminada de banners: {img[0]}")
+        carrusel.eliminar_imagen(img_id)
         return redirect(url_for('admin_bp.admin_panel') + '#seccion-carrusel')
 
     @admin_bp.route('/admin/producto/nuevo', methods=['POST'])
     @login_required
     def agregar_producto():
-        producto = request.form.get('producto')
-        grado = request.form.get('grado') or 'S/G'
-        precio_raw = request.form.get('precio')
-        precio = limpiar_precio_num(precio_raw)
-        # NULL y no '#': la columna url es UNIQUE y SQLite sí admite varios NULL
-        url = request.form.get('url') or None
-
-        if url and execute_query("SELECT id FROM publicacion_producto WHERE url = ?", (url,), fetchone=True):
-            registrar_log(f"Producto manual no creado: la URL ya está registrada ({url})")
-            return redirect(url_for('admin_bp.admin_panel'))
-
-        if producto and precio > 0:
-            fecha_actual = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-
-            execute_query("INSERT INTO productos (nombre_estandar, grado) VALUES (?, ?)", (producto, grado), commit=True)
-            cat_id = execute_query("SELECT MAX(id) FROM productos", fetchone=True)[0]
-
-            # tiendas.nombre no es UNIQUE, así que INSERT OR IGNORE creaba una tienda 'Manual' por producto
-            tienda_res = execute_query("SELECT id FROM tiendas WHERE nombre = 'Manual'", fetchone=True)
-            if not tienda_res:
-                execute_query("INSERT INTO tiendas (nombre, url_base) VALUES ('Manual', '#')", commit=True)
-                tienda_res = execute_query("SELECT id FROM tiendas WHERE nombre = 'Manual'", fetchone=True)
-            tienda_id = tienda_res[0]
-
-            execute_query(
-                "INSERT INTO publicacion_producto (producto_id, tienda_id, nombre_original, url, precio, es_url_activa) VALUES (?, ?, ?, ?, ?, 1)", 
-                (cat_id, tienda_id, producto, url, precio), 
-                commit=True
-            )
-            pub_id = execute_query("SELECT MAX(id) FROM publicacion_producto", fetchone=True)[0]
-            
-            execute_query(
-                "INSERT INTO historial_precios (publicacion_producto_id, precio, fecha_registro) VALUES (?, ?, ?)", 
-                (pub_id, precio, fecha_actual), 
-                commit=True
-            )
-            registrar_log(f"Producto creado manualmente en catálogo: {producto}")
-            
+        productos.crear_producto_manual(
+            request.form.get('producto'),
+            request.form.get('grado') or 'S/G',
+            limpiar_precio(request.form.get('precio')),
+            request.form.get('url') or None,
+        )
         return redirect(url_for('admin_bp.admin_panel'))
 
     @admin_bp.route('/admin/producto/editar/<int:id>', methods=['GET', 'POST'])
     @login_required
     def editar_producto(id):
         if request.method == 'POST':
-            nuevo_nombre = request.form.get('producto')
-            nuevo_grado = request.form.get('grado')
-            execute_query("UPDATE productos SET nombre_estandar = ?, grado = ? WHERE id = ?", 
-                     (nuevo_nombre, nuevo_grado, id), commit=True)
-            registrar_log(f"Producto ID {id} modificado en catálogo.")
-            return redirect(url_for('admin_bp.admin_panel',
-                                    page=request.form.get('page'),
-                                    q_admin=request.form.get('q_admin'),
-                                    grado_admin=request.form.get('grado_admin'),
-                                    sort_admin=request.form.get('sort_admin'),
-                                    per_page=request.form.get('per_page')))
+            productos.actualizar_producto(id, request.form.get('producto'), request.form.get('grado'))
+            if request.files.get('imagen') and request.files['imagen'].filename:
+                imagenes.guardar_subida(id, request.files['imagen'])
+            return volver_al_panel(request.form)
             
-        prod = execute_query("SELECT id, nombre_estandar, grado FROM productos WHERE id = ?", (id,), fetchone=True)
+        prod = productos.obtener_producto(id)
         if not prod: return redirect(url_for('admin_bp.admin_panel'))
         
         params = {
@@ -343,37 +134,17 @@ def crear_blueprint_admin(scraper_manager):
         }
         return render_template('admin/admin_edit.html', prod=prod, params=params)
 
-    @admin_bp.route('/admin/producto/toggle/<int:id>')
+    @admin_bp.route('/admin/producto/toggle/<int:id>', methods=['POST'])
     @login_required
     def toggle_visibilidad(id):
-        estado = execute_query("SELECT es_visible FROM productos WHERE id = ?", (id,), fetchone=True)[0]
-        nuevo_estado = 0 if estado == 1 else 1
-        
-        execute_query("UPDATE productos SET es_visible = ? WHERE id = ?", (nuevo_estado, id), commit=True)
-        
-        texto_estado = "Oculto" if nuevo_estado == 0 else "Visible"
-        registrar_log(f"Visibilidad modificada: Producto ID {id} ahora está {texto_estado}")
-        return redirect(url_for('admin_bp.admin_panel',
-                                page=request.args.get('page'),
-                                q_admin=request.args.get('q_admin'),
-                                grado_admin=request.args.get('grado_admin'),
-                                sort_admin=request.args.get('sort_admin'),
-                                per_page=request.args.get('per_page')))
+        productos.alternar_visibilidad(id)
+        return volver_al_panel(request.args)
 
-    @admin_bp.route('/admin/producto/eliminar/<int:id>')
+    @admin_bp.route('/admin/producto/eliminar/<int:id>', methods=['POST'])
     @login_required
     def eliminar_producto(id):
-        execute_query("DELETE FROM historial_precios WHERE publicacion_producto_id IN (SELECT id FROM publicacion_producto WHERE producto_id = ?)", (id,), commit=True)
-        execute_query("DELETE FROM publicacion_producto WHERE producto_id = ?", (id,), commit=True)
-        execute_query("DELETE FROM productos WHERE id = ?", (id,), commit=True)
-        
-        registrar_log(f"Producto eliminado completamente del catálogo ID: {id}")
-        return redirect(url_for('admin_bp.admin_panel',
-                                page=request.args.get('page'),
-                                q_admin=request.args.get('q_admin'),
-                                grado_admin=request.args.get('grado_admin'),
-                                sort_admin=request.args.get('sort_admin'),
-                                per_page=request.args.get('per_page')))
+        productos.eliminar_producto(id)
+        return volver_al_panel(request.args)
 
     @admin_bp.route('/admin/fusionar', methods=['POST'])
     @login_required
@@ -382,16 +153,20 @@ def crear_blueprint_admin(scraper_manager):
         id_principal = request.form.get('id_principal')
         
         if id_duplicado and id_principal and id_duplicado != id_principal:
-            execute_query("UPDATE publicacion_producto SET producto_id = ? WHERE producto_id = ?", (id_principal, id_duplicado), commit=True)
-            execute_query("DELETE FROM productos WHERE id = ?", (id_duplicado,), commit=True)
-            registrar_log(f"Fusión: Producto ID {id_duplicado} integrado en el Producto ID {id_principal}.")
-            
-        return redirect(url_for('admin_bp.admin_panel',
-                                page=request.form.get('page'),
-                                q_admin=request.form.get('q_admin'),
-                                grado_admin=request.form.get('grado_admin'),
-                                sort_admin=request.form.get('sort_admin'),
-                                per_page=request.form.get('per_page')))
+            productos.fusionar_productos(id_principal, id_duplicado)
+
+        respuesta = volver_al_panel(request.form)
+        if request.form.get('desde') == 'duplicados':  # valor fijo, no una URL: evita redirecciones a otros sitios
+            respuesta.location += '#seccion-duplicados'
+        return respuesta
+
+    @admin_bp.route('/admin/duplicados/descartar', methods=['POST'])
+    @login_required
+    def descartar_duplicado():
+        id_a, id_b = request.form.get('id_a', type=int), request.form.get('id_b', type=int)
+        if id_a and id_b and id_a != id_b:
+            duplicados.descartar(id_a, id_b)
+        return redirect(url_for('admin_bp.admin_panel') + '#seccion-duplicados')
 
     @admin_bp.route('/admin/logout')
     def admin_logout():
@@ -399,20 +174,17 @@ def crear_blueprint_admin(scraper_manager):
         registrar_log("Cierre de sesión.")
         return redirect(url_for('admin_login_bp.admin_login'))
 
-    @admin_bp.route('/admin/force-update')
+    @admin_bp.route('/admin/force-update', methods=['POST'])
     @login_required
     def force_update():
-        try:
-            total_productos, duracion = scraper_manager.ejecutar_todos()
-            return jsonify({
-                "status": "success",
-                "message": f"✅ ¡Escaneo General Completado con Éxito!\n\nTiempo: {duracion:.1f} segundos.\nProductos totales registrados: {total_productos}"
-            }), 200
-        except Exception as e:
-            registrar_log(f"Error desde Panel de Control en ejecución forzada: {str(e)}")
-            return jsonify({
-                "status": "error", 
-                "message": f"❌ Ocurrió un problema técnico durante la ejecución global:\n{str(e)}"
-            }), 500
+        if not scraper_manager.iniciar_en_segundo_plano():
+            return jsonify({"status": "busy", "message": "Ya hay un escaneo en curso. Espera a que termine."}), 409
+        registrar_log("Escaneo forzado desde el Panel de Control.")
+        return jsonify({"status": "started"}), 202
+
+    @admin_bp.route('/admin/force-update/estado')
+    @login_required
+    def estado_escaneo():
+        return jsonify({"en_curso": scraper_manager.en_curso()})
 
     return admin_bp

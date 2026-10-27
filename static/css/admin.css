@@ -1,15 +1,12 @@
 /* Utilidades Generales Admin */
-.text-center { text-align: center; }
 .text-right { text-align: right; }
 .text-muted { color: var(--text-muted); }
 .text-danger { color: #ef4444; }
 .text-wrap { word-break: break-word; }
 .small-text { font-size: 0.9em; }
-.no-underline { text-decoration: none; }
 .w-100 { width: 100%; }
 .full-width { width: 100%; max-width: none; box-sizing: border-box; }
 .mt-0 { margin-top: 0; }
-.mt-30 { margin-top: 30px; }
 .mb-20 { margin-bottom: 20px; }
 .mr-10 { margin-right: 10px; }
 .shrink-0 { flex-shrink: 0; white-space: nowrap; }
@@ -34,8 +31,8 @@
 .admin-avatar { width: 200px; height: 200px; object-fit: cover; }
 .admin-avatar-light { display: inline-block; }
 .admin-avatar-dark { display: none; }
-body[data-theme="dark"] .admin-avatar-light { display: none !important; }
-body[data-theme="dark"] .admin-avatar-dark { display: inline-block !important; }
+[data-theme="dark"] .admin-avatar-light { display: none !important; }
+[data-theme="dark"] .admin-avatar-dark { display: inline-block !important; }
 
 /* Grillas y Secciones */
 .admin-section { margin-top: 40px; padding-top: 20px; border-top: 1px solid var(--border-color); }
@@ -101,3 +98,20 @@ body[data-theme="dark"] .admin-avatar-dark { display: inline-block !important; }
 .mt-20 { 
     margin-top: 20px; 
 }
+
+/* --- LOGIN Y EDICIÓN DE PRODUCTO --- */
+.container.container-login { max-width: 400px; margin-top: 100px; }
+.container.container-editar { max-width: 600px; margin-top: 50px; }
+.editar-intro { color: var(--text-muted); font-size: 0.9em; margin-bottom: 20px; }
+.editar-form { display: flex; flex-direction: column; gap: 15px; }
+.editar-label { color: var(--text-main); font-weight: bold; }
+.editar-acciones { display: flex; gap: 10px; margin-top: 15px; }
+/* También en :hover, para que .btn:hover no lo pinte de azul (antes era un estilo inline) */
+.btn-secundario, .btn-secundario:hover { background: var(--search-border); color: var(--text-main); text-decoration: none; }
+
+/* Formularios de una sola acción (ocultar, eliminar): el botón queda como hijo directo de la fila de acciones */
+.form-accion { display: contents; }
+
+/* Estado de las tiendas */
+.estado-tienda-ok { color: #10b981; font-weight: 600; white-space: nowrap; }
+.estado-tienda-falla { color: #f59e0b; font-weight: 600; white-space: nowrap; }

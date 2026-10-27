@@ -1,0 +1,12 @@
+<div class="admin-section">
+    <h2>📋 Últimos Eventos del Sistema</h2>
+    <div class="log-viewer">
+        {% for log in lista_logs %}
+            <div class="log-entry">
+                <span class="log-date">[{{ log[0] }}]</span> <strong>{{ log[1] }}</strong>
+            </div>
+        {% else %}
+            <p class="text-muted">No hay eventos registrados.</p>
+        {% endfor %}
+    </div>
+</div>

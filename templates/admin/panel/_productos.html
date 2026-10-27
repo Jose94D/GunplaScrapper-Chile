@@ -1,0 +1,119 @@
+<div class="admin-section">
+    <h2>Gestión de Productos del Catálogo</h2>
+    
+    <div id="seccion-filtros-admin" class="filters-container">
+        {% set grados = ['EG', 'HG', 'RG', 'MG', 'PG', 'FM', 'SD', 'S/G'] %}
+        
+        <a href="/admin/panel?per_page={{ per_page }}&sort_admin={{ sort_admin }}{% if search_query %}&q_admin={{ search_query }}{% endif %}#seccion-filtros-admin" 
+           class="btn filter-btn {% if not grado_admin or grado_admin == 'Todos' %}active{% endif %}">
+           Todos
+        </a>
+        
+        {% for g in grados %}
+        <a href="/admin/panel?grado_admin={{ g }}&per_page={{ per_page }}&sort_admin={{ sort_admin }}{% if search_query %}&q_admin={{ search_query }}{% endif %}#seccion-filtros-admin" 
+           class="btn filter-btn {% if grado_admin == g %}active{% endif %}">
+           {{ g }}
+        </a>
+        {% endfor %}
+    </div>
+
+    <form action="/admin/panel#seccion-filtros-admin" method="GET" class="search-box search-bar-unified">
+        {% if grado_admin %}
+            <input type="hidden" name="grado_admin" value="{{ grado_admin }}">
+        {% endif %}
+
+        <div class="search-group">
+            <input type="text" name="q_admin" class="search-input" placeholder="Buscar producto..." value="{{ search_query }}">
+            <button type="submit" class="btn shrink-0">Buscar</button>
+            {% if search_query or grado_admin or sort_admin != 'date_desc' %}
+                <a href="/admin/panel?per_page={{ per_page }}#seccion-filtros-admin" class="btn-clear shrink-0">✖ Limpiar</a>
+            {% endif %}
+        </div>
+
+        <div class="filters-group">
+            <div class="filter-item">
+                <label for="sort_admin" class="filter-label">Ordenar por:</label>
+                <select name="sort_admin" id="sort_admin" class="search-input filter-select" onchange="this.form.submit()">
+                    <option value="date_desc" {% if sort_admin == 'date_desc' %}selected{% endif %}>Más recientes</option>
+                    <option value="price_asc" {% if sort_admin == 'price_asc' %}selected{% endif %}>Precio: Menor a Mayor</option>
+                    <option value="price_desc" {% if sort_admin == 'price_desc' %}selected{% endif %}>Precio: Mayor a Menor</option>
+                    <option value="alpha_asc" {% if sort_admin == 'alpha_asc' %}selected{% endif %}>Nombre: A - Z</option>
+                    <option value="alpha_desc" {% if sort_admin == 'alpha_desc' %}selected{% endif %}>Nombre: Z - A</option>
+                </select>
+            </div>
+
+            <div class="filter-item">
+                <label for="per_page" class="filter-label">Mostrar:</label>
+                <select name="per_page" id="per_page" class="search-input filter-select" onchange="this.form.submit()">
+                    <option value="24" {% if per_page == 24 %}selected{% endif %}>24 por página</option>
+                    <option value="48" {% if per_page == 48 %}selected{% endif %}>48 por página</option>
+                    <option value="120" {% if per_page == 120 %}selected{% endif %}>120 por página</option>
+                </select>
+            </div>
+        </div>
+    </form>
+
+    <div class="table-responsive">
+        <table>
+            <tr><th>Estado</th><th>Modelo</th><th>Grado</th><th>Mejor Precio</th><th>Última Captura</th><th class="col-center">Acciones</th></tr>
+            {% set ns = namespace(tier_anterior=-1) %}
+            {% for prod in lista_productos %}
+                {% if prod[7] != ns.tier_anterior and prod[7] > 0 %}
+                <tr><td colspan="6" class="tier-divider">
+                    {% if prod[7] == 1 %}— No disponibles —{% else %}— Ocultos —{% endif %}
+                </td></tr>
+                {% endif %}
+                {% set ns.tier_anterior = prod[7] %}
+                
+                <tr class="{% if prod[7] > 0 %}row-faded{% endif %}">
+                    <td>
+                        {% if prod[6] == 0 %}<span class="status-badge status-unavailable">🟠 No disponible</span>
+                        {% elif prod[5] == 1 %}<span class="status-badge status-visible">🟢 Visible</span>
+                        {% else %}<span class="status-badge status-hidden">🔴 Oculto</span>{% endif %}
+                    </td>
+                    <td>
+                        <a href="/producto/{{ prod[0] }}" target="_blank" class="no-underline">{{ prod[1] }} 🔗</a>
+                    </td>
+                    <td><span class="grade-badge">{{ prod[2] }}</span></td>
+                    <td><strong>{{ prod[3] }}</strong></td>
+                    <td class="text-muted small-text">{{ prod[4] }}</td>
+                    <td class="col-center">
+                        <div class="action-buttons">
+                            {% if prod[5] == 1 %}
+                                <form method="POST" action="{{ url_for('admin_bp.toggle_visibilidad', id=prod[0], page=page, q_admin=search_query, grado_admin=grado_admin, sort_admin=sort_admin, per_page=per_page) }}" class="form-accion">{{ campo_csrf() }}<button type="submit" class="btn btn-icon btn-green" title="Ocultar">👁️‍🗨️</button></form>
+                            {% else %}
+                                <form method="POST" action="{{ url_for('admin_bp.toggle_visibilidad', id=prod[0], page=page, q_admin=search_query, grado_admin=grado_admin, sort_admin=sort_admin, per_page=per_page) }}" class="form-accion">{{ campo_csrf() }}<button type="submit" class="btn btn-icon btn-gray" title="Mostrar">👁️</button></form>
+                            {% endif %}
+                            <a href="{{ url_for('admin_bp.editar_producto', id=prod[0], page=page, q_admin=search_query, grado_admin=grado_admin, sort_admin=sort_admin, per_page=per_page) }}" class="btn btn-icon btn-blue" title="Editar">✏️</a>
+                            <form method="POST" action="{{ url_for('admin_bp.eliminar_producto', id=prod[0], page=page, q_admin=search_query, grado_admin=grado_admin, sort_admin=sort_admin, per_page=per_page) }}" class="form-accion" onsubmit="return confirm('¿Eliminar producto y todo su historial vinculado?');">{{ campo_csrf() }}<button type="submit" class="btn btn-icon btn-red" title="Eliminar">🗑️</button></form>
+                            <button type="button" class="btn btn-icon btn-orange btn-fusion" data-id="{{ prod[0] }}" data-nombre="{{ prod[1] }} {{ prod[2] }}" title="Fusionar con otro producto">🔗</button>
+                        </div>
+                    </td>
+                </tr>
+            {% else %}
+                <tr><td colspan="6" class="col-center table-empty">Sin registros en el catálogo.</td></tr>
+            {% endfor %}
+        </table>
+    </div>
+
+    <!-- PAGINACIÓN -->
+    <div class="pagination-wrapper">
+        {% if total_pages > 1 %}
+            {% if page > 1 %}
+                <a href="?page={{ page - 1 }}&per_page={{ per_page }}&sort_admin={{ sort_admin }}{% if search_query %}&q_admin={{ search_query }}{% endif %}{% if grado_admin %}&grado_admin={{ grado_admin }}{% endif %}#seccion-filtros-admin" class="btn page-btn">⬅</a>
+            {% endif %}
+            
+            {% for p in range(1, total_pages + 1) %}
+                {% if p == page %}
+                    <span class="btn page-btn active">{{ p }}</span>
+                {% else %}
+                    <a href="?page={{ p }}&per_page={{ per_page }}&sort_admin={{ sort_admin }}{% if search_query %}&q_admin={{ search_query }}{% endif %}{% if grado_admin %}&grado_admin={{ grado_admin }}{% endif %}#seccion-filtros-admin" class="btn page-btn">{{ p }}</a>
+                {% endif %}
+            {% endfor %}
+            
+            {% if page < total_pages %}
+                <a href="?page={{ page + 1 }}&per_page={{ per_page }}&sort_admin={{ sort_admin }}{% if search_query %}&q_admin={{ search_query }}{% endif %}{% if grado_admin %}&grado_admin={{ grado_admin }}{% endif %}#seccion-filtros-admin" class="btn page-btn">➡</a>
+            {% endif %}
+        {% endif %}
+    </div>
+</div>

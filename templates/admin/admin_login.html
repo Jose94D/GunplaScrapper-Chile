@@ -1,13 +1,12 @@
-{% extends "public/base.html" %}
+{% extends "base.html" %}
 
 {% block title %}Admin Login{% endblock %}
 
-{% block page_styles %}
+{% block extra_head %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
-<style>
-    .container { max-width: 400px; margin-top: 100px; }
-</style>
 {% endblock %}
+
+{% block container_class %}container-login{% endblock %}
 
 {% block content %}
 <h2 class="text-center">Acceso Administrador</h2>
@@ -17,6 +16,7 @@
 {% endif %}
 
 <form method="POST" class="login-form">
+    {{ campo_csrf() }}
     <input type="text" name="username" class="search-input full-width" placeholder="Usuario" required autocomplete="username">
     <input type="password" name="password" class="search-input full-width" placeholder="Contraseña" required autocomplete="current-password">
     <button type="submit" class="btn full-width">Ingresar</button>

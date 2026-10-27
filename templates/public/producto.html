@@ -1,9 +1,9 @@
-{% extends "public/base.html" %}
+{% extends "base.html" %}
 
 {% block title %}Comparativa: {{ nombre_estandar }}{% endblock %}
 
 {% block extra_head %}
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.6.1/dist/chart.umd.min.js"></script>
 <link rel="stylesheet" href="{{ url_for('static', filename='css/producto.css') }}">
 {% endblock %}
 
@@ -16,6 +16,9 @@
 </div>
 
 <h2 class="product-title">{{ nombre_estandar }}</h2>
+{% if imagen %}
+<img src="{{ url_for('static', filename=imagen) }}" alt="{{ nombre_estandar }}" class="producto-imagen" width="400">
+{% endif %}
 
 <!-- SECCIÓN: Tarjetas por Tienda -->
 <div class="stores-grid">

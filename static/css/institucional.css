@@ -1,19 +1,16 @@
-/* --- ESTILOS PARA VISTAS ESTÁTICAS DEL FOOTER --- */
-.text-center { text-align: center; }
-.no-underline { text-decoration: none; }
-.mt-30 { margin-top: 30px; }
+/* --- Páginas institucionales: Sobre Nosotros, FAQ, Condiciones y Políticas --- */
 
-.footer_views-title {
+.institucional-title {
     margin-top: 20px;
     color: var(--text-main);
 }
 
-.footer_views-subtitle {
+.institucional-subtitle {
     color: var(--text-muted);
     margin-bottom: 25px;
 }
 
-.footer_views-list {
+.institucional-list {
     padding-left: 20px;
     margin: 0;
     display: flex;
@@ -22,7 +19,7 @@
     color: var(--text-main);
 }
 
-.footer_views-list li {
+.institucional-list li {
     line-height: 1.6;
 }
 
@@ -78,12 +75,12 @@
     margin-bottom: 6px; 
 }
 
-.footer_views-card-title {
+.institucional-card-title {
     margin-top: 0;
     color: var(--text-main);
 }
 
-.footer_views-bullet-list {
+.institucional-bullet-list {
     padding-left: 20px;
     margin: 0;
     display: flex;
@@ -92,7 +89,7 @@
     color: var(--text-main);
 }
 
-.footer_views-bullet-list li {
+.institucional-bullet-list li {
     line-height: 1.6;
 }
 

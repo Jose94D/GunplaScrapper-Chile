@@ -9,3 +9,9 @@
 __pycache__/
 *.py[cod]
 *$py.class
+
+# Respaldos diarios de la base (contienen los datos, no van al repositorio)
+respaldos/
+
+# Imágenes de productos descargadas de las tiendas (se regeneran solas)
+static/productos/

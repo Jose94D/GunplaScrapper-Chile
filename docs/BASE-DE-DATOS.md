@@ -74,7 +74,7 @@ El modelo estandarizado: un mismo kit vendido en varias tiendas es **un solo pro
 | `grado` | TEXT | `PG`, `MG`, `RG`, `HG`, `EG`, `SD`, `FM` o `S/G` (sin grado). |
 | `marca` | TEXT | Siempre `Bandai` para los creados por el scraping. |
 | `es_visible` | BOOLEAN (1) | Control manual del administrador: Visible u Oculto. |
-| `imagen_producto` | TEXT | Sin uso por ahora. |
+| `imagen_producto` | TEXT | Ruta de la imagen dentro de `static/` (ej. `productos/45.webp`). Se descarga una vez desde las tiendas o se sube desde el panel; `NULL` mientras no tenga. |
 | `disponible` | BOOLEAN (1) | Calculado: `0` cuando ninguna tienda lo tiene activo. Ver [Disponibilidad](#disponibilidad). |
 
 `disponible` se agregó después de la primera versión. `init_db()` la crea con `ALTER TABLE` si falta, sin tocar los datos.
@@ -103,6 +103,7 @@ Un producto en una tienda concreta: su enlace y su precio actual.
 | `url` | TEXT UNIQUE | Identifica la publicación entre corridas. |
 | `precio` | REAL | Último precio visto, en pesos chilenos. |
 | `es_url_activa` | BOOLEAN (1) | `1` si apareció en la última corrida del scraper de su tienda. |
+| `imagen_url` | TEXT | URL de la imagen en el listado de la tienda. Si una corrida no la trae, se conserva la anterior. |
 
 Borrar un producto o una tienda borra sus publicaciones (`ON DELETE CASCADE`).
 

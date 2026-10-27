@@ -2,20 +2,9 @@ import cloudscraper
 from bs4 import BeautifulSoup
 import time
 import random
-import re
 from core.logger import registrar_log
-
-def limpiar_precio(precio_str):
-    """Extrae todos los dígitos de un texto y los retorna como float."""
-    if not precio_str:
-        return 0.0
-    numeros = re.findall(r'\d+', precio_str)
-    if not numeros:
-        return 0.0
-    try:
-        return float("".join(numeros))
-    except ValueError:
-        return 0.0
+from core.precios import limpiar_precio
+from core.imagenes import url_imagen
 
 class BlasterScraper:
     def __init__(self):
@@ -120,7 +109,8 @@ class BlasterScraper:
                     productos_extraidos.append({
                         'nombre_original': nombre_prod,
                         'precio': limpiar_precio(precio_texto),
-                        'url': url_prod
+                        'url': url_prod,
+                        'imagen': url_imagen(contenedor, self.base_url)
                     })
                     productos_en_esta_pagina += 1
                 

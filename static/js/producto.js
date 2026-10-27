@@ -44,9 +44,5 @@ document.addEventListener('DOMContentLoaded', () => {
     };
     aplicarColores();
 
-    // main.js cambia el tema antes que este listener (se carga primero), así que aquí ya están los colores nuevos
-    const themeBtn = document.getElementById('theme-toggle');
-    if (themeBtn) {
-        themeBtn.addEventListener('click', aplicarColores);
-    }
+    document.addEventListener('temacambiado', aplicarColores);
 });

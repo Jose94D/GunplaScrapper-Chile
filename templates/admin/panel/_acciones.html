@@ -1,0 +1,19 @@
+<div class="admin-section">
+    <h3>⚙️ Acciones del Sistema</h3>
+    <div class="system-actions-grid">
+        <div class="credentials-card">
+            <h4 class="mt-0">Cambiar Credenciales</h4>
+            <form action="/admin/credenciales/actualizar" method="POST" class="credentials-form">
+    {{ campo_csrf() }}
+                <input type="text" name="nuevo_usuario" class="search-input full-width" placeholder="Nuevo Usuario" required>
+                <input type="password" name="nueva_password" class="search-input full-width" placeholder="Nueva Contraseña" required>
+                <button type="submit" class="btn full-width">Actualizar Accesos</button>
+            </form>
+        </div>
+        <div class="actions-group">
+            <a href="/admin/exportar_excel" class="btn btn-blue text-center btn-lg">📊 Exportar a Excel</a>
+            <a href="/admin/backup" class="btn btn-green text-center btn-lg">💾 Backup DB</a>
+            <button id="btn-forzar-escaneo" class="btn-danger btn-lg w-100">⚡ Forzar Escaneo</button>
+        </div>
+    </div>
+</div>

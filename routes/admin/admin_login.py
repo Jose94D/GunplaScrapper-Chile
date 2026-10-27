@@ -2,7 +2,7 @@ from flask import Blueprint, render_template, request, session, redirect, url_fo
 from werkzeug.security import check_password_hash
 
 # Importamos las herramientas de la capa core
-from core.database import execute_query
+from core.usuarios import obtener_credenciales_admin
 from core.logger import registrar_log
 
 def crear_blueprint_admin_login(admin_user_fallback, admin_pass_fallback):
@@ -25,7 +25,7 @@ def crear_blueprint_admin_login(admin_user_fallback, admin_pass_fallback):
             pass_input = request.form.get('password')
             
             # Consultamos las credenciales en la nueva tabla 'usuarios'
-            cred = execute_query('SELECT email, hash_clave FROM usuarios WHERE id = 1', fetchone=True)
+            cred = obtener_credenciales_admin()
 
             valido = False
             # Si hay credenciales en DB, comparamos con ellas usando el hash real

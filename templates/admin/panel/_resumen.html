@@ -1,0 +1,29 @@
+<div class="header-top">
+    <h1>Panel de Control</h1>
+    <div>
+        <button id="theme-toggle" class="theme-btn">🌙 Modo Oscuro</button>
+        <a href="/admin/logout" class="btn btn-logout">Cerrar Sesión</a>
+    </div>
+</div>
+
+<p class="text-center">Bienvenido, <strong>{{ usuario }}</strong>.</p>
+
+<div class="avatar-container text-center">
+    <img id="avatar-dark" class="admin-avatar admin-avatar-dark" src="/static/Avatar_admin_dark.png" alt="Avatar Admin Oscuro">
+    <img id="avatar-light" class="admin-avatar admin-avatar-light" src="/static/Avatar_admin_light.png" alt="Avatar Admin Claro">
+</div>
+
+<div class="admin-stats-grid">
+    <div class="stat-card">
+        <div class="stat-label">Visitas este mes</div>
+        <div class="stat-value">{{ visitas }}</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-label">Modelos en Catálogo</div>
+        <div class="stat-value">{{ total_productos }}</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-label">Último Escaneo</div>
+        <div class="stat-value text-wrap">{{ ultima_fecha }}</div>
+    </div>
+</div>

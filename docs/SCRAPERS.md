@@ -4,7 +4,7 @@ Cómo se recolectan los precios, cómo se convierten en el catálogo y cómo agr
 
 ## Flujo de una corrida
 
-`ScraperManager.ejecutar_todos()` (`core/scraper_manager.py`) hace una corrida completa. La lanza APScheduler a las 00:00 y 12:00, o el botón **Forzar Escaneo** del panel.
+`ScraperManager` (`core/scraper_manager.py`) hace una corrida completa. La lanza APScheduler a las 00:00 y 12:00 (`ejecutar_todos()`), o el botón **Forzar Escaneo** del panel, que la corre en segundo plano (`iniciar_en_segundo_plano()`) mientras el panel consulta `/admin/force-update/estado` hasta que termina. Un candado impide que corran dos a la vez: si ya hay una en curso, la nueva se omite.
 
 ```mermaid
 flowchart TD
@@ -23,7 +23,8 @@ flowchart TD
    - Agrega una fila a `historial_precios` por cada producto devuelto.
    - Las publicaciones que no aparecieron en la corrida quedan inactivas: agotadas o retiradas.
 3. **Catálogo** (`CatalogManager.procesar_pendientes`): vincula cada publicación nueva con su producto. Ver [Normalización](#normalización-del-catálogo).
-4. **Disponibilidad:** recalcula `productos.disponible` (ver [BASE-DE-DATOS.md](BASE-DE-DATOS.md#disponibilidad)).
+4. **Imágenes:** descarga la imagen de cada producto que aún no tiene, desde la primera de sus publicaciones que traiga `imagen_url` (`core/imagenes.py`). Pausa de 1 s entre descargas; un producto con imagen, descargada o subida desde el panel, no se vuelve a tocar.
+5. **Disponibilidad:** recalcula `productos.disponible` (ver [BASE-DE-DATOS.md](BASE-DE-DATOS.md#disponibilidad)).
 
 Si un scraper falla o no devuelve nada, `guardar_datos` no se llama y las publicaciones de esa tienda conservan el estado anterior: una tienda caída, o que falla a mitad de la paginación, no deja productos marcados como agotados por error.
 
@@ -45,8 +46,9 @@ class MiTiendaScraper:
 | Campo | Tipo | Notas |
 |---|---|---|
 | `nombre_original` | str | El título tal como lo publica la tienda. La limpieza la hace `CatalogManager`, no el scraper. |
-| `precio` | float | Pesos chilenos, sin puntos ni símbolo. Cada scraper trae su `limpiar_precio()`, que junta los dígitos del texto. |
+| `precio` | float | Pesos chilenos, sin puntos ni símbolo. Se convierte con `limpiar_precio()` de `core/precios.py` (compartida con el panel), que junta los dígitos del texto: pasarle solo el precio vigente, no un texto con precio anterior y oferta. |
 | `url` | str | Enlace absoluto a la ficha. Debe ser estable: es lo que identifica la publicación entre corridas. |
+| `imagen` | str o None | URL de la imagen en la tarjeta del listado: `url_imagen(tarjeta, self.base_url)`. Entiende `data-src`, `srcset`, rutas relativas y `//`. Opcional. |
 
 Reglas que siguen todos:
 
@@ -89,7 +91,7 @@ Ejemplo: `RG 1/144 Gundam Exia - Model Kit Articulado - Bandai` → `GUNDAM EXIA
 
 La coincidencia es exacta. Si dos tiendas escriben el mismo kit de forma distinta (`Gundam Kyrios` y `Kyrios Gundam`), aparecen dos productos. Hay dos formas de arreglarlo:
 
-- **Una vez:** fusionarlos desde el panel.
+- **Una vez:** fusionarlos desde el panel. La sección **Posibles Duplicados** (`core/duplicados.py`) los sugiere: compara productos del mismo grado sin importar el orden de las palabras, los guiones ni "GUNDAM", "VER", "UNIT" o "TYPE", y exige que coincidan exactos los tokens con números o de hasta 2 letras (F91, AGE-3, X frente a ZZ). Los pares marcados como "No son el mismo" no se vuelven a sugerir.
 - **Para siempre:** agregar una entrada a `self.correcciones` para que las próximas publicaciones se normalicen igual.
 
 Las listas `correcciones`, `grados_regex`, `ruido` y `palabras_bloqueadas` están al inicio de `CatalogManager.__init__`, y se editan ahí.

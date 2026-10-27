@@ -1,9 +1,9 @@
-{% extends "public/base.html" %}
+{% extends "base.html" %}
 
-{% block title %}Condiciones de Servicio - Gunpla Scrapper Chile{% endblock %}
+{% block title %}Condiciones de Servicio - Gunpla Scraper Chile{% endblock %}
 
-{% block page_styles %}
-<link rel="stylesheet" href="{{ url_for('static', filename='css/footer_views.css') }}">
+{% block extra_head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/institucional.css') }}">
 {% endblock %}
 
 {% block content %}
@@ -12,16 +12,16 @@
     <button id="theme-toggle" class="theme-btn">🌙 Modo Oscuro</button>
 </div>
 
-<h2 class="footer_views-title">Condiciones de Servicio</h2>
-<p class="footer_views-subtitle">
+<h2 class="institucional-title">Condiciones de Servicio</h2>
+<p class="institucional-subtitle">
     El uso de este sitio implica la aceptación plena de las condiciones descritas a continuación, aplicables
     también a la información y funcionalidades disponibles en él.
 </p>
 
 <div class="project-card">
-    <ol class="footer_views-list">
+    <ol class="institucional-list">
         <li>
-            Gunpla Scrapper Chile hace su mejor esfuerzo por mantener los precios y la disponibilidad
+            Gunpla Scraper Chile hace su mejor esfuerzo por mantener los precios y la disponibilidad
             actualizados y libres de errores, pero no puede garantizar la exactitud ni la integridad de esta
             información en todo momento. Todo lo publicado en este sitio tiene un carácter exclusivamente
             referencial.
@@ -33,7 +33,7 @@
         <li>
             Los precios, nombres y demás datos de productos mostrados provienen de un proceso de recolección
             automatizada sobre tiendas de terceros, y no constituyen en ningún caso una oferta, promoción o
-            invitación a contratar por parte de Gunpla Scrapper Chile. Cualquier compra debe realizarse
+            invitación a contratar por parte de Gunpla Scraper Chile. Cualquier compra debe realizarse
             directamente en la tienda correspondiente, verificando ahí el precio, stock y condiciones vigentes
             antes de comprar.
         </li>
@@ -43,10 +43,16 @@
             servicio.
         </li>
         <li>
-            Gunpla Scrapper Chile es un proyecto independiente, sin fines de lucro, y sin afiliación con ninguna
-            de las tiendas listadas ni con Bandai. El uso del sitio debe ajustarse a la ley y a un uso de buena
+            Gunpla Scraper Chile es un proyecto independiente, sin fines de lucro, y sin afiliación con ninguna
+            de las tiendas listadas ni con Bandai Namco. El uso del sitio debe ajustarse a la ley y a un uso de buena
             fe; queda prohibido cualquier uso que busque dañar, sobrecargar o vulnerar los derechos de terceros,
             incluidas las propias tiendas cuyos datos se muestran.
+        </li>
+        <li>
+            Gundam, Gunpla, los nombres de los modelos y las imágenes de sus cajas son propiedad de Bandai Namco y
+            de sus respectivos titulares (Sotsu · Sunrise). Se muestran solo como referencia para identificar cada
+            producto; su aparición en este sitio no implica respaldo ni relación con ellos. Las solicitudes de retiro
+            de contenido se atienden desde la <a href="{{ url_for('institucional_bp.sobre_nosotros') }}">página Sobre Nosotros</a>.
         </li>
     </ol>
 </div>

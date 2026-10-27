@@ -32,31 +32,52 @@ document.addEventListener("DOMContentLoaded", () => {
     if (fondoModal) fondoModal.addEventListener('click', cerrarModal);
 
     // --- FUNCIÓN DEL BOTÓN DE ESCANEO ---
+    // El escaneo corre en segundo plano en el servidor; aquí se consulta su estado hasta que termina.
     const btnForzarEscaneo = document.getElementById('btn-forzar-escaneo');
     if (btnForzarEscaneo) {
-        btnForzarEscaneo.addEventListener('click', function() {
-            const btn = this;
-            btn.innerText = '⏳ Escaneando... (revisa la terminal)';
-            btn.disabled = true;
-            btn.style.opacity = '0.7';
+        const textoOriginal = btnForzarEscaneo.innerText;
 
-            fetch('/admin/force-update')
+        function restaurarBoton() {
+            btnForzarEscaneo.innerText = textoOriginal;
+            btnForzarEscaneo.disabled = false;
+            btnForzarEscaneo.style.opacity = '1';
+        }
+
+        function esperarFin() {
+            fetch('/admin/force-update/estado')
                 .then(response => response.json())
                 .then(data => {
-                    if(data.status === 'success') {
-                        alert('✅ ÉXITO:\n' + data.message);
-                        location.reload(); 
+                    if (data.en_curso) {
+                        setTimeout(esperarFin, 5000);
                     } else {
-                        alert('❌ ERROR:\n' + data.message);
+                        alert('✅ Escaneo terminado. El detalle está en "Últimos Eventos del Sistema".');
+                        location.reload();
                     }
                 })
-                .catch(error => {
-                    alert('❌ ERROR CRÍTICO:\nNo se pudo conectar con el servidor para iniciar el escaneo.');
+                .catch(() => setTimeout(esperarFin, 5000));
+        }
+
+        btnForzarEscaneo.addEventListener('click', function() {
+            btnForzarEscaneo.innerText = '⏳ Escaneando... (puede tardar varios minutos)';
+            btnForzarEscaneo.disabled = true;
+            btnForzarEscaneo.style.opacity = '0.7';
+
+            fetch('/admin/force-update', {
+                method: 'POST',
+                headers: { 'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').content }
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'started') {
+                        esperarFin();
+                    } else {
+                        alert('⚠️ ' + data.message);
+                        restaurarBoton();
+                    }
                 })
-                .finally(() => {
-                    btn.innerText = '⚡ Forzar Escaneo';
-                    btn.disabled = false;
-                    btn.style.opacity = '1';
+                .catch(() => {
+                    alert('❌ ERROR CRÍTICO:\nNo se pudo conectar con el servidor para iniciar el escaneo.');
+                    restaurarBoton();
                 });
         });
     }

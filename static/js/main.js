@@ -1,49 +1,27 @@
 document.addEventListener("DOMContentLoaded", () => {
-    // --- Lógica del Cambio de Tema ---
+    // --- Tema claro/oscuro ---
+    // El <head> de base.html ya aplicó el tema guardado en <html data-theme>; aquí se sincroniza
+    // el banner y el botón, y se alterna al hacer clic.
     const themeBtn = document.getElementById('theme-toggle');
     const bannerImg = document.getElementById('main-banner');
+    const esOscuro = () => document.documentElement.getAttribute('data-theme') === 'dark';
 
-    // 1. Sincronizar UI (Imágenes y botones) al cargar la página
-    // No manipulamos el fondo principal aquí para evitar el parpadeo blanco.
-    // El script en el <head> de base.html ya aplicó el data-theme a la etiqueta html.
-    const currentTheme = localStorage.getItem('theme') || 'dark'; 
-    
-    if (currentTheme === 'dark') {
-        // Aseguramos que el body también tenga el atributo por si tu CSS depende de él
-        document.body.setAttribute('data-theme', 'dark');
-        if (bannerImg) bannerImg.src = '/static/Banner_dark.png';
-        if (themeBtn) themeBtn.innerHTML = '☀️ Modo Claro';
-    } else {
-        document.body.removeAttribute('data-theme');
-        if (bannerImg) bannerImg.src = '/static/Banner_light.png';
-        if (themeBtn) themeBtn.innerHTML = '🌙 Modo Oscuro';
+    function aplicarTema(oscuro) {
+        if (oscuro) document.documentElement.setAttribute('data-theme', 'dark');
+        else document.documentElement.removeAttribute('data-theme');
+        if (bannerImg) bannerImg.src = oscuro ? bannerImg.dataset.srcDark : bannerImg.dataset.srcLight;
+        if (themeBtn) themeBtn.innerHTML = oscuro ? '☀️ Modo Claro' : '🌙 Modo Oscuro';
     }
 
-    // 2. Evento de Clic para alternar el tema
+    aplicarTema(esOscuro());
+
     if (themeBtn) {
         themeBtn.addEventListener('click', () => {
-            // Verificamos el estado actual
-            const isDark = document.documentElement.getAttribute('data-theme') === 'dark' || document.body.getAttribute('data-theme') === 'dark';
-            const newTheme = isDark ? 'light' : 'dark';
-            
-            // Aplicamos los cambios al DOM (html y body para máxima compatibilidad)
-            if (newTheme === 'dark') {
-                document.documentElement.setAttribute('data-theme', 'dark');
-                document.body.setAttribute('data-theme', 'dark');
-                if (bannerImg) bannerImg.src = '/static/Banner_dark.png';
-                if (themeBtn) themeBtn.innerHTML = '☀️ Modo Claro';
-            } else {
-                document.documentElement.removeAttribute('data-theme');
-                document.body.removeAttribute('data-theme');
-                if (bannerImg) bannerImg.src = '/static/Banner_light.png';
-                if (themeBtn) themeBtn.innerHTML = '🌙 Modo Oscuro';
-            }
-
-            // Guardamos la preferencia
-            localStorage.setItem('theme', newTheme);
-
-            // Si existe un gráfico (Chart.js), recargamos la página para que tome los nuevos colores
-            if (window.myChart) location.reload();
+            const oscuro = !esOscuro();
+            aplicarTema(oscuro);
+            localStorage.setItem('theme', oscuro ? 'dark' : 'light');
+            // Las páginas que dibujan con colores del tema (el gráfico de producto) escuchan este evento
+            document.dispatchEvent(new Event('temacambiado'));
         });
     }
 

@@ -1,0 +1,30 @@
+<div id="seccion-carrusel" class="admin-section">
+    <h2>🖼️ Gestión del Carrusel</h2>
+    
+    <form action="/admin/carrusel/nuevo" method="POST" enctype="multipart/form-data" class="search-box form-wrap">
+    {{ campo_csrf() }}
+        <input type="file" name="imagen" accept="image/*" class="search-input file-input" required>
+        <input type="url" name="link" class="search-input url-input" placeholder="Enlace de destino (Ej: https://tienda.cl/promo)">
+        <button type="submit" class="btn">Subir Imagen</button>
+    </form>
+    
+    <div class="carousel-admin-grid">
+        {% for img in lista_carrusel %}
+        <div class="carousel-admin-card">
+            <div>
+                <img src="/static/carrusel/{{ img[1] }}" class="carousel-preview">
+                
+                <form action="/admin/carrusel/editar_link/{{ img[0] }}" method="POST" class="carousel-edit-form">
+    {{ campo_csrf() }}
+                    <input type="url" name="nuevo_link" class="search-input mini-input" value="{{ img[2] if img[2] else '' }}" placeholder="Sin enlace asignado...">
+                    <button type="submit" class="btn btn-blue btn-sm">💾 Actualizar Enlace</button>
+                </form>
+            </div>
+            
+            <form method="POST" action="/admin/carrusel/eliminar/{{ img[0] }}" class="form-accion" onsubmit="return confirm('¿Eliminar esta imagen del carrusel?');">{{ campo_csrf() }}<button type="submit" class="btn btn-red btn-sm btn-block">🗑️ Eliminar Imagen</button></form>
+        </div>
+        {% else %}
+        <p class="text-muted text-center w-100">No hay imágenes.</p>
+        {% endfor %}
+    </div>
+</div>

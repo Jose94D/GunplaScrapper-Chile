@@ -1,0 +1,30 @@
+<div class="admin-section">
+    <h2>🏪 Estado de las Tiendas</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Tienda</th>
+                <th>Estado</th>
+                <th>Último escaneo exitoso</th>
+                <th>Productos</th>
+                <th>Último error</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for t in tiendas %}
+            <tr>
+                <td><strong>{{ t.nombre }}</strong></td>
+                <td>
+                    {% if t.ok %}<span class="estado-tienda-ok">✅ Al día</span>
+                    {% else %}<span class="estado-tienda-falla">⚠️ Revisar</span>{% endif %}
+                </td>
+                <td class="small-text">{{ t.ultimo_exito }}</td>
+                <td>{{ t.productos }}</td>
+                <td class="small-text text-wrap">{{ t.error or '—' }}</td>
+            </tr>
+            {% else %}
+            <tr><td colspan="5" class="text-muted text-center">Aún no hay escaneos registrados.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>

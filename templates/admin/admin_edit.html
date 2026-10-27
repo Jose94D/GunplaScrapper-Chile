@@ -1,33 +1,39 @@
-{% extends "public/base.html" %}
+{% extends "base.html" %}
 
 {% block title %}Editar Catálogo{% endblock %}
 
-{% block page_styles %}
-<style>
-    .container { max-width: 600px; margin-top: 50px; }
-</style>
+{% block extra_head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
 {% endblock %}
+
+{% block container_class %}container-editar{% endblock %}
 
 {% block content %}
 <h2>✏️ Editar Modelo del Catálogo</h2>
-<p style="color: var(--text-muted); font-size: 0.9em; margin-bottom: 20px;">
+<p class="editar-intro">
     Estás modificando el registro central. Los precios se sincronizarán automáticamente según las tiendas vinculadas a este modelo.
 </p>
-<form method="POST" action="{{ url_for('admin_bp.editar_producto', id=prod[0]) }}" style="display: flex; flex-direction: column; gap: 15px;">
+<form method="POST" action="{{ url_for('admin_bp.editar_producto', id=prod[0]) }}" class="editar-form" enctype="multipart/form-data">
+    {{ campo_csrf() }}
     <input type="hidden" name="page" value="{{ params.page }}">
     <input type="hidden" name="q_admin" value="{{ params.q_admin }}">
     <input type="hidden" name="sort_admin" value="{{ params.sort_admin }}">
     <input type="hidden" name="per_page" value="{{ params.per_page }}">
     
-    <label style="color: var(--text-main); font-weight: bold;">Nombre del Modelo</label>
+    <label class="editar-label">Nombre del Modelo</label>
     <input type="text" name="producto" class="search-input" value="{{ prod[1] }}" required>
     
-    <label style="color: var(--text-main); font-weight: bold;">Grado (Ej. HG, MG, RG)</label>
+    <label class="editar-label">Grado (Ej. HG, MG, RG)</label>
     <input type="text" name="grado" class="search-input" value="{{ prod[2] }}" required>
+
+    <label class="editar-label" for="imagen">Imagen</label>
+    {% if prod[3] %}<img src="{{ url_for('static', filename=prod[3]) }}" alt="Imagen actual de {{ prod[1] }}" class="producto-imagen">{% else %}<p class="editar-intro">Este producto aún no tiene imagen.</p>{% endif %}
+    <input type="file" id="imagen" name="imagen" accept=".png,.jpg,.jpeg,.webp,.gif" class="search-input file-input">
+    <p class="editar-intro">Opcional: reemplaza la imagen. Se reduce a WebP de 400 px y el escaneo no la vuelve a cambiar.</p>
     
-    <div style="display: flex; gap: 10px; margin-top: 15px;">
+    <div class="editar-acciones">
         <button type="submit" class="btn">Guardar Cambios</button>
-        <a href="{{ url_for('admin_bp.admin_panel', page=params.page, q_admin=params.q_admin, sort_admin=params.sort_admin, per_page=params.per_page) }}" class="btn" style="background: var(--search-border); color: var(--text-main); text-decoration: none;">Cancelar</a>
+        <a href="{{ url_for('admin_bp.admin_panel', page=params.page, q_admin=params.q_admin, sort_admin=params.sort_admin, per_page=params.per_page) }}" class="btn btn-secundario">Cancelar</a>
     </div>
 </form>
 {% endblock %}

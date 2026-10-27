@@ -48,6 +48,7 @@ Es una aplicación web en **Flask** con su propia base **SQLite**: no depende de
 
 - **Catálogo** con paginación de 24, 48 o 120 productos, filtro por grado (PG, MG, RG, HG, EG, SD, FM, S/G) y orden por precio (ascendente o descendente) o alfabético.
 - **Ficha de producto** con el precio y el enlace de cada tienda, y un gráfico con *Chart.js* del historial de precios por tienda.
+- **Imágenes de los productos:** se toman de los listados de las tiendas durante el escaneo (sin peticiones extra), se descargan una sola vez por producto y se guardan reducidas a WebP de 400 px (unos 5 a 25 KB) en `static/productos/`. Desde el panel se puede reemplazar la imagen de cualquier producto.
 - **Disponibilidad automática:** un producto sin stock en ninguna tienda pasa a "No disponible" y sale del catálogo, sin perder el estado Visible/Oculto que eligió el administrador.
 - **Catálogo estandarizado:** el nombre que publica cada tienda se limpia (marcas, escalas, texto de relleno), se detecta su grado y se agrupa con las publicaciones del mismo modelo en otras tiendas.
 - **Filtro de palabras bloqueadas:** descarta solo los productos de otras franquicias (Pokémon, Naruto, Dragon Ball…) que algunas tiendas mezclan en su catálogo.
@@ -57,8 +58,10 @@ Es una aplicación web en **Flask** con su propia base **SQLite**: no depende de
   - Listado ordenado siempre Visibles → No disponibles → Ocultos, sea cual sea el orden elegido.
   - Crear, editar, ocultar y eliminar productos.
   - **Fusionar duplicados:** las publicaciones del ID duplicado pasan al principal, con todo su historial.
-  - Carrusel de imágenes con enlace y orden editables.
+  - **Posibles duplicados:** el panel sugiere pares del mismo grado con nombres casi iguales (orden de palabras, guiones, "GUNDAM" de más, una letra de diferencia) para fusionarlos con un clic o marcarlos como distintos.
+  - Carrusel de imágenes con enlace y orden editables (solo acepta PNG, JPG, WebP y GIF).
   - Descarga de la base de datos completa y reporte de precios en Excel.
+  - Todas las acciones que modifican datos van por POST con token CSRF, y la cookie de sesión es `SameSite=Lax`.
 - **Métricas y registro:** visitas únicas por mes (una por visitante al día, con cookie) y registro de las acciones del panel y de cada corrida de scraping.
 - **Páginas institucionales:** Sobre Nosotros, Preguntas Frecuentes, Condiciones de Servicio y Políticas de Privacidad.
 
@@ -125,13 +128,23 @@ ADMIN_PASS=tu_contraseña
 SECRET_KEY=una_cadena_larga_y_aleatoria
 ```
 
-Sin `.env` se usan valores por defecto inseguros: sirven solo para probar en local.
+Las tres son obligatorias: sin ellas la app no arranca.
 
 ```bash
 python app.py
 ```
 
-El sitio queda en `http://localhost:5000` y el panel en `http://localhost:5000/admin`. La base `precios_comunidad.db` se crea al primer inicio y se llena con el primer scraping (programado, o a mano desde el panel).
+La app se sirve con [Waitress](https://docs.pylonsproject.org/projects/waitress/) en `http://127.0.0.1:5000` y el panel queda en `/admin`. La base `precios_comunidad.db` se crea al primer inicio y se llena con el primer scraping (programado, o a mano desde el panel).
+
+Variables opcionales del `.env`:
+
+| Variable | Por defecto | Uso |
+|---|---|---|
+| `HOST` | `127.0.0.1` | `0.0.0.0` para aceptar conexiones desde otros equipos |
+| `PORT` | `5000` | Puerto del sitio |
+| `FLASK_DEBUG` | apagado | `1` usa el servidor de desarrollo de Flask con depuración. **Nunca en un sitio publicado**: la consola de depuración permite ejecutar código en el servidor |
+
+Todos los días a las 03:00 se guarda una copia de la base en `respaldos/precios_AAAA-MM-DD.db`, y se borran las de más de 30 días. La carpeta no va al repositorio.
 
 Las pruebas usan una base temporal y no tocan `precios_comunidad.db`:
 
@@ -139,15 +152,26 @@ Las pruebas usan una base temporal y no tocan `precios_comunidad.db`:
 python -m unittest discover tests
 ```
 
-> El scheduler corre dentro del proceso de Flask: el scraping automático solo ocurre mientras la app está encendida.
+Cada push las corre también en GitHub Actions, con Python 3.10 y con la versión más reciente (pestaña **Actions** del repositorio).
+
+> El scheduler arranca con `python app.py` y corre dentro de ese proceso: el scraping automático solo ocurre mientras la app está encendida. Importar `app.py` (por ejemplo desde un servidor WSGI) no lo arranca; en ese caso hay que llamar a `iniciar_scheduler()` en un único proceso.
 
 ## Estructura
 
 ```
 app.py                       Punto de entrada: Flask, blueprints y scheduler
 config.py                    Configuración y variables del .env
-core/
-├── database.py              Conexión, creación de tablas, migraciones y consultas
+core/                        Toda la lógica y el SQL; las rutas solo atienden HTTP
+├── database.py              Conexión, transacciones, creación de tablas y migraciones
+├── catalogo.py              Listados del inicio y del panel, y ficha de producto
+├── productos.py             Editar, ocultar, eliminar, fusionar y crear productos
+├── carrusel.py              Imágenes del carrusel
+├── usuarios.py              Credenciales del administrador
+├── estadisticas.py          Resumen y alerta del panel
+├── exportar.py              Reporte en Excel
+├── seguridad.py             Token CSRF
+├── precios.py               Conversión de precios a número
+├── imagenes.py              Imágenes de productos: URL desde el listado, descarga única y WebP
 ├── scraper_manager.py       Orquestador: corre cada scraper y guarda los resultados
 ├── catalog_manager.py       Limpieza de nombres, grado y palabras bloqueadas
 └── logger.py                Registro de eventos (tabla logs)
@@ -156,8 +180,10 @@ routes/
 └── admin/                   Login y panel de administración
 scrapers/                    Un módulo por tienda (8)
 templates/
-├── public/                  base, inicio, producto e institucionales
-└── admin/                   login, panel y edición
+├── base.html                Plantilla común: cabecera, tema, banner y footer
+├── public/                  Inicio, producto e institucionales
+└── admin/                   Login, panel y edición
+    └── panel/               Secciones del panel (resumen, eventos, carrusel, productos, acciones, fusión)
 static/                      CSS, JS, banners, fondos y carrusel
 tests/                       Pruebas de regresión (unittest)
 docs/

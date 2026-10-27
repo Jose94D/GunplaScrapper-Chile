@@ -1,0 +1,30 @@
+<!-- INICIO MODAL FUSIÓN -->
+<div id="modalFusion" class="admin-modal">
+    <h3 class="mt-0">Fusionar Producto</h3>
+    <p>Todas las tiendas vinculadas a <strong id="textoDuplicado" class="text-danger"></strong> pasarán al producto que selecciones abajo. El producto original desaparecerá.</p>
+    
+    <form action="/admin/fusionar" method="POST">
+    {{ campo_csrf() }}
+        <input type="hidden" name="id_duplicado" id="input_id_duplicado">
+        <input type="hidden" name="page" value="{{ page }}">
+        <input type="hidden" name="q_admin" value="{{ search_query }}">
+        <input type="hidden" name="grado_admin" value="{{ grado_admin }}">
+        <input type="hidden" name="sort_admin" value="{{ sort_admin }}">
+        <input type="hidden" name="per_page" value="{{ per_page }}">
+        
+        <label for="id_principal" class="modal-label">Mantener e integrar al producto:</label>
+        <select name="id_principal" id="id_principal" required class="search-input full-width mb-20">
+            <option value="">-- Selecciona el producto destino --</option>
+            {% for p in catalogo_completo %}
+                <option value="{{ p[0] }}">{{ p[1] }} {{ p[2] }}</option>
+            {% endfor %}
+        </select>
+        
+        <div class="text-right">
+            <button type="button" class="btn btn-gray mr-10" id="btn-cerrar-modal">Cancelar</button>
+            <button type="submit" class="btn btn-red">Confirmar Fusión</button>
+        </div>
+    </form>
+</div>
+<div id="fondoModal" class="modal-backdrop"></div>
+<!-- FIN MODAL FUSIÓN -->

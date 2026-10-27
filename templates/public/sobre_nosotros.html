@@ -1,9 +1,9 @@
-{% extends "public/base.html" %}
+{% extends "base.html" %}
 
-{% block title %}Sobre Nosotros - Gunpla Scrapper Chile[cite: 10]{% endblock %}
+{% block title %}Sobre Nosotros - Gunpla Scraper Chile{% endblock %}
 
-{% block page_styles %}
-<link rel="stylesheet" href="{{ url_for('static', filename='css/footer_views.css') }}">
+{% block extra_head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/institucional.css') }}">
 {% endblock %}
 
 {% block content %}
@@ -12,12 +12,12 @@
     <button id="theme-toggle" class="theme-btn">🌙 Modo Oscuro</button>
 </div>
 
-<h2 class="footer_views-title">Sobre Nosotros</h2>
-<p class="footer_views-subtitle">Conoce el proyecto, la tecnología detrás y quién lo desarrolló.</p>
+<h2 class="institucional-title">Sobre Nosotros</h2>
+<p class="institucional-subtitle">Conoce el proyecto, la tecnología detrás y quién lo desarrolló.</p>
 
 <!-- 1. QUÉ ES EL PROYECTO -->
 <div class="project-card mt-25">
-    <h3 class="footer_views-card-title">¿Qué es Gunpla Scrapper Chile?</h3>
+    <h3 class="institucional-card-title">¿Qué es Gunpla Scraper Chile?</h3>
     <p>
         Esta herramienta no solo permite realizar un seguimiento histórico de productos mediante
         scraping automatizado, sino que ofrece un catálogo global estandarizado que unifica las
@@ -35,7 +35,7 @@
 
 <!-- 2. STACK TÉCNICO -->
 <div class="project-card">
-    <h3 class="footer_views-card-title">Stack Técnico</h3>
+    <h3 class="institucional-card-title">Stack Técnico</h3>
     <p>El proyecto está construido íntegramente en Python, con un enfoque simple y mantenible:</p>
     <div class="tech-tags-container">
         <span class="theme-btn tech-tag-static">Python</span>
@@ -57,7 +57,7 @@
 
 <!-- 3. USO ÉTICO Y RESPONSABLE -->
 <div class="project-card">
-    <h3 class="footer_views-card-title">Uso Ético y Responsable</h3>
+    <h3 class="institucional-card-title">Uso Ético y Responsable</h3>
     <p>
         Este proyecto fue desarrollado con fines educativos y de análisis personal. Como único
         responsable de la extracción de datos, me comprometo a respetar las políticas de uso de
@@ -73,7 +73,7 @@
 
 <!-- 4. SOBRE EL DESARROLLADOR -->
 <div class="stat-card mt-25">
-    <h3 class="footer_views-card-title">Sobre el Desarrollador</h3>
+    <h3 class="institucional-card-title">Sobre el Desarrollador</h3>
     <p class="dev-name">Jose Manuel Dinamarca Ortega</p>
     <p class="dev-role">Ingeniero en Computación · Desarrollador Full Stack</p>
     <p class="mt-15">
