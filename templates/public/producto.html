@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Comparativa: {{ nombre_estandar }}{% endblock %}
+{% block title %}{{ nombre_estandar }} · Gunpla Scraper Chile{% endblock %}
 
 {% block compartir %}
 {% set url_producto = url_for('producto_bp.ver_grafico', id=request.view_args.id, slug=slug_producto, _external=True) %}
@@ -22,65 +22,121 @@
 {% endif %}
 {% endblock %}
 
-{% block extra_head %}
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.6.1/dist/chart.umd.min.js"></script>
-<link rel="stylesheet" href="{{ url_for('static', filename='css/producto.css') }}">
-{% endblock %}
-
-{% block container_style %}max-width: 900px;{% endblock %}
-
 {% block content %}
-<div class="header-top">
-    <a href="{{ url_for('inicio_bp.index', q=q, grado=grado, sort=sort, per_page=per_page, page=page, _anchor='seccion-filtros') }}">⬅ Volver al radar</a>
-    <button id="theme-toggle" class="theme-btn">🌙 Modo Oscuro</button>
-</div>
+{% set volver = url_for('inicio_bp.index', q=q or None, grado=grado or None, sort=sort or None, per_page=per_page or None, page=page or None) ~ '#catalogo' %}
+<nav aria-label="Ruta" class="ruta">
+    <a href="{{ volver }}">Catálogo</a><span aria-hidden="true">/</span>
+    <a href="{{ url_for('inicio_bp.index', grado=ficha.grado) }}#catalogo">{{ ficha.nombre_grado }}</a><span aria-hidden="true">/</span>
+    <span aria-current="page">{{ nombre_estandar }}</span>
+</nav>
 
-<h2 class="product-title">{{ nombre_estandar }}</h2>
-{% if imagen %}
-<img src="{{ url_for('static', filename=imagen) }}" alt="{{ nombre_estandar }}" class="producto-imagen" width="400">
-{% endif %}
+<section class="ficha">
+    <div class="ficha-foto">
+        {% if imagen %}<img src="{{ url_for('static', filename=imagen) }}" alt="Caja de {{ nombre_estandar }}" width="400" height="400">
+        {% else %}<svg class="sin-foto" width="72" height="72" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 15 5-5 4 4 3-3 6 6"/></svg>{% endif %}
+    </div>
 
-<!-- SECCIÓN: Tarjetas por Tienda -->
-<div class="stores-grid">
-    {% for tienda in tiendas %}
-    <div class="stat-card store-card {% if not tienda.disponible %}store-unavailable{% endif %}">
+    <div class="ficha-datos">
         <div>
-            <div class="store-card-header">
-                <h3 class="store-name">🏪 {{ tienda.nombre }}</h3>
-                {% if tienda.disponible %}
-                    <span class="badge-available">✅ Disponible</span>
-                {% else %}
-                    <span class="badge-unavailable">❌ No disponible</span>
-                {% endif %}
+            <div class="d-flex align-items-center gap-2">
+                <span class="grado grado-claro">{{ ficha.grado }}</span>
+                <span class="texto-tenue small">{{ ficha.nombre_grado }}</span>
             </div>
-            <div class="stat-value store-price">{{ tienda.precio }}</div>
-            <p class="store-original-name">{{ tienda.nombre_original }}</p>
+            <h1 class="ficha-titulo">{{ nombre_estandar }}</h1>
         </div>
-        {% if tienda.disponible %}
-            {% if tienda.url %}
-            <a href="{{ tienda.url }}" target="_blank" class="btn store-btn-action">🛒 Ir a la tienda</a>
+
+        <div class="panel ficha-precio">
+            {% if mejor_precio %}
+            <div class="d-flex flex-wrap justify-content-between align-items-end gap-3">
+                <div>
+                    <p class="texto-tenue small mb-0">Mejor precio hoy</p>
+                    <p class="precio-grande mb-0">{{ mejor_precio }}</p>
+                    <p class="texto-suave mb-0">en <strong>{{ ficha.mejor_tienda }}</strong>{% if ficha.ahorro %} · {{ ficha.ahorro }} menos que la tienda más cara{% endif %}</p>
+                </div>
+                {% if ficha.minimo_historico %}<span class="sello">Mínimo histórico</span>{% endif %}
+            </div>
+            <div class="d-flex flex-wrap gap-2">
+                {% for t in tiendas if t.es_mejor and t.url %}{% if loop.first %}
+                <a href="{{ t.url }}" class="btn boton-acento boton-alto" target="_blank" rel="noopener">
+                    Ver en {{ t.nombre }}
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="M7 17 17 7M9 7h8v8"/></svg>
+                </a>{% endif %}{% endfor %}
+                <button type="button" class="btn boton-borde boton-alto" id="copiar-enlace">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M10 14a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1 1M14 10a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1-1"/></svg>
+                    <span>Copiar enlace</span>
+                </button>
+            </div>
+            {% else %}
+            <p class="mb-0"><strong>Sin stock por ahora.</strong> Ninguna tienda lo tenía disponible en el último escaneo; abajo está su historial.</p>
             {% endif %}
-        {% else %}
-            <span class="btn store-btn-disabled" title="Esta tienda ya no tiene el producto listado en su última revisión">Agotado / Retirado</span>
-        {% endif %}
+        </div>
+
+        <dl class="ficha-cifras">
+            <div><dt>Tiendas con stock</dt><dd>{{ ficha.tiendas_con_stock }} de {{ ficha.tiendas_total }}</dd></div>
+            <div><dt>Diferencia</dt><dd>{{ ficha.ahorro_pct ~ '%' if ficha.ahorro_pct else '—' }}</dd></div>
+            <div><dt>Seguimiento desde</dt><dd class="chico">{{ ficha.seguimiento_desde or '—' }}</dd></div>
+        </dl>
+    </div>
+</section>
+
+<section class="seccion-ficha">
+    <h2>Precio en cada tienda</h2>
+    {% if tiendas %}
+    <div class="panel tabla-envoltura">
+        <table class="tabla">
+            <thead>
+                <tr>
+                    <th scope="col">Tienda</th>
+                    <th scope="col" class="d-none d-md-table-cell">Título en la tienda</th>
+                    <th scope="col" class="text-end">Precio</th>
+                    <th scope="col" class="text-end d-none d-sm-table-cell">vs. mejor</th>
+                    <th scope="col"><span class="visually-hidden">Enlace</span></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for t in tiendas %}
+                <tr {% if not t.disponible %}class="agotada"{% endif %}>
+                    <td class="fw-semibold text-nowrap">{{ t.nombre }}</td>
+                    <td class="texto-suave d-none d-md-table-cell">{{ t.nombre_original }}</td>
+                    <td class="text-end mono fw-semibold {% if t.es_mejor %}acento{% endif %}">{{ t.precio }}</td>
+                    <td class="text-end mono text-nowrap d-none d-sm-table-cell">
+                        {% if not t.disponible %}<span class="texto-tenue">Sin stock</span>
+                        {% elif t.es_mejor %}<span class="acento">Mejor precio</span>
+                        {% else %}<span class="texto-suave">{{ t.diferencia or '—' }}</span>{% endif %}
+                    </td>
+                    <td class="text-end">
+                        {% if t.disponible and t.url %}<a href="{{ t.url }}" class="btn boton-borde btn-sm enlace-tienda" target="_blank" rel="noopener" aria-label="Ir a {{ t.nombre }}"><span class="d-none d-sm-inline">Ir a la tienda</span><svg class="d-sm-none" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="M7 17 17 7M9 7h8v8"/></svg></a>
+                        {% elif t.url %}<a href="{{ t.url }}" class="texto-tenue small" target="_blank" rel="noopener">Ver publicación</a>{% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
     </div>
     {% else %}
-    <p class="no-stores-text">No hay tiendas vinculadas a este producto.</p>
-    {% endfor %}
-</div>
+    <p class="texto-suave">Este producto todavía no tiene tiendas vinculadas.</p>
+    {% endif %}
+</section>
 
-<!-- SECCIÓN: Gráfico Múltiple -->
-<div class="chart-container">
-    <canvas id="graficoPrecios"></canvas>
-</div>
+<section class="seccion-ficha panel grafico-panel">
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-3">
+        <h2 class="mb-0">Historial de precios</h2>
+        <div class="rango" role="group" aria-label="Rango del historial">
+            <button type="button" data-dias="30" aria-pressed="false">30 días</button>
+            <button type="button" data-dias="90" aria-pressed="false">90 días</button>
+            <button type="button" data-dias="0" aria-pressed="true">Todo</button>
+        </div>
+    </div>
+    <div class="grafico">
+        <canvas id="graficoPrecios" role="img" aria-label="Historial de precios de {{ nombre_estandar }} en cada tienda"></canvas>
+    </div>
+    <p class="texto-tenue small mt-2 mb-0">Un punto por día con escaneo. Cada tienda mantiene su último precio conocido entre escaneos.</p>
+</section>
 {% endblock %}
 
 {% block scripts %}
-<script id="datos-fechas" type="application/json">
-    {{ fechas_json | safe }}
-</script>
-<script id="datos-datasets" type="application/json">
-    {{ datasets_json | safe }}
-</script>
-<script src="{{ url_for('static', filename='js/producto.js') }}"></script>
+<script id="datos-fechas" type="application/json">{{ fechas_json | safe }}</script>
+<script id="datos-datasets" type="application/json">{{ datasets_json | safe }}</script>
+<script src="{{ url_for('static', filename='js/vendor/chart.umd.min.js') }}"></script>
+<script src="{{ url_for('static', filename='js/producto.js') }}" data-mejor-tienda="{{ ficha.mejor_tienda or '' }}"></script>
 {% endblock %}

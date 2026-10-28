@@ -1,119 +1,106 @@
-<div class="admin-section">
-    <h2>Gestión de Productos del Catálogo</h2>
-    
-    <div id="seccion-filtros-admin" class="filters-container">
-        {% set grados = ['EG', 'HG', 'RG', 'MG', 'PG', 'FM', 'SD', 'S/G'] %}
-        
-        <a href="/admin/panel?per_page={{ per_page }}&sort_admin={{ sort_admin }}{% if search_query %}&q_admin={{ search_query }}{% endif %}#seccion-filtros-admin" 
-           class="btn filter-btn {% if not grado_admin or grado_admin == 'Todos' %}active{% endif %}">
-           Todos
-        </a>
-        
-        {% for g in grados %}
-        <a href="/admin/panel?grado_admin={{ g }}&per_page={{ per_page }}&sort_admin={{ sort_admin }}{% if search_query %}&q_admin={{ search_query }}{% endif %}#seccion-filtros-admin" 
-           class="btn filter-btn {% if grado_admin == g %}active{% endif %}">
-           {{ g }}
-        </a>
-        {% endfor %}
+{# Enlace al panel conservando búsqueda, grado, orden y cantidad; url_for omite los valores None #}
+{% macro enlace_panel(page=1, grado=grado_admin) -%}
+{{ url_for('admin_bp.admin_panel', q_admin=search_query or None, grado_admin=grado or None, sort_admin=sort_admin, per_page=per_page, page=page if page > 1 else None) }}#productos
+{%- endmacro %}
+{% set filtros = dict(page=page, q_admin=search_query, grado_admin=grado_admin, sort_admin=sort_admin, per_page=per_page) %}
+
+<section id="productos" class="panel seccion-panel">
+    <div class="seccion-panel-cabecera">
+        <h2>Productos del catálogo</h2>
+        <span class="mono texto-suave small">{{ total_productos }} en total</span>
     </div>
 
-    <form action="/admin/panel#seccion-filtros-admin" method="GET" class="search-box search-bar-unified">
-        {% if grado_admin %}
-            <input type="hidden" name="grado_admin" value="{{ grado_admin }}">
+    <nav class="chips mb-3" aria-label="Filtrar por grado">
+        <a href="{{ enlace_panel(grado=None) }}" class="chip {% if not grado_admin %}active{% endif %}">Todos</a>
+        {% for g in ['HG', 'MG', 'RG', 'SD', 'EG', 'PG', 'FM', 'S/G'] %}
+        <a href="{{ enlace_panel(grado=g) }}" class="chip {% if grado_admin == g %}active{% endif %}">{{ g }}</a>
+        {% endfor %}
+    </nav>
+
+    <form action="{{ url_for('admin_bp.admin_panel') }}#productos" method="GET" class="filtros-panel">
+        {% if grado_admin %}<input type="hidden" name="grado_admin" value="{{ grado_admin }}">{% endif %}
+        <label for="q_admin" class="visually-hidden">Buscar producto</label>
+        <input type="search" id="q_admin" name="q_admin" class="form-control campo" placeholder="Buscar producto…" value="{{ search_query }}">
+        <button type="submit" class="btn boton-acento">Buscar</button>
+        {% if search_query or grado_admin or sort_admin != 'date_desc' %}
+        <a href="{{ url_for('admin_bp.admin_panel', per_page=per_page) }}#productos" class="btn boton-borde">Limpiar</a>
         {% endif %}
-
-        <div class="search-group">
-            <input type="text" name="q_admin" class="search-input" placeholder="Buscar producto..." value="{{ search_query }}">
-            <button type="submit" class="btn shrink-0">Buscar</button>
-            {% if search_query or grado_admin or sort_admin != 'date_desc' %}
-                <a href="/admin/panel?per_page={{ per_page }}#seccion-filtros-admin" class="btn-clear shrink-0">✖ Limpiar</a>
-            {% endif %}
-        </div>
-
-        <div class="filters-group">
-            <div class="filter-item">
-                <label for="sort_admin" class="filter-label">Ordenar por:</label>
-                <select name="sort_admin" id="sort_admin" class="search-input filter-select" onchange="this.form.submit()">
-                    <option value="date_desc" {% if sort_admin == 'date_desc' %}selected{% endif %}>Más recientes</option>
-                    <option value="price_asc" {% if sort_admin == 'price_asc' %}selected{% endif %}>Precio: Menor a Mayor</option>
-                    <option value="price_desc" {% if sort_admin == 'price_desc' %}selected{% endif %}>Precio: Mayor a Menor</option>
-                    <option value="alpha_asc" {% if sort_admin == 'alpha_asc' %}selected{% endif %}>Nombre: A - Z</option>
-                    <option value="alpha_desc" {% if sort_admin == 'alpha_desc' %}selected{% endif %}>Nombre: Z - A</option>
-                </select>
-            </div>
-
-            <div class="filter-item">
-                <label for="per_page" class="filter-label">Mostrar:</label>
-                <select name="per_page" id="per_page" class="search-input filter-select" onchange="this.form.submit()">
-                    <option value="24" {% if per_page == 24 %}selected{% endif %}>24 por página</option>
-                    <option value="48" {% if per_page == 48 %}selected{% endif %}>48 por página</option>
-                    <option value="120" {% if per_page == 120 %}selected{% endif %}>120 por página</option>
-                </select>
-            </div>
-        </div>
+        <label for="sort_admin" class="small texto-tenue ms-md-auto">Ordenar</label>
+        <select name="sort_admin" id="sort_admin" class="form-select campo w-auto" data-autoenviar>
+            <option value="date_desc" {% if sort_admin == 'date_desc' %}selected{% endif %}>Más recientes</option>
+            <option value="price_asc" {% if sort_admin == 'price_asc' %}selected{% endif %}>Menor precio</option>
+            <option value="price_desc" {% if sort_admin == 'price_desc' %}selected{% endif %}>Mayor precio</option>
+            <option value="alpha_asc" {% if sort_admin == 'alpha_asc' %}selected{% endif %}>Nombre A–Z</option>
+            <option value="alpha_desc" {% if sort_admin == 'alpha_desc' %}selected{% endif %}>Nombre Z–A</option>
+        </select>
+        <label for="per_page_admin" class="visually-hidden">Productos por página</label>
+        <select name="per_page" id="per_page_admin" class="form-select campo w-auto" data-autoenviar>
+            {% for n in (24, 48, 120) %}<option value="{{ n }}" {% if per_page == n %}selected{% endif %}>{{ n }} por página</option>{% endfor %}
+        </select>
+        <noscript><button type="submit" class="btn boton-borde">Aplicar</button></noscript>
     </form>
 
-    <div class="table-responsive">
-        <table>
-            <tr><th>Estado</th><th>Modelo</th><th>Grado</th><th>Mejor Precio</th><th>Última Captura</th><th class="col-center">Acciones</th></tr>
-            {% set ns = namespace(tier_anterior=-1) %}
-            {% for prod in lista_productos %}
-                {% if prod[7] != ns.tier_anterior and prod[7] > 0 %}
-                <tr><td colspan="6" class="tier-divider">
-                    {% if prod[7] == 1 %}— No disponibles —{% else %}— Ocultos —{% endif %}
-                </td></tr>
-                {% endif %}
-                {% set ns.tier_anterior = prod[7] %}
-                
-                <tr class="{% if prod[7] > 0 %}row-faded{% endif %}">
-                    <td>
-                        {% if prod[6] == 0 %}<span class="status-badge status-unavailable">🟠 No disponible</span>
-                        {% elif prod[5] == 1 %}<span class="status-badge status-visible">🟢 Visible</span>
-                        {% else %}<span class="status-badge status-hidden">🔴 Oculto</span>{% endif %}
-                    </td>
-                    <td>
-                        <a href="/producto/{{ prod[0] }}" target="_blank" class="no-underline">{{ prod[1] }} 🔗</a>
-                    </td>
-                    <td><span class="grade-badge">{{ prod[2] }}</span></td>
-                    <td><strong>{{ prod[3] }}</strong></td>
-                    <td class="text-muted small-text">{{ prod[4]|fecha }}</td>
-                    <td class="col-center">
-                        <div class="action-buttons">
-                            {% if prod[5] == 1 %}
-                                <form method="POST" action="{{ url_for('admin_bp.toggle_visibilidad', id=prod[0], page=page, q_admin=search_query, grado_admin=grado_admin, sort_admin=sort_admin, per_page=per_page) }}" class="form-accion">{{ campo_csrf() }}<button type="submit" class="btn btn-icon btn-green" title="Ocultar">👁️‍🗨️</button></form>
-                            {% else %}
-                                <form method="POST" action="{{ url_for('admin_bp.toggle_visibilidad', id=prod[0], page=page, q_admin=search_query, grado_admin=grado_admin, sort_admin=sort_admin, per_page=per_page) }}" class="form-accion">{{ campo_csrf() }}<button type="submit" class="btn btn-icon btn-gray" title="Mostrar">👁️</button></form>
-                            {% endif %}
-                            <a href="{{ url_for('admin_bp.editar_producto', id=prod[0], page=page, q_admin=search_query, grado_admin=grado_admin, sort_admin=sort_admin, per_page=per_page) }}" class="btn btn-icon btn-blue" title="Editar">✏️</a>
-                            <form method="POST" action="{{ url_for('admin_bp.eliminar_producto', id=prod[0], page=page, q_admin=search_query, grado_admin=grado_admin, sort_admin=sort_admin, per_page=per_page) }}" class="form-accion" onsubmit="return confirm('¿Eliminar producto y todo su historial vinculado?');">{{ campo_csrf() }}<button type="submit" class="btn btn-icon btn-red" title="Eliminar">🗑️</button></form>
-                            <button type="button" class="btn btn-icon btn-orange btn-fusion" data-id="{{ prod[0] }}" data-nombre="{{ prod[1] }}{% if not prod[1].endswith(prod[2]) %} {{ prod[2] }}{% endif %}" title="Fusionar con otro producto">🔗</button>
-                        </div>
-                    </td>
-                </tr>
-            {% else %}
-                <tr><td colspan="6" class="col-center table-empty">Sin registros en el catálogo.</td></tr>
-            {% endfor %}
+    <div class="tabla-envoltura">
+        <table class="tabla tabla-productos">
+            <thead>
+                <tr><th scope="col">Estado</th><th scope="col">Modelo</th><th scope="col">Grado</th><th scope="col" class="text-end">Mejor precio</th><th scope="col">Última captura</th><th scope="col" class="text-end">Acciones</th></tr>
+            </thead>
+            <tbody>
+                {% set ns = namespace(tier_anterior=-1) %}
+                {% for prod in lista_productos %}
+                    {% if prod[7] != ns.tier_anterior and prod[7] > 0 %}
+                    <tr class="separador"><td colspan="6">{{ 'No disponibles' if prod[7] == 1 else 'Ocultos' }}</td></tr>
+                    {% endif %}
+                    {% set ns.tier_anterior = prod[7] %}
+                    {% set nombre_completo = prod[1] ~ ('' if prod[1].endswith(prod[2]) else ' ' ~ prod[2]) %}
+                    <tr {% if prod[7] > 0 %}class="atenuada"{% endif %}>
+                        <td>
+                            {% if prod[6] == 0 %}<span class="estado estado-falla">No disponible</span>
+                            {% elif prod[5] == 1 %}<span class="estado estado-ok">Visible</span>
+                            {% else %}<span class="estado estado-oculto">Oculto</span>{% endif %}
+                        </td>
+                        <td><a href="/producto/{{ prod[0] }}" target="_blank" rel="noopener" class="fw-semibold">{{ prod[1] }}</a></td>
+                        <td><span class="grado">{{ prod[2] }}</span></td>
+                        <td class="mono fw-semibold text-end">{{ prod[3] }}</td>
+                        <td class="mono texto-tenue small text-nowrap">{{ prod[4]|fecha }}</td>
+                        <td>
+                            <div class="acciones-fila">
+                                <form method="POST" action="{{ url_for('admin_bp.toggle_visibilidad', id=prod[0], **filtros) }}">{{ campo_csrf() }}
+                                    <button type="submit" class="boton-icono" aria-label="{{ 'Ocultar' if prod[5] == 1 else 'Mostrar' }} {{ prod[1] }}" title="{{ 'Ocultar' if prod[5] == 1 else 'Mostrar' }}">
+                                        {% if prod[5] == 1 %}<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg>
+                                        {% else %}<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M3 3l18 18M10.6 5.1A10.4 10.4 0 0 1 12 5c6.5 0 10 7 10 7a17 17 0 0 1-3 3.9M6.6 6.6A17 17 0 0 0 2 12s3.5 7 10 7a10 10 0 0 0 5.4-1.6"/><path d="M9.9 9.9a3 3 0 0 0 4.2 4.2"/></svg>{% endif %}
+                                    </button>
+                                </form>
+                                <a href="{{ url_for('admin_bp.editar_producto', id=prod[0], **filtros) }}" class="boton-icono" aria-label="Editar {{ prod[1] }}" title="Editar">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+                                </a>
+                                <button type="button" class="boton-icono btn-fusion" data-bs-toggle="modal" data-bs-target="#modalFusion" data-id="{{ prod[0] }}" data-nombre="{{ nombre_completo }}" aria-label="Fusionar {{ prod[1] }} con otro producto" title="Fusionar con otro producto">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M8 3v6a4 4 0 0 0 4 4h0a4 4 0 0 1 4 4v4M16 3v6a4 4 0 0 1-4 4"/></svg>
+                                </button>
+                                <form method="POST" action="{{ url_for('admin_bp.eliminar_producto', id=prod[0], **filtros) }}" onsubmit="return confirm('¿Eliminar producto y todo su historial vinculado?');">{{ campo_csrf() }}
+                                    <button type="submit" class="boton-icono boton-icono-peligro" aria-label="Eliminar {{ prod[1] }}" title="Eliminar">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 7h16M10 11v6M14 11v6M5 7l1 13h12l1-13M9 7V4h6v3"/></svg>
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                {% else %}
+                    <tr><td colspan="6" class="texto-tenue text-center">Sin productos con estos filtros.</td></tr>
+                {% endfor %}
+            </tbody>
         </table>
     </div>
 
-    <!-- PAGINACIÓN -->
-    <div class="pagination-wrapper">
-        {% if total_pages > 1 %}
-            {% if page > 1 %}
-                <a href="?page={{ page - 1 }}&per_page={{ per_page }}&sort_admin={{ sort_admin }}{% if search_query %}&q_admin={{ search_query }}{% endif %}{% if grado_admin %}&grado_admin={{ grado_admin }}{% endif %}#seccion-filtros-admin" class="btn page-btn">⬅</a>
-            {% endif %}
-            
-            {% for p in range(1, total_pages + 1) %}
-                {% if p == page %}
-                    <span class="btn page-btn active">{{ p }}</span>
-                {% else %}
-                    <a href="?page={{ p }}&per_page={{ per_page }}&sort_admin={{ sort_admin }}{% if search_query %}&q_admin={{ search_query }}{% endif %}{% if grado_admin %}&grado_admin={{ grado_admin }}{% endif %}#seccion-filtros-admin" class="btn page-btn">{{ p }}</a>
-                {% endif %}
-            {% endfor %}
-            
-            {% if page < total_pages %}
-                <a href="?page={{ page + 1 }}&per_page={{ per_page }}&sort_admin={{ sort_admin }}{% if search_query %}&q_admin={{ search_query }}{% endif %}{% if grado_admin %}&grado_admin={{ grado_admin }}{% endif %}#seccion-filtros-admin" class="btn page-btn">➡</a>
-            {% endif %}
-        {% endif %}
-    </div>
-</div>
+    {% if total_pages > 1 %}
+    <nav class="paginacion pt-3 pb-0" aria-label="Páginas de productos">
+        {% if page > 1 %}<a href="{{ enlace_panel(page=page - 1) }}" aria-label="Página anterior">‹</a>{% endif %}
+        {% for p in range(1, total_pages + 1) %}
+            {% if p == page %}<span class="actual" aria-current="page">{{ p }}</span>
+            {% elif p == 1 or p == total_pages or (p - page)|abs <= 2 %}<a href="{{ enlace_panel(page=p) }}">{{ p }}</a>
+            {% elif (p - page)|abs == 3 %}<span class="salto" aria-hidden="true">…</span>{% endif %}
+        {% endfor %}
+        {% if page < total_pages %}<a href="{{ enlace_panel(page=page + 1) }}">Siguiente</a>{% endif %}
+    </nav>
+    {% endif %}
+</section>

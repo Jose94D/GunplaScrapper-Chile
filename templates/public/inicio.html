@@ -1,128 +1,171 @@
 {% extends "base.html" %}
 
-{% block content %}
-<div class="header-top">
-    <h1>Radar de Precios</h1>
-    <button id="theme-toggle" class="theme-btn">🌙 Modo Oscuro</button>
+{# Enlace al inicio conservando búsqueda, grado, orden y cantidad; url_for omite los valores None #}
+{% macro enlace(page=1, grado=grado_filtro, ancla='#catalogo') -%}
+{{ url_for('inicio_bp.index', q=search_query or None, grado=grado or None, sort=sort_order, per_page=per_page, page=page if page > 1 else None) }}{{ ancla }}
+{%- endmacro %}
+
+{% block banner %}
+<div class="container-xl banner-envoltura">
+    <h1 class="banner-completo">
+        <img id="main-banner" src="{{ url_for('static', filename='Banner_dark.png') }}"
+             data-src-light="{{ url_for('static', filename='Banner_light.png') }}"
+             data-src-dark="{{ url_for('static', filename='Banner_dark.png') }}" alt="Gunpla Scraper Chile" width="1774" height="448">
+    </h1>
 </div>
+{% endblock %}
+
+{% block content %}
+<section class="presentacion">
+    <div class="presentacion-texto">
+        <p class="etiqueta">Radar de precios · {{ resumen.tiendas }} tiendas chilenas</p>
+        <h2 class="presentacion-titulo h1">El precio más bajo de cada Gunpla, actualizado dos veces al día.</h2>
+    </div>
+    <dl class="indicadores">
+        <div><dt>Kits disponibles</dt><dd>{{ resumen.total }}</dd></div>
+        <div><dt>Tiendas</dt><dd>{{ resumen.tiendas }}</dd></div>
+        <div><dt>Último escaneo</dt><dd class="chico">{{ fecha|fecha }}</dd></div>
+        <div><dt>Próximo</dt><dd class="chico">{{ proximo_escaneo }}</dd></div>
+    </dl>
+</section>
 
 {% if carrusel_imgs %}
-<div class="carousel-container">
-    <div class="carousel-slides" id="carousel-slides">
-        {% for img in carrusel_imgs %}
-        <div class="carousel-slide">
-            {% if img[1] and img[1] != '' %}
-                <a href="{{ img[1] }}" target="_blank" class="carousel-link">
-                    <img src="/static/carrusel/{{ img[0] }}" alt="Promoción">
-                </a>
-            {% else %}
-                <img src="/static/carrusel/{{ img[0] }}" alt="Promoción">
+<section class="novedades" aria-label="Novedades">
+    <div class="novedades-cabecera">
+        <h2>Novedades</h2>
+        {% if carrusel_imgs|length > 1 %}
+        <span class="mono small" id="novedades-contador" aria-hidden="true">01 / {{ '%02d' % carrusel_imgs|length }}</span>
+        {% endif %}
+    </div>
+    <div id="novedades" class="carousel slide" {% if carrusel_imgs|length > 1 %}data-bs-ride="carousel" data-bs-interval="6000"{% endif %}>
+        <div class="carrusel position-relative">
+            <div class="carousel-inner">
+                {% for nombre, url_enlace in carrusel_imgs %}
+                <div class="carousel-item {% if loop.first %}active{% endif %}">
+                    {% if url_enlace %}<a href="{{ url_enlace }}" target="_blank" rel="noopener">{% endif %}
+                    <img src="{{ url_for('static', filename='carrusel/' ~ nombre) }}" alt="Novedad {{ loop.index }}" {% if not loop.first %}loading="lazy"{% endif %}>
+                    {% if url_enlace %}</a>{% endif %}
+                </div>
+                {% endfor %}
+            </div>
+            {% if carrusel_imgs|length > 1 %}
+            <button class="carousel-control-prev" type="button" data-bs-target="#novedades" data-bs-slide="prev" aria-label="Novedad anterior">
+                <span class="carrusel-flecha"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg></span>
+            </button>
+            <button class="carousel-control-next" type="button" data-bs-target="#novedades" data-bs-slide="next" aria-label="Novedad siguiente">
+                <span class="carrusel-flecha"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></span>
+            </button>
             {% endif %}
         </div>
-        {% endfor %}
+        {% if carrusel_imgs|length > 1 %}
+        <div class="carousel-indicators carrusel-puntos">
+            {% for _ in carrusel_imgs %}
+            <button type="button" data-bs-target="#novedades" data-bs-slide-to="{{ loop.index0 }}" aria-label="Ir a la novedad {{ loop.index }}" {% if loop.first %}class="active" aria-current="true"{% endif %}><span></span></button>
+            {% endfor %}
+        </div>
+        {% endif %}
     </div>
-    
-    {% if carrusel_imgs|length > 1 %}
-    <button class="carousel-btn carousel-prev" id="btn-carousel-prev">&#10094;</button>
-    <button class="carousel-btn carousel-next" id="btn-carousel-next">&#10095;</button>
-    {% endif %}
-</div>
+</section>
 {% endif %}
 
-<!-- FILTROS POR GRADO -->
-<div id="seccion-filtros" class="filters-container">
-    {% set grados = ['EG', 'HG', 'RG', 'MG', 'PG', 'FM', 'SD', 'S/G'] %}
-    
-    <a href="/?per_page={{ per_page }}&sort={{ sort_order }}{% if search_query %}&q={{ search_query }}{% endif %}#seccion-filtros" 
-       class="btn filter-btn {% if not grado_filtro or grado_filtro == 'Todos' %}active{% endif %}">
-       Todos
-    </a>
-    
-    {% for g in grados %}
-    <a href="/?grado={{ g }}&per_page={{ per_page }}&sort={{ sort_order }}{% if search_query %}&q={{ search_query }}{% endif %}#seccion-filtros" 
-       class="btn filter-btn {% if grado_filtro == g %}active{% endif %}">
-       {{ g }}
-    </a>
-    {% endfor %}
-</div>
-
-<!-- BUSCADOR -->
-<form action="/#seccion-filtros" method="GET" class="search-box project-card search-bar-unified">
-    {% if grado_filtro %}
-        <input type="hidden" name="grado" value="{{ grado_filtro }}">
-    {% endif %}
-
-    <div class="search-group">
-        <input type="text" name="q" class="search-input" placeholder="Buscar modelo..." value="{{ search_query }}">
-        <button type="submit" class="btn">Buscar</button>
-        {% if search_query %}
-            <a href="/?sort={{ sort_order }}&per_page={{ per_page }}{% if grado_filtro %}&grado={{ grado_filtro }}{% endif %}#seccion-filtros" class="btn-clear">✖ Limpiar</a>
-        {% endif %}
-    </div>
-
-    <div class="filters-group">
-        <div class="filter-item">
-            <label for="sort" class="filter-label">Ordenar por:</label>
-            <select name="sort" id="sort" class="search-input filter-select" onchange="this.form.submit()">
-                <option value="price_asc" {% if sort_order in ['price_asc', 'asc'] %}selected{% endif %}>Precio: Menor a Mayor</option>
-                <option value="price_desc" {% if sort_order in ['price_desc', 'desc'] %}selected{% endif %}>Precio: Mayor a Menor</option>
-                <option value="alpha_asc" {% if sort_order == 'alpha_asc' %}selected{% endif %}>Nombre: A - Z</option>
-                <option value="alpha_desc" {% if sort_order == 'alpha_desc' %}selected{% endif %}>Nombre: Z - A</option>
-            </select>
-        </div>
-
-        <div class="filter-item">
-            <label for="per_page" class="filter-label">Mostrar:</label>
-            <select name="per_page" id="per_page" class="search-input filter-select" onchange="this.form.submit()">
-                <option value="24" {% if per_page == 24 %}selected{% endif %}>24 por página</option>
-                <option value="48" {% if per_page == 48 %}selected{% endif %}>48 por página</option>
-                <option value="120" {% if per_page == 120 %}selected{% endif %}>120 por página</option>
-            </select>
-        </div>
-    </div>
+<form action="{{ url_for('inicio_bp.index') }}#catalogo" method="GET" class="buscador" role="search">
+    {% if grado_filtro %}<input type="hidden" name="grado" value="{{ grado_filtro }}">{% endif %}
+    <input type="hidden" name="sort" value="{{ sort_order }}">
+    <input type="hidden" name="per_page" value="{{ per_page }}">
+    <label for="buscar" class="visually-hidden">Buscar maqueta</label>
+    <input id="buscar" type="search" name="q" class="form-control" placeholder="Busca un modelo: Exia, Strike Freedom, Zaku…" value="{{ search_query }}">
+    <button type="submit" class="btn boton-acento">Buscar</button>
+    {% if search_query %}<a href="{{ url_for('inicio_bp.index', grado=grado_filtro or None, sort=sort_order, per_page=per_page) }}#catalogo" class="btn boton-borde d-inline-flex align-items-center">Limpiar</a>{% endif %}
 </form>
 
-<!-- TABLA DE PRODUCTOS -->
-<table>
-    <tr>
-        <th class="col-left">Modelo</th>
-        <th class="col-center">Grado</th>
-        <th class="col-center">Mejor Precio Actual</th>
-    </tr>
-    {% for fila in datos %}
-    <tr>
-        <td class="col-left">
-            <a href="{{ url_for('producto_bp.ver_grafico', id=fila[0], slug=fila[1]|slug, q=search_query, grado=grado_filtro, sort=sort_order, per_page=per_page, page=page) }}" class="enlace-grafico enlace-producto">
-                {%- if fila[4] %}<img src="{{ url_for('static', filename=fila[4]) }}" alt="" class="miniatura" width="48" height="48" loading="lazy">
-                {%- else %}<span class="miniatura miniatura-vacia" aria-hidden="true"></span>{% endif -%}
-                <span>{{ fila[1] }}</span></a>
-        </td>
-        <td class="col-center"><span class="grade-badge">{{ fila[2] }}</span></td>
-        <td class="col-center"><strong class="price-text">{{ fila[3] }}</strong></td>
-    </tr>
-    {% else %}
-    <tr><td colspan="3" class="col-center table-empty">No se encontraron productos con estos filtros.</td></tr>
-    {% endfor %}
-</table>
-
-<!-- BOTONES DE PAGINACIÓN -->
-<div class="pagination-wrapper">
-    {% if total_pages > 1 %}
-        {% if page > 1 %}
-            <a href="/?page={{ page - 1 }}&per_page={{ per_page }}&sort={{ sort_order }}{% if search_query %}&q={{ search_query }}{% endif %}{% if grado_filtro %}&grado={{ grado_filtro }}{% endif %}#seccion-filtros" class="btn page-btn">⬅</a>
-        {% endif %}
-        
-        {% for p in range(1, total_pages + 1) %}
-            {% if p == page %}
-                <span class="btn page-btn active">{{ p }}</span>
-            {% else %}
-                <a href="/?page={{ p }}&per_page={{ per_page }}&sort={{ sort_order }}{% if search_query %}&q={{ search_query }}{% endif %}{% if grado_filtro %}&grado={{ grado_filtro }}{% endif %}#seccion-filtros" class="btn page-btn">{{ p }}</a>
-            {% endif %}
+<section id="catalogo" class="barra-filtros" aria-label="Filtros">
+    <nav class="chips" aria-label="Filtrar por grado">
+        <a href="{{ enlace(grado=None) }}" class="chip {% if not grado_filtro %}active{% endif %}" {% if not grado_filtro %}aria-current="true"{% endif %}>Todos <span>{{ resumen.total }}</span></a>
+        {% for g, cantidad in resumen.por_grado %}
+        <a href="{{ enlace(grado=g) }}" class="chip {% if grado_filtro == g %}active{% endif %}" {% if grado_filtro == g %}aria-current="true"{% endif %}>{{ g }} <span>{{ cantidad }}</span></a>
         {% endfor %}
-        
-        {% if page < total_pages %}
-            <a href="/?page={{ page + 1 }}&per_page={{ per_page }}&sort={{ sort_order }}{% if search_query %}&q={{ search_query }}{% endif %}{% if grado_filtro %}&grado={{ grado_filtro }}{% endif %}#seccion-filtros" class="btn page-btn">➡</a>
-        {% endif %}
-    {% endif %}
-</div>
+    </nav>
+    <form action="{{ url_for('inicio_bp.index') }}#catalogo" method="GET" class="controles">
+        {% if search_query %}<input type="hidden" name="q" value="{{ search_query }}">{% endif %}
+        {% if grado_filtro %}<input type="hidden" name="grado" value="{{ grado_filtro }}">{% endif %}
+        <div class="selector-vista" role="group" aria-label="Vista del catálogo">
+            <button type="button" data-vista="grilla" aria-pressed="true" aria-label="Ver como cuadrícula">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="4" y="4" width="6.5" height="6.5" rx="1"/><rect x="13.5" y="4" width="6.5" height="6.5" rx="1"/><rect x="4" y="13.5" width="6.5" height="6.5" rx="1"/><rect x="13.5" y="13.5" width="6.5" height="6.5" rx="1"/></svg>
+            </button>
+            <button type="button" data-vista="lista" aria-pressed="false" aria-label="Ver como lista">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="4" y="5" width="4" height="4" rx="1"/><rect x="4" y="15" width="4" height="4" rx="1"/><path d="M11 7h9M11 17h9"/></svg>
+            </button>
+        </div>
+        <label for="sort">Ordenar</label>
+        <select name="sort" id="sort" class="form-select" data-autoenviar>
+            <option value="price_asc" {% if sort_order in ['price_asc', 'asc'] %}selected{% endif %}>Menor precio</option>
+            <option value="price_desc" {% if sort_order in ['price_desc', 'desc'] %}selected{% endif %}>Mayor precio</option>
+            <option value="alpha_asc" {% if sort_order == 'alpha_asc' %}selected{% endif %}>Nombre A–Z</option>
+            <option value="alpha_desc" {% if sort_order == 'alpha_desc' %}selected{% endif %}>Nombre Z–A</option>
+        </select>
+        <label for="per_page" class="visually-hidden">Productos por página</label>
+        <select name="per_page" id="per_page" class="form-select" data-autoenviar>
+            {% for n in (24, 48, 120) %}<option value="{{ n }}" {% if per_page == n %}selected{% endif %}>{{ n }} por página</option>{% endfor %}
+        </select>
+        <noscript><button type="submit" class="btn boton-borde">Aplicar</button></noscript>
+    </form>
+</section>
+
+<script>
+    // Vista guardada antes de dibujar el catálogo, para que no salte de cuadrícula a lista
+    try { document.documentElement.dataset.vista = localStorage.getItem('vista') === 'lista' ? 'lista' : 'grilla'; } catch (e) {}
+</script>
+<section class="catalogo" aria-label="Catálogo">
+    {% for id, nombre, grado, precio, imagen, tiendas in datos %}
+    <a href="{{ url_for('producto_bp.ver_grafico', id=id, slug=nombre|slug, q=search_query, grado=grado_filtro, sort=sort_order, per_page=per_page, page=page) }}" class="tarjeta">
+        <div class="tarjeta-foto">
+            {% if imagen %}<img src="{{ url_for('static', filename=imagen) }}" alt="" width="240" height="240" loading="lazy">
+            {% else %}<svg class="sin-foto" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 15 5-5 4 4 3-3 6 6"/></svg>{% endif %}
+            <span class="grado">{{ grado }}</span>
+        </div>
+        <div class="tarjeta-cuerpo">
+            <span class="grado grado-lista">{{ grado }}</span>
+            <h3 class="tarjeta-nombre">{{ nombre }}</h3>
+            <div class="tarjeta-pie">
+                <span class="tiendas">en {{ tiendas }} {{ 'tienda' if tiendas == 1 else 'tiendas' }}</span>
+                <span class="precio">{{ precio }}</span>
+            </div>
+        </div>
+        <svg class="tarjeta-flecha" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>
+    </a>
+    {% else %}
+    <p class="vacio">No encontramos kits con estos filtros. Prueba con otro nombre o con "Todos".</p>
+    {% endfor %}
+</section>
+
+{% if total_pages > 1 %}
+<nav class="paginacion" aria-label="Páginas del catálogo">
+    {% if page > 1 %}<a href="{{ enlace(page=page - 1) }}" aria-label="Página anterior">‹</a>{% endif %}
+    {% for p in range(1, total_pages + 1) %}
+        {% if p == page %}<span class="actual" aria-current="page">{{ p }}</span>
+        {% elif p == 1 or p == total_pages or (p - page)|abs <= 2 %}<a href="{{ enlace(page=p) }}">{{ p }}</a>
+        {% elif (p - page)|abs == 3 %}<span class="salto" aria-hidden="true">…</span>{% endif %}
+    {% endfor %}
+    {% if page < total_pages %}<a href="{{ enlace(page=page + 1) }}">Siguiente</a>{% endif %}
+</nav>
+{% endif %}
+
+<section id="como-funciona" class="como-funciona">
+    <p class="etiqueta">Cómo funciona</p>
+    <h2>Del listado de cada tienda a un solo precio comparable.</h2>
+    <ol class="pasos">
+        <li class="panel"><span class="numero">01</span><h3>Recolección</h3><p>Un scraper por tienda recorre su catálogo a las 00:00 y 12:00, con pausas y reintentos.</p></li>
+        <li class="panel"><span class="numero">02</span><h3>Normalización</h3><p>Cada título se limpia y se detecta su grado, para agrupar el mismo kit aunque cada tienda lo escriba distinto.</p></li>
+        <li class="panel"><span class="numero">03</span><h3>Historial</h3><p>Cada precio queda guardado: la ficha muestra cómo cambió en cada tienda.</p></li>
+        <li class="panel"><span class="numero">04</span><h3>Comparación</h3><p>Solo cuentan las tiendas con stock hoy. Lo agotado sale del catálogo solo.</p></li>
+    </ol>
+    <div class="stack">
+        <span>Construido con</span>
+        {% for t in ['Python', 'Flask', 'SQLite', 'BeautifulSoup', 'APScheduler', 'Bootstrap 5', 'Chart.js', 'Pruebas automatizadas · GitHub Actions'] %}<span class="mono">{{ t }}</span>{% endfor %}
+    </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/inicio.js') }}"></script>
 {% endblock %}

@@ -9,168 +9,192 @@
      "HARO SD",
      "SD",
      "N/A",
-     null
+     null,
+     0
     ],
     [
      1,
      "ZAKU HG",
      "HG",
      "$14.000",
-     null
+     null,
+     2
     ],
     [
      7,
      "AERIAL HG",
      "HG",
      "$18.000",
-     null
+     null,
+     1
     ],
     [
      2,
      "GUNDAM EXIA RG",
      "RG",
      "$35.000",
-     null
+     null,
+     1
     ],
     [
      100,
      "RELLENO 00 HG",
      "HG",
      "$50.000",
-     null
+     null,
+     1
     ],
     [
      101,
      "RELLENO 01 HG",
      "HG",
      "$50.001",
-     null
+     null,
+     1
     ],
     [
      102,
      "RELLENO 02 HG",
      "HG",
      "$50.002",
-     null
+     null,
+     1
     ],
     [
      103,
      "RELLENO 03 HG",
      "HG",
      "$50.003",
-     null
+     null,
+     1
     ],
     [
      104,
      "RELLENO 04 HG",
      "HG",
      "$50.004",
-     null
+     null,
+     1
     ],
     [
      105,
      "RELLENO 05 HG",
      "HG",
      "$50.005",
-     null
+     null,
+     1
     ],
     [
      106,
      "RELLENO 06 HG",
      "HG",
      "$50.006",
-     null
+     null,
+     1
     ],
     [
      107,
      "RELLENO 07 HG",
      "HG",
      "$50.007",
-     null
+     null,
+     1
     ],
     [
      108,
      "RELLENO 08 HG",
      "HG",
      "$50.008",
-     null
+     null,
+     1
     ],
     [
      109,
      "RELLENO 09 HG",
      "HG",
      "$50.009",
-     null
+     null,
+     1
     ],
     [
      110,
      "RELLENO 10 HG",
      "HG",
      "$50.010",
-     null
+     null,
+     1
     ],
     [
      111,
      "RELLENO 11 HG",
      "HG",
      "$50.011",
-     null
+     null,
+     1
     ],
     [
      112,
      "RELLENO 12 HG",
      "HG",
      "$50.012",
-     null
+     null,
+     1
     ],
     [
      113,
      "RELLENO 13 HG",
      "HG",
      "$50.013",
-     null
+     null,
+     1
     ],
     [
      114,
      "RELLENO 14 HG",
      "HG",
      "$50.014",
-     null
+     null,
+     1
     ],
     [
      115,
      "RELLENO 15 HG",
      "HG",
      "$50.015",
-     null
+     null,
+     1
     ],
     [
      116,
      "RELLENO 16 HG",
      "HG",
      "$50.016",
-     null
+     null,
+     1
     ],
     [
      117,
      "RELLENO 17 HG",
      "HG",
      "$50.017",
-     null
+     null,
+     1
     ],
     [
      118,
      "RELLENO 18 HG",
      "HG",
      "$50.018",
-     null
+     null,
+     1
     ],
     [
      119,
      "RELLENO 19 HG",
      "HG",
      "$50.019",
-     null
+     null,
+     1
     ]
    ]
   },
@@ -185,168 +209,192 @@
      "RELLENO 24 HG",
      "HG",
      "$50.024",
-     null
+     null,
+     1
     ],
     [
      123,
      "RELLENO 23 HG",
      "HG",
      "$50.023",
-     null
+     null,
+     1
     ],
     [
      122,
      "RELLENO 22 HG",
      "HG",
      "$50.022",
-     null
+     null,
+     1
     ],
     [
      121,
      "RELLENO 21 HG",
      "HG",
      "$50.021",
-     null
+     null,
+     1
     ],
     [
      120,
      "RELLENO 20 HG",
      "HG",
      "$50.020",
-     null
+     null,
+     1
     ],
     [
      119,
      "RELLENO 19 HG",
      "HG",
      "$50.019",
-     null
+     null,
+     1
     ],
     [
      118,
      "RELLENO 18 HG",
      "HG",
      "$50.018",
-     null
+     null,
+     1
     ],
     [
      117,
      "RELLENO 17 HG",
      "HG",
      "$50.017",
-     null
+     null,
+     1
     ],
     [
      116,
      "RELLENO 16 HG",
      "HG",
      "$50.016",
-     null
+     null,
+     1
     ],
     [
      115,
      "RELLENO 15 HG",
      "HG",
      "$50.015",
-     null
+     null,
+     1
     ],
     [
      114,
      "RELLENO 14 HG",
      "HG",
      "$50.014",
-     null
+     null,
+     1
     ],
     [
      113,
      "RELLENO 13 HG",
      "HG",
      "$50.013",
-     null
+     null,
+     1
     ],
     [
      112,
      "RELLENO 12 HG",
      "HG",
      "$50.012",
-     null
+     null,
+     1
     ],
     [
      111,
      "RELLENO 11 HG",
      "HG",
      "$50.011",
-     null
+     null,
+     1
     ],
     [
      110,
      "RELLENO 10 HG",
      "HG",
      "$50.010",
-     null
+     null,
+     1
     ],
     [
      109,
      "RELLENO 09 HG",
      "HG",
      "$50.009",
-     null
+     null,
+     1
     ],
     [
      108,
      "RELLENO 08 HG",
      "HG",
      "$50.008",
-     null
+     null,
+     1
     ],
     [
      107,
      "RELLENO 07 HG",
      "HG",
      "$50.007",
-     null
+     null,
+     1
     ],
     [
      106,
      "RELLENO 06 HG",
      "HG",
      "$50.006",
-     null
+     null,
+     1
     ],
     [
      105,
      "RELLENO 05 HG",
      "HG",
      "$50.005",
-     null
+     null,
+     1
     ],
     [
      104,
      "RELLENO 04 HG",
      "HG",
      "$50.004",
-     null
+     null,
+     1
     ],
     [
      103,
      "RELLENO 03 HG",
      "HG",
      "$50.003",
-     null
+     null,
+     1
     ],
     [
      102,
      "RELLENO 02 HG",
      "HG",
      "$50.002",
-     null
+     null,
+     1
     ],
     [
      101,
      "RELLENO 01 HG",
      "HG",
      "$50.001",
-     null
+     null,
+     1
     ]
    ]
   },
@@ -361,168 +409,192 @@
      "AERIAL HG",
      "HG",
      "$18.000",
-     null
+     null,
+     1
     ],
     [
      2,
      "GUNDAM EXIA RG",
      "RG",
      "$35.000",
-     null
+     null,
+     1
     ],
     [
      5,
      "HARO SD",
      "SD",
      "N/A",
-     null
+     null,
+     0
     ],
     [
      100,
      "RELLENO 00 HG",
      "HG",
      "$50.000",
-     null
+     null,
+     1
     ],
     [
      101,
      "RELLENO 01 HG",
      "HG",
      "$50.001",
-     null
+     null,
+     1
     ],
     [
      102,
      "RELLENO 02 HG",
      "HG",
      "$50.002",
-     null
+     null,
+     1
     ],
     [
      103,
      "RELLENO 03 HG",
      "HG",
      "$50.003",
-     null
+     null,
+     1
     ],
     [
      104,
      "RELLENO 04 HG",
      "HG",
      "$50.004",
-     null
+     null,
+     1
     ],
     [
      105,
      "RELLENO 05 HG",
      "HG",
      "$50.005",
-     null
+     null,
+     1
     ],
     [
      106,
      "RELLENO 06 HG",
      "HG",
      "$50.006",
-     null
+     null,
+     1
     ],
     [
      107,
      "RELLENO 07 HG",
      "HG",
      "$50.007",
-     null
+     null,
+     1
     ],
     [
      108,
      "RELLENO 08 HG",
      "HG",
      "$50.008",
-     null
+     null,
+     1
     ],
     [
      109,
      "RELLENO 09 HG",
      "HG",
      "$50.009",
-     null
+     null,
+     1
     ],
     [
      110,
      "RELLENO 10 HG",
      "HG",
      "$50.010",
-     null
+     null,
+     1
     ],
     [
      111,
      "RELLENO 11 HG",
      "HG",
      "$50.011",
-     null
+     null,
+     1
     ],
     [
      112,
      "RELLENO 12 HG",
      "HG",
      "$50.012",
-     null
+     null,
+     1
     ],
     [
      113,
      "RELLENO 13 HG",
      "HG",
      "$50.013",
-     null
+     null,
+     1
     ],
     [
      114,
      "RELLENO 14 HG",
      "HG",
      "$50.014",
-     null
+     null,
+     1
     ],
     [
      115,
      "RELLENO 15 HG",
      "HG",
      "$50.015",
-     null
+     null,
+     1
     ],
     [
      116,
      "RELLENO 16 HG",
      "HG",
      "$50.016",
-     null
+     null,
+     1
     ],
     [
      117,
      "RELLENO 17 HG",
      "HG",
      "$50.017",
-     null
+     null,
+     1
     ],
     [
      118,
      "RELLENO 18 HG",
      "HG",
      "$50.018",
-     null
+     null,
+     1
     ],
     [
      119,
      "RELLENO 19 HG",
      "HG",
      "$50.019",
-     null
+     null,
+     1
     ],
     [
      120,
      "RELLENO 20 HG",
      "HG",
      "$50.020",
-     null
+     null,
+     1
     ]
    ]
   },
@@ -537,168 +609,192 @@
      "ZAKU HG",
      "HG",
      "$14.000",
-     null
+     null,
+     2
     ],
     [
      124,
      "RELLENO 24 HG",
      "HG",
      "$50.024",
-     null
+     null,
+     1
     ],
     [
      123,
      "RELLENO 23 HG",
      "HG",
      "$50.023",
-     null
+     null,
+     1
     ],
     [
      122,
      "RELLENO 22 HG",
      "HG",
      "$50.022",
-     null
+     null,
+     1
     ],
     [
      121,
      "RELLENO 21 HG",
      "HG",
      "$50.021",
-     null
+     null,
+     1
     ],
     [
      120,
      "RELLENO 20 HG",
      "HG",
      "$50.020",
-     null
+     null,
+     1
     ],
     [
      119,
      "RELLENO 19 HG",
      "HG",
      "$50.019",
-     null
+     null,
+     1
     ],
     [
      118,
      "RELLENO 18 HG",
      "HG",
      "$50.018",
-     null
+     null,
+     1
     ],
     [
      117,
      "RELLENO 17 HG",
      "HG",
      "$50.017",
-     null
+     null,
+     1
     ],
     [
      116,
      "RELLENO 16 HG",
      "HG",
      "$50.016",
-     null
+     null,
+     1
     ],
     [
      115,
      "RELLENO 15 HG",
      "HG",
      "$50.015",
-     null
+     null,
+     1
     ],
     [
      114,
      "RELLENO 14 HG",
      "HG",
      "$50.014",
-     null
+     null,
+     1
     ],
     [
      113,
      "RELLENO 13 HG",
      "HG",
      "$50.013",
-     null
+     null,
+     1
     ],
     [
      112,
      "RELLENO 12 HG",
      "HG",
      "$50.012",
-     null
+     null,
+     1
     ],
     [
      111,
      "RELLENO 11 HG",
      "HG",
      "$50.011",
-     null
+     null,
+     1
     ],
     [
      110,
      "RELLENO 10 HG",
      "HG",
      "$50.010",
-     null
+     null,
+     1
     ],
     [
      109,
      "RELLENO 09 HG",
      "HG",
      "$50.009",
-     null
+     null,
+     1
     ],
     [
      108,
      "RELLENO 08 HG",
      "HG",
      "$50.008",
-     null
+     null,
+     1
     ],
     [
      107,
      "RELLENO 07 HG",
      "HG",
      "$50.007",
-     null
+     null,
+     1
     ],
     [
      106,
      "RELLENO 06 HG",
      "HG",
      "$50.006",
-     null
+     null,
+     1
     ],
     [
      105,
      "RELLENO 05 HG",
      "HG",
      "$50.005",
-     null
+     null,
+     1
     ],
     [
      104,
      "RELLENO 04 HG",
      "HG",
      "$50.004",
-     null
+     null,
+     1
     ],
     [
      103,
      "RELLENO 03 HG",
      "HG",
      "$50.003",
-     null
+     null,
+     1
     ],
     [
      102,
      "RELLENO 02 HG",
      "HG",
      "$50.002",
-     null
+     null,
+     1
     ]
    ]
   },
@@ -713,168 +809,192 @@
      "HARO SD",
      "SD",
      "N/A",
-     null
+     null,
+     0
     ],
     [
      1,
      "ZAKU HG",
      "HG",
      "$14.000",
-     null
+     null,
+     2
     ],
     [
      7,
      "AERIAL HG",
      "HG",
      "$18.000",
-     null
+     null,
+     1
     ],
     [
      2,
      "GUNDAM EXIA RG",
      "RG",
      "$35.000",
-     null
+     null,
+     1
     ],
     [
      100,
      "RELLENO 00 HG",
      "HG",
      "$50.000",
-     null
+     null,
+     1
     ],
     [
      101,
      "RELLENO 01 HG",
      "HG",
      "$50.001",
-     null
+     null,
+     1
     ],
     [
      102,
      "RELLENO 02 HG",
      "HG",
      "$50.002",
-     null
+     null,
+     1
     ],
     [
      103,
      "RELLENO 03 HG",
      "HG",
      "$50.003",
-     null
+     null,
+     1
     ],
     [
      104,
      "RELLENO 04 HG",
      "HG",
      "$50.004",
-     null
+     null,
+     1
     ],
     [
      105,
      "RELLENO 05 HG",
      "HG",
      "$50.005",
-     null
+     null,
+     1
     ],
     [
      106,
      "RELLENO 06 HG",
      "HG",
      "$50.006",
-     null
+     null,
+     1
     ],
     [
      107,
      "RELLENO 07 HG",
      "HG",
      "$50.007",
-     null
+     null,
+     1
     ],
     [
      108,
      "RELLENO 08 HG",
      "HG",
      "$50.008",
-     null
+     null,
+     1
     ],
     [
      109,
      "RELLENO 09 HG",
      "HG",
      "$50.009",
-     null
+     null,
+     1
     ],
     [
      110,
      "RELLENO 10 HG",
      "HG",
      "$50.010",
-     null
+     null,
+     1
     ],
     [
      111,
      "RELLENO 11 HG",
      "HG",
      "$50.011",
-     null
+     null,
+     1
     ],
     [
      112,
      "RELLENO 12 HG",
      "HG",
      "$50.012",
-     null
+     null,
+     1
     ],
     [
      113,
      "RELLENO 13 HG",
      "HG",
      "$50.013",
-     null
+     null,
+     1
     ],
     [
      114,
      "RELLENO 14 HG",
      "HG",
      "$50.014",
-     null
+     null,
+     1
     ],
     [
      115,
      "RELLENO 15 HG",
      "HG",
      "$50.015",
-     null
+     null,
+     1
     ],
     [
      116,
      "RELLENO 16 HG",
      "HG",
      "$50.016",
-     null
+     null,
+     1
     ],
     [
      117,
      "RELLENO 17 HG",
      "HG",
      "$50.017",
-     null
+     null,
+     1
     ],
     [
      118,
      "RELLENO 18 HG",
      "HG",
      "$50.018",
-     null
+     null,
+     1
     ],
     [
      119,
      "RELLENO 19 HG",
      "HG",
      "$50.019",
-     null
+     null,
+     1
     ]
    ]
   },
@@ -889,168 +1009,192 @@
      "ZAKU HG",
      "HG",
      "$14.000",
-     null
+     null,
+     2
     ],
     [
      7,
      "AERIAL HG",
      "HG",
      "$18.000",
-     null
+     null,
+     1
     ],
     [
      100,
      "RELLENO 00 HG",
      "HG",
      "$50.000",
-     null
+     null,
+     1
     ],
     [
      101,
      "RELLENO 01 HG",
      "HG",
      "$50.001",
-     null
+     null,
+     1
     ],
     [
      102,
      "RELLENO 02 HG",
      "HG",
      "$50.002",
-     null
+     null,
+     1
     ],
     [
      103,
      "RELLENO 03 HG",
      "HG",
      "$50.003",
-     null
+     null,
+     1
     ],
     [
      104,
      "RELLENO 04 HG",
      "HG",
      "$50.004",
-     null
+     null,
+     1
     ],
     [
      105,
      "RELLENO 05 HG",
      "HG",
      "$50.005",
-     null
+     null,
+     1
     ],
     [
      106,
      "RELLENO 06 HG",
      "HG",
      "$50.006",
-     null
+     null,
+     1
     ],
     [
      107,
      "RELLENO 07 HG",
      "HG",
      "$50.007",
-     null
+     null,
+     1
     ],
     [
      108,
      "RELLENO 08 HG",
      "HG",
      "$50.008",
-     null
+     null,
+     1
     ],
     [
      109,
      "RELLENO 09 HG",
      "HG",
      "$50.009",
-     null
+     null,
+     1
     ],
     [
      110,
      "RELLENO 10 HG",
      "HG",
      "$50.010",
-     null
+     null,
+     1
     ],
     [
      111,
      "RELLENO 11 HG",
      "HG",
      "$50.011",
-     null
+     null,
+     1
     ],
     [
      112,
      "RELLENO 12 HG",
      "HG",
      "$50.012",
-     null
+     null,
+     1
     ],
     [
      113,
      "RELLENO 13 HG",
      "HG",
      "$50.013",
-     null
+     null,
+     1
     ],
     [
      114,
      "RELLENO 14 HG",
      "HG",
      "$50.014",
-     null
+     null,
+     1
     ],
     [
      115,
      "RELLENO 15 HG",
      "HG",
      "$50.015",
-     null
+     null,
+     1
     ],
     [
      116,
      "RELLENO 16 HG",
      "HG",
      "$50.016",
-     null
+     null,
+     1
     ],
     [
      117,
      "RELLENO 17 HG",
      "HG",
      "$50.017",
-     null
+     null,
+     1
     ],
     [
      118,
      "RELLENO 18 HG",
      "HG",
      "$50.018",
-     null
+     null,
+     1
     ],
     [
      119,
      "RELLENO 19 HG",
      "HG",
      "$50.019",
-     null
+     null,
+     1
     ],
     [
      120,
      "RELLENO 20 HG",
      "HG",
      "$50.020",
-     null
+     null,
+     1
     ],
     [
      121,
      "RELLENO 21 HG",
      "HG",
      "$50.021",
-     null
+     null,
+     1
     ]
    ]
   },
@@ -1065,168 +1209,192 @@
      "HARO SD",
      "SD",
      "N/A",
-     null
+     null,
+     0
     ],
     [
      1,
      "ZAKU HG",
      "HG",
      "$14.000",
-     null
+     null,
+     2
     ],
     [
      7,
      "AERIAL HG",
      "HG",
      "$18.000",
-     null
+     null,
+     1
     ],
     [
      2,
      "GUNDAM EXIA RG",
      "RG",
      "$35.000",
-     null
+     null,
+     1
     ],
     [
      100,
      "RELLENO 00 HG",
      "HG",
      "$50.000",
-     null
+     null,
+     1
     ],
     [
      101,
      "RELLENO 01 HG",
      "HG",
      "$50.001",
-     null
+     null,
+     1
     ],
     [
      102,
      "RELLENO 02 HG",
      "HG",
      "$50.002",
-     null
+     null,
+     1
     ],
     [
      103,
      "RELLENO 03 HG",
      "HG",
      "$50.003",
-     null
+     null,
+     1
     ],
     [
      104,
      "RELLENO 04 HG",
      "HG",
      "$50.004",
-     null
+     null,
+     1
     ],
     [
      105,
      "RELLENO 05 HG",
      "HG",
      "$50.005",
-     null
+     null,
+     1
     ],
     [
      106,
      "RELLENO 06 HG",
      "HG",
      "$50.006",
-     null
+     null,
+     1
     ],
     [
      107,
      "RELLENO 07 HG",
      "HG",
      "$50.007",
-     null
+     null,
+     1
     ],
     [
      108,
      "RELLENO 08 HG",
      "HG",
      "$50.008",
-     null
+     null,
+     1
     ],
     [
      109,
      "RELLENO 09 HG",
      "HG",
      "$50.009",
-     null
+     null,
+     1
     ],
     [
      110,
      "RELLENO 10 HG",
      "HG",
      "$50.010",
-     null
+     null,
+     1
     ],
     [
      111,
      "RELLENO 11 HG",
      "HG",
      "$50.011",
-     null
+     null,
+     1
     ],
     [
      112,
      "RELLENO 12 HG",
      "HG",
      "$50.012",
-     null
+     null,
+     1
     ],
     [
      113,
      "RELLENO 13 HG",
      "HG",
      "$50.013",
-     null
+     null,
+     1
     ],
     [
      114,
      "RELLENO 14 HG",
      "HG",
      "$50.014",
-     null
+     null,
+     1
     ],
     [
      115,
      "RELLENO 15 HG",
      "HG",
      "$50.015",
-     null
+     null,
+     1
     ],
     [
      116,
      "RELLENO 16 HG",
      "HG",
      "$50.016",
-     null
+     null,
+     1
     ],
     [
      117,
      "RELLENO 17 HG",
      "HG",
      "$50.017",
-     null
+     null,
+     1
     ],
     [
      118,
      "RELLENO 18 HG",
      "HG",
      "$50.018",
-     null
+     null,
+     1
     ],
     [
      119,
      "RELLENO 19 HG",
      "HG",
      "$50.019",
-     null
+     null,
+     1
     ]
    ]
   },
@@ -1241,7 +1409,8 @@
      "GUNDAM EXIA RG",
      "RG",
      "$35.000",
-     null
+     null,
+     1
     ]
    ]
   },
@@ -1256,7 +1425,8 @@
      "ZAKU HG",
      "HG",
      "$14.000",
-     null
+     null,
+     2
     ]
    ]
   },
@@ -1271,35 +1441,40 @@
      "RELLENO 20 HG",
      "HG",
      "$50.020",
-     null
+     null,
+     1
     ],
     [
      121,
      "RELLENO 21 HG",
      "HG",
      "$50.021",
-     null
+     null,
+     1
     ],
     [
      122,
      "RELLENO 22 HG",
      "HG",
      "$50.022",
-     null
+     null,
+     1
     ],
     [
      123,
      "RELLENO 23 HG",
      "HG",
      "$50.023",
-     null
+     null,
+     1
     ],
     [
      124,
      "RELLENO 24 HG",
      "HG",
      "$50.024",
-     null
+     null,
+     1
     ]
    ]
   },
@@ -1314,203 +1489,232 @@
      "HARO SD",
      "SD",
      "N/A",
-     null
+     null,
+     0
     ],
     [
      1,
      "ZAKU HG",
      "HG",
      "$14.000",
-     null
+     null,
+     2
     ],
     [
      7,
      "AERIAL HG",
      "HG",
      "$18.000",
-     null
+     null,
+     1
     ],
     [
      2,
      "GUNDAM EXIA RG",
      "RG",
      "$35.000",
-     null
+     null,
+     1
     ],
     [
      100,
      "RELLENO 00 HG",
      "HG",
      "$50.000",
-     null
+     null,
+     1
     ],
     [
      101,
      "RELLENO 01 HG",
      "HG",
      "$50.001",
-     null
+     null,
+     1
     ],
     [
      102,
      "RELLENO 02 HG",
      "HG",
      "$50.002",
-     null
+     null,
+     1
     ],
     [
      103,
      "RELLENO 03 HG",
      "HG",
      "$50.003",
-     null
+     null,
+     1
     ],
     [
      104,
      "RELLENO 04 HG",
      "HG",
      "$50.004",
-     null
+     null,
+     1
     ],
     [
      105,
      "RELLENO 05 HG",
      "HG",
      "$50.005",
-     null
+     null,
+     1
     ],
     [
      106,
      "RELLENO 06 HG",
      "HG",
      "$50.006",
-     null
+     null,
+     1
     ],
     [
      107,
      "RELLENO 07 HG",
      "HG",
      "$50.007",
-     null
+     null,
+     1
     ],
     [
      108,
      "RELLENO 08 HG",
      "HG",
      "$50.008",
-     null
+     null,
+     1
     ],
     [
      109,
      "RELLENO 09 HG",
      "HG",
      "$50.009",
-     null
+     null,
+     1
     ],
     [
      110,
      "RELLENO 10 HG",
      "HG",
      "$50.010",
-     null
+     null,
+     1
     ],
     [
      111,
      "RELLENO 11 HG",
      "HG",
      "$50.011",
-     null
+     null,
+     1
     ],
     [
      112,
      "RELLENO 12 HG",
      "HG",
      "$50.012",
-     null
+     null,
+     1
     ],
     [
      113,
      "RELLENO 13 HG",
      "HG",
      "$50.013",
-     null
+     null,
+     1
     ],
     [
      114,
      "RELLENO 14 HG",
      "HG",
      "$50.014",
-     null
+     null,
+     1
     ],
     [
      115,
      "RELLENO 15 HG",
      "HG",
      "$50.015",
-     null
+     null,
+     1
     ],
     [
      116,
      "RELLENO 16 HG",
      "HG",
      "$50.016",
-     null
+     null,
+     1
     ],
     [
      117,
      "RELLENO 17 HG",
      "HG",
      "$50.017",
-     null
+     null,
+     1
     ],
     [
      118,
      "RELLENO 18 HG",
      "HG",
      "$50.018",
-     null
+     null,
+     1
     ],
     [
      119,
      "RELLENO 19 HG",
      "HG",
      "$50.019",
-     null
+     null,
+     1
     ],
     [
      120,
      "RELLENO 20 HG",
      "HG",
      "$50.020",
-     null
+     null,
+     1
     ],
     [
      121,
      "RELLENO 21 HG",
      "HG",
      "$50.021",
-     null
+     null,
+     1
     ],
     [
      122,
      "RELLENO 22 HG",
      "HG",
      "$50.022",
-     null
+     null,
+     1
     ],
     [
      123,
      "RELLENO 23 HG",
      "HG",
      "$50.023",
-     null
+     null,
+     1
     ],
     [
      124,
      "RELLENO 24 HG",
      "HG",
      "$50.024",
-     null
+     null,
+     1
     ]
    ]
   },
@@ -1525,168 +1729,192 @@
      "HARO SD",
      "SD",
      "N/A",
-     null
+     null,
+     0
     ],
     [
      1,
      "ZAKU HG",
      "HG",
      "$14.000",
-     null
+     null,
+     2
     ],
     [
      7,
      "AERIAL HG",
      "HG",
      "$18.000",
-     null
+     null,
+     1
     ],
     [
      2,
      "GUNDAM EXIA RG",
      "RG",
      "$35.000",
-     null
+     null,
+     1
     ],
     [
      100,
      "RELLENO 00 HG",
      "HG",
      "$50.000",
-     null
+     null,
+     1
     ],
     [
      101,
      "RELLENO 01 HG",
      "HG",
      "$50.001",
-     null
+     null,
+     1
     ],
     [
      102,
      "RELLENO 02 HG",
      "HG",
      "$50.002",
-     null
+     null,
+     1
     ],
     [
      103,
      "RELLENO 03 HG",
      "HG",
      "$50.003",
-     null
+     null,
+     1
     ],
     [
      104,
      "RELLENO 04 HG",
      "HG",
      "$50.004",
-     null
+     null,
+     1
     ],
     [
      105,
      "RELLENO 05 HG",
      "HG",
      "$50.005",
-     null
+     null,
+     1
     ],
     [
      106,
      "RELLENO 06 HG",
      "HG",
      "$50.006",
-     null
+     null,
+     1
     ],
     [
      107,
      "RELLENO 07 HG",
      "HG",
      "$50.007",
-     null
+     null,
+     1
     ],
     [
      108,
      "RELLENO 08 HG",
      "HG",
      "$50.008",
-     null
+     null,
+     1
     ],
     [
      109,
      "RELLENO 09 HG",
      "HG",
      "$50.009",
-     null
+     null,
+     1
     ],
     [
      110,
      "RELLENO 10 HG",
      "HG",
      "$50.010",
-     null
+     null,
+     1
     ],
     [
      111,
      "RELLENO 11 HG",
      "HG",
      "$50.011",
-     null
+     null,
+     1
     ],
     [
      112,
      "RELLENO 12 HG",
      "HG",
      "$50.012",
-     null
+     null,
+     1
     ],
     [
      113,
      "RELLENO 13 HG",
      "HG",
      "$50.013",
-     null
+     null,
+     1
     ],
     [
      114,
      "RELLENO 14 HG",
      "HG",
      "$50.014",
-     null
+     null,
+     1
     ],
     [
      115,
      "RELLENO 15 HG",
      "HG",
      "$50.015",
-     null
+     null,
+     1
     ],
     [
      116,
      "RELLENO 16 HG",
      "HG",
      "$50.016",
-     null
+     null,
+     1
     ],
     [
      117,
      "RELLENO 17 HG",
      "HG",
      "$50.017",
-     null
+     null,
+     1
     ],
     [
      118,
      "RELLENO 18 HG",
      "HG",
      "$50.018",
-     null
+     null,
+     1
     ],
     [
      119,
      "RELLENO 19 HG",
      "HG",
      "$50.019",
-     null
+     null,
+     1
     ]
    ]
   }
@@ -3629,18 +3857,24 @@
    "nombre": "ZAKU HG",
    "tiendas": [
     {
-     "nombre": "A",
-     "nombre_original": null,
-     "precio": "$15.000",
-     "url": "https://t.cl/1",
-     "disponible": true
-    },
-    {
      "nombre": "B",
      "nombre_original": null,
      "precio": "$14.000",
+     "precio_valor": 14000.0,
      "url": "https://t.cl/2",
-     "disponible": true
+     "disponible": true,
+     "es_mejor": true,
+     "diferencia": null
+    },
+    {
+     "nombre": "A",
+     "nombre_original": null,
+     "precio": "$15.000",
+     "precio_valor": 15000.0,
+     "url": "https://t.cl/1",
+     "disponible": true,
+     "es_mejor": false,
+     "diferencia": "+$1.000"
     }
    ],
    "fechas": [
@@ -3677,8 +3911,11 @@
      "nombre": "A",
      "nombre_original": null,
      "precio": "$35.000",
+     "precio_valor": 35000.0,
      "url": "https://t.cl/3",
-     "disponible": true
+     "disponible": true,
+     "es_mejor": true,
+     "diferencia": null
     }
    ],
    "fechas": [
@@ -3704,8 +3941,11 @@
      "nombre": "A",
      "nombre_original": null,
      "precio": "$20.000",
+     "precio_valor": 20000.0,
      "url": "https://t.cl/5",
-     "disponible": false
+     "disponible": false,
+     "es_mejor": false,
+     "diferencia": null
     }
    ],
    "fechas": [

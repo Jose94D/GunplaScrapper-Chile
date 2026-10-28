@@ -1,28 +1,34 @@
 {% extends "base.html" %}
+{% from "public/_mascota.html" import mascota %}
 
-{% block title %}Admin Login{% endblock %}
+{% block title %}Acceso administrador · Gunpla Scraper Chile{% endblock %}
 
-{% block extra_head %}
-<link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
-{% endblock %}
+{% block extra_head %}<meta name="robots" content="noindex">{% endblock %}
 
-{% block container_class %}container-login{% endblock %}
+{% block banner %}{% endblock %}
 
 {% block content %}
-<h2 class="text-center">Acceso Administrador</h2>
+<div class="acceso">
+    <section class="panel acceso-tarjeta">
+        {{ mascota(alt='Mascota del panel', clase='mascota') }}
+        <p class="etiqueta mt-2">Panel de administración</p>
+        <h1>Acceso administrador</h1>
 
-{% if error %}
-    <p class="admin-login-error">{{ error }}</p>
-{% endif %}
+        {% if error %}<div class="alerta" role="alert">{{ error }}</div>{% endif %}
 
-<form method="POST" class="login-form">
-    {{ campo_csrf() }}
-    <input type="text" name="username" class="search-input full-width" placeholder="Usuario" required autocomplete="username">
-    <input type="password" name="password" class="search-input full-width" placeholder="Contraseña" required autocomplete="current-password">
-    <button type="submit" class="btn full-width">Ingresar</button>
-</form>
-
-<div class="text-center mt-20">
-    <a href="/">⬅ Volver al inicio</a>
+        <form method="POST" class="d-flex flex-column gap-3 text-start">
+            {{ campo_csrf() }}
+            <div>
+                <label for="username" class="form-label small texto-suave">Usuario</label>
+                <input type="text" id="username" name="username" class="form-control campo" required autocomplete="username" autofocus>
+            </div>
+            <div>
+                <label for="password" class="form-label small texto-suave">Contraseña</label>
+                <input type="password" id="password" name="password" class="form-control campo" required autocomplete="current-password">
+            </div>
+            <button type="submit" class="btn boton-acento boton-alto justify-content-center">Ingresar</button>
+        </form>
+        <a href="{{ url_for('inicio_bp.index') }}" class="small texto-suave d-inline-block mt-3">Volver al sitio</a>
+    </section>
 </div>
 {% endblock %}

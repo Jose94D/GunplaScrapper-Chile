@@ -1,66 +1,99 @@
 {% extends "base.html" %}
+{% from "public/_mascota.html" import mascota %}
 
-{% block title %}Políticas de Privacidad - Gunpla Scraper Chile{% endblock %}
-
-{% block extra_head %}
-<link rel="stylesheet" href="{{ url_for('static', filename='css/institucional.css') }}">
-{% endblock %}
+{% block title %}Políticas de privacidad · Gunpla Scraper Chile{% endblock %}
 
 {% block content %}
-<div class="header-top">
-    <a href=""></a>
-    <button id="theme-toggle" class="theme-btn">🌙 Modo Oscuro</button>
-</div>
+<div class="pagina">
+    <nav class="panel pagina-indice" aria-label="En esta página">
+        <p class="etiqueta">En esta página</p>
+        <ol>
+            <li><a href="#resumen"><span class="mono">01</span>Resumen</a></li>
+            <li><a href="#que-guardamos"><span class="mono">02</span>Qué se guarda</a></li>
+            <li><a href="#que-no-hacemos"><span class="mono">03</span>Qué no hacemos</a></li>
+            <li><a href="#derechos"><span class="mono">04</span>Tus derechos</a></li>
+            <li><a href="#terceros"><span class="mono">05</span>Enlaces a tiendas</a></li>
+            <li><a href="#imagenes"><span class="mono">06</span>Imágenes</a></li>
+        </ol>
+    </nav>
 
-<h2 class="institucional-title">Políticas de Privacidad</h2>
-<p class="institucional-subtitle">
-    Para funcionar correctamente, este sitio guarda cierta información sobre sus visitantes en el navegador. Esta
-    página detalla qué se guarda y para qué se usa.
-</p>
+    <div class="pagina-cuerpo">
+        <section class="panel pagina-cabecera">
+            {{ mascota() }}
+            <div class="pagina-cabecera-texto">
+                <p class="etiqueta">Políticas de privacidad</p>
+                <h1>Tu privacidad, en corto.</h1>
+                <p>No pedimos cuentas, correos ni datos personales. Esta página detalla lo poco que guarda el sitio y para qué.</p>
+                <p class="fecha-doc">Última actualización 28/10/2026 · Ley N° 21.719</p>
+            </div>
+        </section>
 
-<div class="project-card">
-    <h3 class="institucional-card-title">Información almacenada</h3>
-    <p>
-        Gunpla Scraper Chile no tiene registro de usuarios ni sistema de suscripción por correo para el público
-        general. Lo único que se guarda en tu navegador es una cookie técnica (<code>visita_contada</code>) que
-        registra la fecha de tu última visita, usada exclusivamente para contar visitas mensuales de forma
-        anónima. Esta cookie no contiene tu correo, tu nombre, ni ningún otro dato identificable, y expira todos
-        los días a medianoche.
-    </p>
-</div>
+        <section id="resumen" class="resumen-tarjetas" aria-label="Resumen">
+            <div class="panel">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6M3 3l18 18"/></svg>
+                <h2>Sin registro</h2>
+                <p>No hay cuentas ni suscripciones para el público.</p>
+            </div>
+            <div class="panel">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 3a9 9 0 1 0 9 9 4 4 0 0 1-5-5 4 4 0 0 1-4-4Z"/><circle cx="9" cy="11" r="1"/><circle cx="14" cy="16" r="1"/><circle cx="8" cy="16" r="1"/></svg>
+                <h2>Solo lo técnico</h2>
+                <p>Una cookie para contar visitas y tus preferencias de tema y vista.</p>
+            </div>
+            <div class="panel">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 3 4 6v6c0 5 3.5 8 8 9 4.5-1 8-4 8-9V6Z"/><path d="m9 12 2 2 4-4"/></svg>
+                <h2>Sin terceros</h2>
+                <p>Sin publicidad, analítica externa ni servicios que vean tu IP.</p>
+            </div>
+        </section>
 
-<div class="project-card">
-    <h3 class="institucional-card-title">Sobre el uso de la información guardada</h3>
-    <ul class="institucional-bullet-list">
-        <li>No se comparte ningún tipo de información con terceros, ya que no se recopila información identificable de los visitantes en primer lugar.</li>
-        <li>No existen envíos de correos, ofertas ni notificaciones, porque el sitio no cuenta con sistema de registro ni de suscripción.</li>
-        <li>La única estadística que se extrae del tráfico del sitio es el conteo de visitas mensuales, de forma agregada y anónima.</li>
-    </ul>
-</div>
+        <section id="que-guardamos" class="panel bloque">
+            <h2>Qué se guarda en tu navegador</h2>
+            <p>Todo es técnico y no te identifica, por lo que no requiere tu consentimiento.</p>
+            <div class="tabla-envoltura mt-3">
+                <table class="tabla">
+                    <thead>
+                        <tr><th scope="col">Nombre</th><th scope="col">Tipo</th><th scope="col">Para qué</th><th scope="col">Duración</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td><code>visita_contada</code></td><td class="text-nowrap">Cookie</td><td>Contar una visita por navegador al día. Solo guarda la fecha.</td><td class="text-nowrap">Hasta medianoche</td></tr>
+                        <tr><td><code>theme</code></td><td class="text-nowrap">Almacenamiento local</td><td>Recordar si elegiste modo claro u oscuro. Nunca se envía al sitio.</td><td class="text-nowrap">Hasta que lo borres</td></tr>
+                        <tr><td><code>vista</code></td><td class="text-nowrap">Almacenamiento local</td><td>Recordar si ves el catálogo en cuadrícula o en lista. Nunca se envía al sitio.</td><td class="text-nowrap">Hasta que lo borres</td></tr>
+                        <tr><td><code>session</code></td><td class="text-nowrap">Cookie</td><td>Mantener abierta la sesión del administrador. Los visitantes no la reciben.</td><td class="text-nowrap">Hasta cerrar sesión</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
 
-<div class="project-card">
-    <h3 class="institucional-card-title">Sobre el acceso a sitios de terceros</h3>
-    <p>
-        Como parte de su funcionamiento, Gunpla Scraper Chile redirige a sitios de e-commerce de terceros (las
-        tiendas listadas en el radar), cada una con sus propias políticas de privacidad y condiciones de uso.
-        Gunpla Scraper Chile no se hace responsable de la confidencialidad de tu información una vez que hayas
-        salido de este sitio hacia la tienda correspondiente.
-    </p>
-</div>
+        <section id="que-no-hacemos" class="panel bloque">
+            <h2 class="mb-3">Qué no hacemos</h2>
+            <ul class="lista-no">
+                {% for texto in ['Guardar tu dirección IP, nombre o correo', 'Usar cookies de publicidad o de seguimiento', 'Compartir información con terceros', 'Enviarte correos, ofertas o notificaciones'] %}
+                <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>{{ texto }}</li>
+                {% endfor %}
+            </ul>
+            <p class="mt-3">Las fuentes tipográficas, los estilos y la librería del gráfico se sirven desde este mismo sitio: al visitarlo, tu navegador no se conecta a Google ni a otros servicios externos.</p>
+        </section>
 
-<div class="project-card">
-    <h3 class="institucional-card-title">Sobre las imágenes de los productos</h3>
-    <p>
-        Las imágenes de los productos se obtienen de los listados públicos de las tiendas monitoreadas, se guardan
-        en tamaño reducido y se muestran solo para identificar cada modelo junto a su precio y el enlace a la tienda.
-        Las ilustraciones de las cajas y las fotografías pertenecen a Bandai Namco y a sus respectivos titulares;
-        Gundam y Gunpla son marcas de Bandai Namco y de Sotsu · Sunrise. Gunpla Scraper Chile no reclama ningún
-        derecho sobre ellas. Si eres titular de alguna y prefieres que no se muestre, contáctanos desde la
-        <a href="{{ url_for('institucional_bp.sobre_nosotros') }}">página Sobre Nosotros</a> y la retiraremos.
-    </p>
-</div>
+        <section id="derechos" class="panel bloque">
+            <h2>Tus derechos</h2>
+            <p>La Ley N° 21.719 de Protección de Datos Personales te permite pedir:</p>
+            <ul class="etiquetas my-3">
+                {% for d in ['Acceso', 'Rectificación', 'Supresión', 'Oposición', 'Portabilidad', 'Bloqueo'] %}<li>{{ d }}</li>{% endfor %}
+            </ul>
+            <p>Como el sitio no guarda datos personales, normalmente no habrá nada que entregar o borrar. Igual puedes escribirnos con cualquier consulta, o borrar las cookies y el almacenamiento de este sitio desde tu navegador cuando quieras.</p>
+            <a href="{{ url_for('institucional_bp.sobre_nosotros') }}#desarrollador" class="btn boton-acento boton-alto mt-3">Escríbenos</a>
+        </section>
 
-<div class="text-center mt-30">
-    <a href="{{ url_for('inicio_bp.index') }}" class="btn no-underline">⬅ Volver al catálogo</a>
+        <section id="terceros" class="dos-columnas" aria-label="Enlaces e imágenes">
+            <div class="panel">
+                <h2 class="h6 fw-semibold">Enlaces a tiendas</h2>
+                <p>Al ir a una tienda sales de este sitio y rigen sus propias políticas de privacidad y condiciones de uso.</p>
+            </div>
+            <div class="panel" id="imagenes">
+                <h2 class="h6 fw-semibold">Imágenes de productos</h2>
+                <p>Vienen de los listados públicos de las tiendas, se guardan en tamaño reducido y solo identifican cada modelo. Las ilustraciones de las cajas y las fotografías pertenecen a Bandai Namco y a sus titulares; Gundam y Gunpla son marcas de Bandai Namco y de Sotsu · Sunrise. Si eres titular y prefieres que no se muestre una, escríbenos y la retiramos.</p>
+            </div>
+        </section>
+    </div>
 </div>
 {% endblock %}

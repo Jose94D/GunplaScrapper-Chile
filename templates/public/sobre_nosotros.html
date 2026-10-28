@@ -1,102 +1,55 @@
 {% extends "base.html" %}
+{% from "public/_mascota.html" import mascota %}
 
-{% block title %}Sobre Nosotros - Gunpla Scraper Chile{% endblock %}
-
-{% block extra_head %}
-<link rel="stylesheet" href="{{ url_for('static', filename='css/institucional.css') }}">
-{% endblock %}
+{% block title %}Sobre el proyecto · Gunpla Scraper Chile{% endblock %}
 
 {% block content %}
-<div class="header-top">
-    <a href=""></a>
-    <button id="theme-toggle" class="theme-btn">🌙 Modo Oscuro</button>
-</div>
+<div class="pagina pagina-sola">
+    <div class="pagina-cuerpo">
+        <section class="panel pagina-cabecera">
+            <div class="pagina-cabecera-texto">
+                <p class="etiqueta">Sobre el proyecto</p>
+                <h1>Un radar de precios hecho por un fan, de punta a punta.</h1>
+                <p>Qué es Gunpla Scraper Chile, cómo está construido y quién está detrás.</p>
+            </div>
+        </section>
 
-<h2 class="institucional-title">Sobre Nosotros</h2>
-<p class="institucional-subtitle">Conoce el proyecto, la tecnología detrás y quién lo desarrolló.</p>
+        <section class="panel bloque">
+            <h2>¿Qué es Gunpla Scraper Chile?</h2>
+            <p>Un seguimiento histórico de precios de Gunpla en tiendas chilenas, hecho con scraping automatizado. Su base es un catálogo estandarizado que agrupa en un solo producto las publicaciones de distintas tiendas, aunque cada una escriba el nombre a su manera. Con eso puedes ver qué tienda tiene hoy el mejor precio, filtrar por grado y seguir en un gráfico cómo cambió el precio de cada kit.</p>
+            <p>Del otro lado hay un panel de administración para mantener el catálogo: fusionar productos duplicados (con sugerencias automáticas), ocultar publicaciones, gestionar las imágenes y revisar el estado de cada tienda después de cada escaneo.</p>
+        </section>
 
-<!-- 1. QUÉ ES EL PROYECTO -->
-<div class="project-card mt-25">
-    <h3 class="institucional-card-title">¿Qué es Gunpla Scraper Chile?</h3>
-    <p>
-        Esta herramienta no solo permite realizar un seguimiento histórico de productos mediante
-        scraping automatizado, sino que ofrece un catálogo global estandarizado que unifica las
-        publicaciones de distintas tiendas bajo un mismo modelo. Con esa base, los usuarios pueden
-        visualizar las fluctuaciones de precio de cada modelo mediante gráficos interactivos,
-        filtrar el catálogo por grado, y comparar de un vistazo qué tienda ofrece el mejor precio
-        en cada momento.
-    </p>
-    <p>
-        Del otro lado, el equipo administrador cuenta con un panel de control dedicado para
-        gestionar el catálogo: fusionar productos duplicados, ocultar publicaciones, y monitorear
-        el estado de cada scraper y su disponibilidad por tienda.
-    </p>
-</div>
+        <section class="panel bloque">
+            <h2>Stack técnico</h2>
+            <p>Construido en Python, con un enfoque simple y mantenible:</p>
+            <ul class="etiquetas mono my-3">
+                {% for t in ['Python', 'Flask', 'Jinja2', 'SQLite', 'BeautifulSoup', 'APScheduler', 'Pillow', 'Bootstrap 5', 'Chart.js', 'unittest', 'GitHub Actions'] %}<li>{{ t }}</li>{% endfor %}
+            </ul>
+            <p><strong>Flask</strong> sirve el sitio y el panel, y <strong>Jinja2</strong> arma las vistas con <strong>Bootstrap</strong>. <strong>BeautifulSoup</strong> extrae los datos de cada tienda y <strong>APScheduler</strong> programa los escaneos dos veces al día y un respaldo diario de la base. El historial queda en <strong>SQLite</strong> y se grafica con <strong>Chart.js</strong>. Las pruebas automáticas corren con <strong>unittest</strong> en cada push mediante <strong>GitHub Actions</strong>.</p>
+            <p>El código es abierto: <a href="https://github.com/Jose94D/GunplaScrapper-Chile" target="_blank" rel="noopener">github.com/Jose94D/GunplaScrapper-Chile</a>.</p>
+        </section>
 
-<!-- 2. STACK TÉCNICO -->
-<div class="project-card">
-    <h3 class="institucional-card-title">Stack Técnico</h3>
-    <p>El proyecto está construido íntegramente en Python, con un enfoque simple y mantenible:</p>
-    <div class="tech-tags-container">
-        <span class="theme-btn tech-tag-static">Python</span>
-        <span class="theme-btn tech-tag-static">Flask</span>
-        <span class="theme-btn tech-tag-static">Jinja2</span>
-        <span class="theme-btn tech-tag-static">BeautifulSoup</span>
-        <span class="theme-btn tech-tag-static">SQLite</span>
-        <span class="theme-btn tech-tag-static">APScheduler</span>
-        <span class="theme-btn tech-tag-static">Chart.js</span>
+        <section class="panel bloque">
+            <h2>Uso ético y responsable</h2>
+            <p>Este proyecto tiene fines educativos y de análisis personal. Como responsable de la extracción de datos, me comprometo a respetar las políticas de uso de los sitios y a no saturar sus servidores.</p>
+            <p>Por eso solo se integran tiendas cuyo <code>robots.txt</code> lo permite, los scrapers hacen pausas entre página y página, y ante un aviso de "demasiadas peticiones" esperan lo que la tienda pide antes de reintentar.</p>
+        </section>
+
+        <section id="desarrollador" class="panel desarrollador">
+            {{ mascota(alt='Mascota del proyecto: Crossbone SD', clase='mascota') }}
+            <div class="pagina-cabecera-texto">
+                <p class="desarrollador-nombre">Jose Manuel Dinamarca Ortega</p>
+                <p class="desarrollador-rol">Ingeniero en Computación · Desarrollador Full Stack</p>
+                <p class="texto-suave">Soy ingeniero en computación y desarrollador full stack, con base en diseño de arquitectura de software, bases de datos relacionales y metodologías ágiles. Tengo experiencia en liderazgo técnico, control de calidad (QA) y resolución de problemas complejos, con un fuerte enfoque en documentación técnica y buenas prácticas de código (SOLID, Clean Code).</p>
+                <p class="texto-suave">Fuera del código soy amante de las maquetas, en particular de Gundam. Gunpla Scraper Chile nace de esa afición y lo desarrollo por mi cuenta, de punta a punta: extracción de datos, procesamiento, persistencia y visualización.</p>
+                <div class="d-flex flex-wrap gap-2 mt-3">
+                    <a href="https://www.linkedin.com/in/jose-dinamarca-ortega/" target="_blank" rel="noopener" class="btn boton-acento boton-alto">LinkedIn</a>
+                    <a href="https://github.com/Jose94D" target="_blank" rel="noopener" class="btn boton-borde boton-alto">GitHub</a>
+                    <a href="https://jose94d.github.io/" target="_blank" rel="noopener" class="btn boton-borde boton-alto">Portafolio</a>
+                </div>
+            </div>
+        </section>
     </div>
-    <p class="mt-15">
-        <strong>Flask</strong> expone el sitio y el panel administrativo, <strong>Jinja2</strong>
-        arma las vistas, <strong>BeautifulSoup</strong> se encarga de la extracción de datos desde
-        las tiendas objetivo, y <strong>APScheduler</strong> orquesta las corridas automáticas de
-        scraping dos veces al día. Todo el historial de precios queda persistido en
-        <strong>SQLite</strong> y se grafica con <strong>Chart.js</strong> en el detalle de cada producto.
-    </p>
-</div>
-
-<!-- 3. USO ÉTICO Y RESPONSABLE -->
-<div class="project-card">
-    <h3 class="institucional-card-title">Uso Ético y Responsable</h3>
-    <p>
-        Este proyecto fue desarrollado con fines educativos y de análisis personal. Como único
-        responsable de la extracción de datos, me comprometo a respetar las políticas de uso de
-        los sitios web objetivo y a no saturar sus servidores con peticiones excesivas.
-    </p>
-    <p>
-        En línea con eso, los módulos de recolección de este proyecto incluyen pausas
-        (<code>time.sleep</code>) entre página y página durante el scraping, para asegurar un
-        comportamiento respetuoso con el tráfico de red de cada tienda y no comportarse como un
-        bot agresivo.
-    </p>
-</div>
-
-<!-- 4. SOBRE EL DESARROLLADOR -->
-<div class="stat-card mt-25">
-    <h3 class="institucional-card-title">Sobre el Desarrollador</h3>
-    <p class="dev-name">Jose Manuel Dinamarca Ortega</p>
-    <p class="dev-role">Ingeniero en Computación · Desarrollador Full Stack</p>
-    <p class="mt-15">
-        Soy ingeniero en computación y desarrollador full stack, con base en diseño de
-        arquitectura de software, bases de datos relacionales y metodologías ágiles. Tengo
-        experiencia en liderazgo técnico, control de calidad (QA) y resolución de problemas
-        complejos, además de un fuerte enfoque en documentación técnica y buenas prácticas de
-        código (SOLID, Clean Code).
-    </p>
-    <p>
-        Fuera del código, soy amante de las maquetas y en particular de Gundam — Gunpla Scrapper
-        Chile nace de esa afición y es un proyecto que desarrollo por mi cuenta, de punta a punta:
-        extracción de datos, procesamiento, persistencia y visualización.
-    </p>
-    <div class="dev-links-container">
-        <a href="https://www.linkedin.com/in/jose-dinamarca-ortega/" target="_blank" class="btn no-underline">LinkedIn</a>
-        <a href="https://github.com/Jose94D" target="_blank" class="btn no-underline">GitHub</a>
-        <a href="https://jose94d.github.io/" target="_blank" class="btn no-underline">Portafolio Dev</a>
-    </div>
-</div>
-
-<!-- 5. CONTACTO / VOLVER -->
-<div class="text-center mt-30">
-    <a href="{{ url_for('inicio_bp.index') }}" class="btn no-underline">⬅ Volver al catálogo</a>
 </div>
 {% endblock %}

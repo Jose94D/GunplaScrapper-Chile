@@ -1,144 +1,82 @@
 {% extends "base.html" %}
 
-{% block title %}Preguntas Frecuentes - Gunpla Scraper Chile{% endblock %}
+{% block title %}Preguntas frecuentes · Gunpla Scraper Chile{% endblock %}
 
-{% block extra_head %}
-<link rel="stylesheet" href="{{ url_for('static', filename='css/institucional.css') }}">
-{% endblock %}
+{% macro pregunta(titulo, abierta=false) -%}
+<details class="pregunta" {% if abierta %}open{% endif %}>
+    <summary>{{ titulo }}<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary>
+    <div class="respuesta">{{ caller() }}</div>
+</details>
+{%- endmacro %}
 
 {% block content %}
-<div class="header-top">
-    <a href=""></a>
-    <button id="theme-toggle" class="theme-btn">🌙 Modo Oscuro</button>
-</div>
+<div class="pagina pagina-sola">
+    <div class="pagina-cuerpo">
+        <section class="panel pagina-cabecera">
+            <div class="pagina-cabecera-texto">
+                <p class="etiqueta">Preguntas frecuentes</p>
+                <h1>Lo que deberías saber del radar.</h1>
+                <p>Cómo funciona, de dónde salen los precios y qué hacer si encuentras un error.</p>
+            </div>
+        </section>
 
-<h2 class="institucional-title">Preguntas Frecuentes</h2>
-<p class="institucional-subtitle">Todo lo que deberías saber sobre cómo funciona este radar de precios.</p>
+        <section class="panel" aria-label="Preguntas">
+            {% call pregunta('¿Qué tiendas revisa esta página?', abierta=true) %}
+                <p>Actualmente el radar monitorea 8 tiendas chilenas:</p>
+                <ul class="etiquetas">
+                    {% for t in ['Hangar019', 'Blaster Chile', 'ChileRobots', 'Irion Juguetería', 'Geekz', 'Weplay', 'LuffyToys', 'HobbyToys'] %}<li>{{ t }}</li>{% endfor %}
+                </ul>
+            {% endcall %}
 
-<details class="faq-item">
-    <summary>¿Qué tiendas revisa esta página?</summary>
-    <div class="faq-answer">
-        <p>Actualmente el radar monitorea 8 tiendas chilenas:</p>
-        <ul>
-            <li>Hangar019</li>
-            <li>Blaster Chile</li>
-            <li>ChileRobots</li>
-            <li>Irion Juguetería</li>
-            <li>Geekz</li>
-            <li>Weplay</li>
-            <li>LuffyToys</li>
-            <li>HobbyToys</li>
-        </ul>
+            {% call pregunta('¿Qué tiendas no están en la página, y por qué?') %}
+                <p>Evaluamos otras tiendas que decidimos dejar fuera por una razón ética y legal, no por falta de interés:</p>
+                <ul>
+                    <li><strong>Mirax:</strong> su archivo <code>robots.txt</code> bloquea explícitamente el acceso automatizado a la página donde están los precios. Scrapearla de todas formas no sería ético y podría acarrear problemas legales.</li>
+                    <li><strong>Top8, Bluecard y Wargaming:</strong> su <code>robots.txt</code> solo permite el acceso a la portada para bots genéricos; el resto del sitio, incluido el catálogo de productos, está bloqueado.</li>
+                </ul>
+                <p>Si en algún momento estas tiendas habilitan el acceso a su catálogo, se evaluará incorporarlas.</p>
+            {% endcall %}
+
+            {% call pregunta('¿Esta página afecta los servidores de las tiendas?') %}
+                <p>No es la intención, y está pensado para que no ocurra. Los scrapers hacen pausas entre cada página que visitan y, si una tienda pide esperar o responde con un error pasajero, esperan antes de reintentar, en vez de insistir de forma agresiva.</p>
+            {% endcall %}
+
+            {% call pregunta('¿Con qué frecuencia se actualizan los precios?') %}
+                <p>De forma automática, dos veces al día: a las 00:00 y a las 12:00.</p>
+            {% endcall %}
+
+            {% call pregunta('¿Los precios mostrados incluyen el despacho?') %}
+                <p>No. Los precios corresponden a lo publicado por cada tienda al momento del escaneo, sin incluir costos de despacho, que varían según la tienda y tu ubicación.</p>
+            {% endcall %}
+
+            {% call pregunta('¿Puedo comprar directamente en este sitio?') %}
+                <p>No. Este es un comparador de precios, no una tienda. El botón "Ir a la tienda" te lleva a la publicación original para completar la compra ahí.</p>
+            {% endcall %}
+
+            {% call pregunta('¿Qué significa "Mínimo histórico"?') %}
+                <p>Que el mejor precio de hoy es el más bajo que el radar ha registrado para ese kit, considerando todas las tiendas. Solo aparece si antes hubo un precio mayor.</p>
+            {% endcall %}
+
+            {% call pregunta('¿Por qué un producto dejó de aparecer en el catálogo?') %}
+                <p>Porque en el último escaneo ninguna de las tiendas lo tenía disponible. Su ficha y su historial se conservan, y vuelve al catálogo apenas alguna tienda lo vuelva a listar.</p>
+            {% endcall %}
+
+            {% call pregunta('¿Este sitio es oficial de alguna tienda o de Bandai Namco?') %}
+                <p>No. Es un proyecto independiente y sin fines de lucro, sin afiliación con ninguna de las tiendas listadas ni con Bandai Namco. Los precios y la disponibilidad son referenciales.</p>
+            {% endcall %}
+
+            {% call pregunta('¿De dónde salen las imágenes de los productos?') %}
+                <p>De los listados públicos de las tiendas: se toman durante la misma revisión de precios, se descargan una sola vez por producto y se guardan en tamaño reducido. Pertenecen a Bandai Namco y a sus titulares; el detalle está en las <a href="{{ url_for('institucional_bp.politicas') }}#imagenes">políticas de privacidad</a>.</p>
+            {% endcall %}
+
+            {% call pregunta('¿Por qué existe este proyecto?') %}
+                <p>Nace de una afición personal por el modelismo y por Gundam en particular, junto con las ganas de construir de punta a punta un proyecto real de datos: extracción, procesamiento, persistencia y visualización. También es una pieza de portafolio de desarrollo full stack.</p>
+            {% endcall %}
+
+            {% call pregunta('Encontré un precio incorrecto o un error, ¿cómo lo reporto?') %}
+                <p>Puedes escribirle directamente al desarrollador por <a href="{{ url_for('institucional_bp.sobre_nosotros') }}#desarrollador">LinkedIn o GitHub</a>, en la página "Sobre el proyecto".</p>
+            {% endcall %}
+        </section>
     </div>
-</details>
-
-<details class="faq-item">
-    <summary>¿Qué tiendas no están en la página, y por qué?</summary>
-    <div class="faq-answer">
-        <p>Evaluamos otras tiendas que decidimos dejar fuera por una razón ética y legal, no por falta de interés[cite: 8]:</p>
-        <ul>
-            <li><strong>Mirax:</strong> su archivo <code>robots.txt</code> bloquea explícitamente el acceso automatizado a la página donde están los precios. Scrapearla de todas formas no sería ético y podría acarrear problemas legales[cite: 8].</li>
-            <li><strong>Top8:</strong> mismo motivo — su <code>robots.txt</code> solo permite el acceso a la portada para bots genéricos; el resto del sitio, incluido el catálogo de productos, está bloqueado[cite: 8].</li>
-            <li><strong>Bluecard:</strong> mismo motivo — su <code>robots.txt</code> solo permite el acceso a la portada para bots genéricos; el resto del sitio, incluido el catálogo de productos, está bloqueado[cite: 8].</li>
-            <li><strong>Wargaming:</strong> mismo motivo — su <code>robots.txt</code> solo permite el acceso a la portada para bots genéricos; el resto del sitio, incluido el catálogo de productos, está bloqueado[cite: 8].</li>
-        </ul>
-        <p>Si en algún momento estas tiendas habilitan el acceso a su catálogo, se evaluará incorporarlas.</p>
-    </div>
-</details>
-
-<details class="faq-item">
-    <summary>¿Esta página afecta los servidores de las tiendas?</summary>
-    <div class="faq-answer">
-        <p>
-            No es la intención, y está pensado para que no ocurra. Los scrapers de este proyecto están hechos de
-            forma respetuosa con el tráfico de red de cada tienda: incluyen pausas (<code>time.sleep</code>) entre
-            cada página visitada durante la recolección, en vez de disparar peticiones de forma agresiva o continua.
-        </p>
-    </div>
-</details>
-
-<details class="faq-item">
-    <summary>¿Cuál es la razón de la creación de este proyecto?</summary>
-    <div class="faq-answer">
-        <p>
-            Nace de una afición personal por el modelismo y por Gundam en particular, junto con las ganas de
-            construir de punta a punta un proyecto real de datos: extracción, procesamiento, persistencia y
-            visualización. También funciona como pieza de portafolio para mostrar trabajo full stack concreto.
-        </p>
-    </div>
-</details>
-
-<details class="faq-item">
-    <summary>¿Con qué frecuencia se actualizan los precios?</summary>
-    <div class="faq-answer">
-        <p>De forma automática, dos veces al día: a las 00:00 y a las 12:00.</p>
-    </div>
-</details>
-
-<details class="faq-item">
-    <summary>¿Los precios mostrados incluyen el despacho?</summary>
-    <div class="faq-answer">
-        <p>
-            No. Los precios corresponden a lo publicado por cada tienda al momento del escaneo, sin incluir costos
-            de despacho, que varían según la tienda y tu ubicación.
-        </p>
-    </div>
-</details>
-
-<details class="faq-item">
-    <summary>¿Puedo comprar directamente en este sitio?</summary>
-    <div class="faq-answer">
-        <p>
-            No. Este es un comparador de precios, no una tienda. El botón "Ir a la tienda" te lleva directo a la
-            publicación original para completar la compra ahí.
-        </p>
-    </div>
-</details>
-
-<details class="faq-item">
-    <summary>¿Qué significa que un producto aparezca como "No disponible"?</summary>
-    <div class="faq-answer">
-        <p>
-            Significa que, en el último escaneo, ninguna de las tiendas registradas tenía ese producto activo en su
-            catálogo. Este estado se recalcula automáticamente después de cada corrida de scraping, y el producto
-            vuelve a aparecer apenas alguna tienda lo vuelva a listar.
-        </p>
-    </div>
-</details>
-
-<details class="faq-item">
-    <summary>¿Este sitio es oficial de alguna tienda o de Bandai Namco?</summary>
-    <div class="faq-answer">
-        <p>
-            No. Es un proyecto independiente y sin fines de lucro, sin afiliación con ninguna de las tiendas
-            listadas ni con Bandai Namco. Los precios y la disponibilidad son referenciales.
-        </p>
-    </div>
-</details>
-
-<details class="faq-item">
-    <summary>¿De dónde salen las imágenes de los productos?</summary>
-    <div class="faq-answer">
-        <p>
-            De los listados públicos de las tiendas: se toman durante la misma revisión de precios, se descargan
-            una sola vez por producto y se guardan en tamaño reducido. Pertenecen a Bandai Namco y a sus titulares;
-            el detalle está en las <a href="{{ url_for('institucional_bp.politicas') }}">Políticas de Privacidad</a>.
-        </p>
-    </div>
-</details>
-
-<details class="faq-item">
-    <summary>Encontré un precio incorrecto o un error, ¿cómo lo reporto?</summary>
-    <div class="faq-answer">
-        <p>
-            Puedes escribirle directamente al desarrollador a través de su
-            <a href="{{ url_for('institucional_bp.sobre_nosotros') }}">LinkedIn o GitHub</a>, disponibles en la
-            página "Sobre Nosotros".
-        </p>
-    </div>
-</details>
-
-<div class="text-center mt-30">
-    <a href="{{ url_for('inicio_bp.index') }}" class="btn no-underline">⬅ Volver al catálogo</a>
 </div>
 {% endblock %}

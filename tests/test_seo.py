@@ -46,6 +46,20 @@ class TestSeo(unittest.TestCase):
         self.parche.stop()
         os.remove(self.db)
 
+    def test_resumen_de_precios_de_la_ficha(self):
+        from core.catalogo import detalle_producto
+        # Con un solo precio registrado no hay "mínimo histórico" (los precios planos no se marcan)
+        self.assertFalse(detalle_producto(45)["minimo_historico"])
+        execute_query("INSERT INTO tiendas (id, nombre) VALUES (2, 'B')", commit=True)
+        execute_query("INSERT INTO publicacion_producto (id, producto_id, tienda_id, url, precio, es_url_activa) VALUES (2, 45, 2, 'v', 25000, 1)", commit=True)
+        execute_query("""INSERT INTO historial_precios (publicacion_producto_id, precio, fecha_registro) VALUES
+                         (2, 30000, '2026-10-20 12:00:00'), (2, 25000, '2026-10-28 12:00:00')""", commit=True)
+        d = detalle_producto(45)
+        self.assertEqual((d["mejor_precio"], d["mejor_tienda"], d["ahorro"], d["ahorro_pct"]), ("$25.000", "B", "$2.990", 11))
+        self.assertTrue(d["minimo_historico"])
+        self.assertEqual([(t["nombre"], t["es_mejor"], t["diferencia"]) for t in d["tiendas"]], [("B", True, None), ("A", False, "+$2.990")])
+        self.assertEqual((d["tiendas_con_stock"], d["tiendas_total"], d["seguimiento_desde"]), (2, 2, "20/10/2026"))
+
     def test_url_sin_nombre_redirige_conservando_filtros(self):
         for ruta in ("/producto/45", "/producto/45-nombre-viejo"):
             r = self.cliente.get(ruta, query_string={"q": "gfred", "page": 2})
@@ -76,6 +90,16 @@ class TestSeo(unittest.TestCase):
         robots = self.cliente.get("/robots.txt").get_data(as_text=True)
         self.assertIn("Disallow: /admin", robots)
         self.assertIn("Sitemap: http://localhost/sitemap.xml", robots)
+
+    def test_privacidad_sin_terceros_y_cookie_protegida(self):
+        for ruta in ("/", "/producto/45-gfred-hg", "/politicas"):
+            html = self.cliente.get(ruta).get_data(as_text=True)
+            for externo in ("googleapis", "gstatic", "jsdelivr"):
+                self.assertNotIn(externo, html, ruta)
+        cookie = self.app.test_client().get("/").headers["Set-Cookie"]  # cliente nuevo: el anterior ya tiene la cookie
+        self.assertIn("visita_contada=", cookie)
+        self.assertIn("HttpOnly", cookie)
+        self.assertIn("SameSite=Lax", cookie)
 
 
 if __name__ == "__main__":

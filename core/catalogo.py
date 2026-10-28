@@ -41,6 +41,18 @@ def formatear_fecha(valor):
     return valor
 
 
+GRADOS = ('HG', 'MG', 'RG', 'SD', 'EG', 'PG', 'FM', 'S/G')
+NOMBRES_GRADO = {'HG': 'High Grade', 'MG': 'Master Grade', 'RG': 'Real Grade', 'SD': 'Super Deformed', 'EG': 'Entry Grade',
+                 'PG': 'Perfect Grade', 'FM': 'Full Mechanics', 'S/G': 'Sin grado'}
+
+
+def resumen_inicio():
+    """Cifras de la cabecera del inicio: {'total', 'por_grado': [(grado, cantidad), ...], 'tiendas'}. Cuenta lo mismo que el catálogo público."""
+    conteo = dict(execute_query("SELECT grado, COUNT(*) FROM productos WHERE es_visible = 1 AND disponible = 1 GROUP BY grado", fetchall=True))
+    tiendas = execute_query("SELECT COUNT(*) FROM tiendas WHERE es_activa = 1", fetchone=True)[0]
+    return {"total": sum(conteo.values()), "por_grado": [(g, conteo[g]) for g in GRADOS if conteo.get(g)], "tiendas": tiendas}
+
+
 def listar_catalogo_completo():
     """[(id, nombre_estandar, grado), ...] de todos los productos, por nombre (selector de fusión)."""
     return execute_query("SELECT id, nombre_estandar, grado FROM productos ORDER BY nombre_estandar ASC, id ASC", fetchall=True)
@@ -49,7 +61,8 @@ def listar_catalogo_completo():
 def listar_catalogo_publico(busqueda='', grado='', orden='price_asc', pagina=1, por_pagina=24):
     """
     Productos visibles y disponibles para el inicio.
-    Retorna ([(id, nombre, grado, precio_texto, imagen), ...], total_paginas); imagen es la ruta dentro de static/ o None.
+    Retorna ([(id, nombre, grado, precio_texto, imagen, tiendas), ...], total_paginas); imagen es la ruta dentro de static/ o None
+    y tiendas es cuántas lo tienen hoy.
     """
     # Mejor precio actual: el más bajo entre las tiendas que hoy lo tienen (misma regla que el panel).
     # Antes era el MIN de todo el historial, que mostraba precios viejos o de tiendas que ya no lo venden.
@@ -59,7 +72,8 @@ def listar_catalogo_publico(busqueda='', grado='', orden='price_asc', pagina=1, 
                 p.nombre_estandar,
                 p.grado,
                 MIN(pp.precio) as precio_min_int,
-                p.imagen_producto
+                p.imagen_producto,
+                COUNT(DISTINCT pp.tienda_id) as tiendas
             FROM productos p
             LEFT JOIN publicacion_producto pp ON p.id = pp.producto_id AND pp.es_url_activa = 1
         """
@@ -98,7 +112,7 @@ def listar_catalogo_publico(busqueda='', grado='', orden='price_asc', pagina=1, 
     params.extend([por_pagina, (pagina - 1) * por_pagina])
     filas = execute_query(final_query, tuple(params), fetchall=True)
 
-    return [(f[0], f[1], f[2], formatear_precio(f[3]), f[4]) for f in filas], total_paginas
+    return [(f[0], f[1], f[2], formatear_precio(f[3]), f[4], f[5]) for f in filas], total_paginas
 
 
 def listar_productos_panel(busqueda='', grado='', orden='date_desc', pagina=1, por_pagina=24):
@@ -184,9 +198,10 @@ def listar_productos_panel(busqueda='', grado='', orden='date_desc', pagina=1, p
 def detalle_producto(id):
     """
     Datos de la ficha de un producto: precio actual en cada tienda e historial para el gráfico.
-    Retorna None si no existe, o dict con nombre, tiendas, fechas (eje X) y datasets (una línea por tienda).
+    Retorna None si no existe, o dict con nombre, grado, tiendas (las con stock primero, de menor a mayor precio),
+    fechas (eje X), datasets (una línea por tienda) y el resumen de precios (mejor precio, ahorro, mínimo histórico).
     """
-    fila = execute_query("SELECT nombre_estandar, imagen_producto FROM productos WHERE id = ?", (id,), fetchone=True)
+    fila = execute_query("SELECT nombre_estandar, imagen_producto, grado FROM productos WHERE id = ?", (id,), fetchone=True)
     if not fila:
         return None
 
@@ -218,6 +233,7 @@ def detalle_producto(id):
             "nombre": t_nombre,
             "nombre_original": t_orig,
             "precio": formatear_precio(historial[-1][0]) if historial else "N/A",
+            "precio_valor": historial[-1][0] if historial else None,
             "url": t_url,
             "disponible": bool(t_activa)
         })
@@ -242,5 +258,23 @@ def detalle_producto(id):
             data.append(ultimo_conocido)
         datasets.append({"label": t_nombre, "data": data, "spanGaps": True})
 
-    return {"nombre": fila[0], "imagen": fila[1], "tiendas": tiendas, "fechas": [formatear_fecha(d) for d in fechas], "datasets": datasets,
-            "mejor_precio": formatear_precio(min(precios_activos)) if precios_activos else None}
+    mejor = min(precios_activos) if precios_activos else None
+    for t in tiendas:
+        activa = t["disponible"] and t["precio_valor"]
+        t["es_mejor"] = bool(activa) and t["precio_valor"] == mejor
+        t["diferencia"] = formatear_precio(t["precio_valor"] - mejor).replace("$", "+$") if activa and not t["es_mejor"] else None
+    tiendas.sort(key=lambda t: (not (t["disponible"] and t["precio_valor"]), t["precio_valor"] or 0))
+
+    # Mínimo histórico: el mejor precio de hoy es el más bajo registrado y antes hubo alguno mayor (con precios planos no se marca)
+    historicos = [precio for filas in historial_por_pub.values() for precio, _ in filas if precio]
+    minimo_historico = mejor is not None and mejor <= min(historicos) and max(historicos) > mejor
+    ahorro = max(precios_activos) - mejor if len(precios_activos) > 1 else 0
+    tiendas_total = execute_query("SELECT COUNT(*) FROM tiendas WHERE es_activa = 1", fetchone=True)[0]
+
+    return {"nombre": fila[0], "imagen": fila[1], "grado": fila[2], "nombre_grado": NOMBRES_GRADO.get(fila[2], fila[2]),
+            "tiendas": tiendas, "fechas": [formatear_fecha(d) for d in fechas], "datasets": datasets,
+            "mejor_precio": formatear_precio(mejor) if mejor is not None else None,
+            "mejor_tienda": next((t["nombre"] for t in tiendas if t["es_mejor"]), None),
+            "ahorro": formatear_precio(ahorro) if ahorro else None, "ahorro_pct": round(ahorro * 100 / max(precios_activos)) if ahorro else None,
+            "minimo_historico": minimo_historico, "tiendas_con_stock": len(precios_activos), "tiendas_total": tiendas_total,
+            "seguimiento_desde": formatear_fecha(fechas[0]) if fechas else None}

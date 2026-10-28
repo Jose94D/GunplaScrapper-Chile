@@ -1,39 +1,55 @@
 {% extends "base.html" %}
 
-{% block title %}Editar Catálogo{% endblock %}
+{% block title %}Editar producto · Gunpla Scraper Chile{% endblock %}
 
-{% block extra_head %}
-<link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
-{% endblock %}
+{% block extra_head %}<meta name="robots" content="noindex">{% endblock %}
 
-{% block container_class %}container-editar{% endblock %}
+{% block banner %}{% endblock %}
 
 {% block content %}
-<h2>✏️ Editar Modelo del Catálogo</h2>
-<p class="editar-intro">
-    Estás modificando el registro central. Los precios se sincronizarán automáticamente según las tiendas vinculadas a este modelo.
-</p>
-<form method="POST" action="{{ url_for('admin_bp.editar_producto', id=prod[0]) }}" class="editar-form" enctype="multipart/form-data">
-    {{ campo_csrf() }}
-    <input type="hidden" name="page" value="{{ params.page }}">
-    <input type="hidden" name="q_admin" value="{{ params.q_admin }}">
-    <input type="hidden" name="sort_admin" value="{{ params.sort_admin }}">
-    <input type="hidden" name="per_page" value="{{ params.per_page }}">
-    
-    <label class="editar-label">Nombre del Modelo</label>
-    <input type="text" name="producto" class="search-input" value="{{ prod[1] }}" required>
-    
-    <label class="editar-label">Grado (Ej. HG, MG, RG)</label>
-    <input type="text" name="grado" class="search-input" value="{{ prod[2] }}" required>
+{% set volver = url_for('admin_bp.admin_panel', page=params.page, q_admin=params.q_admin, sort_admin=params.sort_admin, per_page=params.per_page) ~ '#productos' %}
+<div class="pagina pagina-sola">
+    <div class="pagina-cuerpo">
+        <nav aria-label="Ruta" class="ruta pt-0">
+            <a href="{{ volver }}">Panel</a><span aria-hidden="true">/</span><span aria-current="page">Editar producto</span>
+        </nav>
+        <section class="panel bloque">
+            <p class="etiqueta">Editar producto</p>
+            <h1 class="h3 fw-bold mb-2">{{ prod[1] }}</h1>
+            <p>Estás modificando el registro central. Los precios se sincronizan solos según las tiendas vinculadas a este modelo.</p>
 
-    <label class="editar-label" for="imagen">Imagen</label>
-    {% if prod[3] %}<img src="{{ url_for('static', filename=prod[3]) }}" alt="Imagen actual de {{ prod[1] }}" class="producto-imagen">{% else %}<p class="editar-intro">Este producto aún no tiene imagen.</p>{% endif %}
-    <input type="file" id="imagen" name="imagen" accept=".png,.jpg,.jpeg,.webp,.gif" class="search-input file-input">
-    <p class="editar-intro">Opcional: reemplaza la imagen. Se reduce a WebP de 400 px y el escaneo no la vuelve a cambiar.</p>
-    
-    <div class="editar-acciones">
-        <button type="submit" class="btn">Guardar Cambios</button>
-        <a href="{{ url_for('admin_bp.admin_panel', page=params.page, q_admin=params.q_admin, sort_admin=params.sort_admin, per_page=params.per_page) }}" class="btn btn-secundario">Cancelar</a>
+            <form method="POST" action="{{ url_for('admin_bp.editar_producto', id=prod[0]) }}" enctype="multipart/form-data" class="editar">
+                {{ campo_csrf() }}
+                <input type="hidden" name="page" value="{{ params.page }}">
+                <input type="hidden" name="q_admin" value="{{ params.q_admin }}">
+                <input type="hidden" name="sort_admin" value="{{ params.sort_admin }}">
+                <input type="hidden" name="per_page" value="{{ params.per_page }}">
+
+                <div>
+                    <label for="producto" class="form-label small texto-suave">Nombre del modelo</label>
+                    <input type="text" id="producto" name="producto" class="form-control campo" value="{{ prod[1] }}" required>
+                </div>
+                <div>
+                    <label for="grado" class="form-label small texto-suave">Grado (HG, MG, RG…)</label>
+                    <input type="text" id="grado" name="grado" class="form-control campo" value="{{ prod[2] }}" required>
+                </div>
+                <div class="editar-imagen">
+                    <div class="editar-foto">
+                        {% if prod[3] %}<img src="{{ url_for('static', filename=prod[3]) }}" alt="Imagen actual de {{ prod[1] }}">
+                        {% else %}<span class="texto-tenue small">Sin imagen</span>{% endif %}
+                    </div>
+                    <div class="flex-grow-1">
+                        <label for="imagen" class="form-label small texto-suave">Reemplazar imagen (opcional)</label>
+                        <input type="file" id="imagen" name="imagen" accept=".png,.jpg,.jpeg,.webp,.gif" class="form-control campo">
+                        <p class="small texto-tenue mt-2 mb-0">Se reduce a WebP de 400 px y el escaneo no la vuelve a cambiar.</p>
+                    </div>
+                </div>
+                <div class="d-flex flex-wrap gap-2">
+                    <button type="submit" class="btn boton-acento boton-alto">Guardar cambios</button>
+                    <a href="{{ volver }}" class="btn boton-borde boton-alto">Cancelar</a>
+                </div>
+            </form>
+        </section>
     </div>
-</form>
+</div>
 {% endblock %}

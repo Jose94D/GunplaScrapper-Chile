@@ -210,7 +210,7 @@ def get_estadisticas_globales(incrementar_visita=False):
     )
     
     visitas_val = visitas[0] if visitas else 0
-    fecha_val = fecha_res[0][:10] if fecha_res and fecha_res[0] else "N/A"
+    fecha_val = fecha_res[0] if fecha_res and fecha_res[0] else "N/A"  # completa: el filtro |fecha la muestra como hora día/mes/año
     
     return fecha_val, visitas_val
 

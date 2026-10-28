@@ -1,6 +1,6 @@
 import json
 from datetime import datetime
-from flask import Blueprint, Response, make_response, redirect, render_template, request, url_for
+from flask import Blueprint, Response, current_app, make_response, redirect, render_template, request, url_for
 from markupsafe import escape
 
 # Importamos las herramientas de la base de datos y métricas
@@ -43,10 +43,13 @@ def crear_blueprint_inicio():
         # --- C. Catálogo filtrado, ordenado y paginado ---
         datos, total_pages = catalogo.listar_catalogo_publico(search_query, grado_filtro, sort_order, page, per_page)
 
-        response = make_response(render_template('public/inicio.html', datos=datos, carrusel_imgs=carrusel_imgs, 
-                               search_query=search_query, grado_filtro=grado_filtro, 
-                               sort_order=sort_order, page=page, per_page=per_page, 
-                               total_pages=total_pages))
+        # Los escaneos programados son a las 00:00 y 12:00
+        proximo_escaneo = "12:00" if datetime.now().hour < 12 else "00:00"
+
+        response = make_response(render_template('public/inicio.html', datos=datos, carrusel_imgs=carrusel_imgs,
+                               search_query=search_query, grado_filtro=grado_filtro,
+                               sort_order=sort_order, page=page, per_page=per_page,
+                               total_pages=total_pages, resumen=catalogo.resumen_inicio(), proximo_escaneo=proximo_escaneo))
 
         if not ya_contada_hoy:
             # La cookie expira a medianoche (hora local del servidor): al día
@@ -54,7 +57,9 @@ def crear_blueprint_inicio():
             ahora = datetime.now()
             medianoche = ahora.replace(hour=23, minute=59, second=59, microsecond=0)
             segundos_hasta_medianoche = int((medianoche - ahora).total_seconds()) + 1
-            response.set_cookie(COOKIE_VISITA, fecha_hoy_str, max_age=segundos_hasta_medianoche)
+            # Solo la lee el servidor: ni el JavaScript de la página ni otros sitios necesitan verla
+            response.set_cookie(COOKIE_VISITA, fecha_hoy_str, max_age=segundos_hasta_medianoche, httponly=True,
+                                samesite='Lax', secure=current_app.config['SESSION_COOKIE_SECURE'])
 
         return response
 
@@ -100,6 +105,7 @@ def crear_blueprint_producto():
                                mejor_precio=detalle["mejor_precio"],
                                slug_producto=slug_correcto,
                                tiendas=detalle["tiendas"],
+                               ficha=detalle,
                                fechas_json=json.dumps(detalle["fechas"]),
                                datasets_json=json.dumps(detalle["datasets"]),
                                q=q,

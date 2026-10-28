@@ -45,12 +45,14 @@ def crear_blueprint_admin(scraper_manager):
 
         lista_productos, total_pages = catalogo.listar_productos_panel(q_admin, grado_admin, sort_admin, page, per_page)
         catalogo_completo = catalogo.listar_catalogo_completo()
+        tiendas = estadisticas.estado_tiendas()
 
         return render_template('admin/admin_panel.html', 
                                usuario=admin_actual, escaneados_hoy=resumen["escaneados_hoy"], 
                                total_productos=resumen["total_productos"], ultima_fecha=resumen["ultima_fecha"], 
                                lista_productos=lista_productos, lista_carrusel=lista_carrusel, 
-                               lista_logs=lista_logs, tiendas=estadisticas.estado_tiendas(), duplicados=duplicados.sugerir_duplicados(), search_query=q_admin, grado_admin=grado_admin,
+                               lista_logs=lista_logs, tiendas=tiendas, tiendas_al_dia=sum(1 for t in tiendas if t['ok']), duplicados=duplicados.sugerir_duplicados(),
+                               visibles=catalogo.resumen_inicio()['total'], search_query=q_admin, grado_admin=grado_admin,
                                page=page, total_pages=total_pages, alerta_activa=resumen["alerta_activa"], 
                                mensaje_alerta=resumen["mensaje_alerta"], per_page=per_page, sort_admin=sort_admin,
                                catalogo_completo=catalogo_completo)

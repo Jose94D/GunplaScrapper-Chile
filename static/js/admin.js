@@ -1,84 +1,51 @@
-document.addEventListener("DOMContentLoaded", () => {
-    // --- LÓGICA DEL MODAL DE FUSIÓN ---
+document.addEventListener('DOMContentLoaded', () => {
+    // --- Modal de fusión (Bootstrap): se llena con el producto del botón que lo abrió ---
     const modalFusion = document.getElementById('modalFusion');
-    const fondoModal = document.getElementById('fondoModal');
-    const inputIdDuplicado = document.getElementById('input_id_duplicado');
-    const textoDuplicado = document.getElementById('textoDuplicado');
-    const idPrincipalSelect = document.getElementById('id_principal');
-    const btnCerrarModal = document.getElementById('btn-cerrar-modal');
-    
-    // Abrir modal (Asignamos el evento a todos los botones de fusión)
-    const botonesFusion = document.querySelectorAll('.btn-fusion');
-    botonesFusion.forEach(boton => {
-        boton.addEventListener('click', function() {
-            const idDuplicado = this.getAttribute('data-id');
-            const nombreDuplicado = this.getAttribute('data-nombre');
-            
-            inputIdDuplicado.value = idDuplicado;
-            textoDuplicado.innerText = nombreDuplicado;
-            modalFusion.style.display = 'block';
-            fondoModal.style.display = 'block';
+    if (modalFusion) {
+        modalFusion.addEventListener('show.bs.modal', (e) => {
+            document.getElementById('input_id_duplicado').value = e.relatedTarget.dataset.id;
+            document.getElementById('textoDuplicado').textContent = e.relatedTarget.dataset.nombre;
+            document.getElementById('id_principal').value = '';
         });
-    });
-
-    // Cerrar modal
-    function cerrarModal() {
-        modalFusion.style.display = 'none';
-        fondoModal.style.display = 'none';
-        idPrincipalSelect.value = '';
     }
 
-    if (btnCerrarModal) btnCerrarModal.addEventListener('click', cerrarModal);
-    if (fondoModal) fondoModal.addEventListener('click', cerrarModal);
+    // --- Orden y cantidad por página se aplican al elegirlos ---
+    document.querySelectorAll('select[data-autoenviar]').forEach((s) => s.addEventListener('change', () => s.form.submit()));
 
-    // --- FUNCIÓN DEL BOTÓN DE ESCANEO ---
+    // --- Forzar escaneo ---
     // El escaneo corre en segundo plano en el servidor; aquí se consulta su estado hasta que termina.
-    const btnForzarEscaneo = document.getElementById('btn-forzar-escaneo');
-    if (btnForzarEscaneo) {
-        const textoOriginal = btnForzarEscaneo.innerText;
+    const boton = document.getElementById('btn-forzar-escaneo');
+    const estado = document.getElementById('estado-escaneo');
+    if (!boton) return;
+    const texto = boton.querySelector('span');
 
-        function restaurarBoton() {
-            btnForzarEscaneo.innerText = textoOriginal;
-            btnForzarEscaneo.disabled = false;
-            btnForzarEscaneo.style.opacity = '1';
-        }
+    const restaurar = (mensaje) => {
+        texto.textContent = 'Forzar escaneo';
+        boton.disabled = false;
+        estado.textContent = mensaje;
+    };
 
-        function esperarFin() {
-            fetch('/admin/force-update/estado')
-                .then(response => response.json())
-                .then(data => {
-                    if (data.en_curso) {
-                        setTimeout(esperarFin, 5000);
-                    } else {
-                        alert('✅ Escaneo terminado. El detalle está en "Últimos Eventos del Sistema".');
-                        location.reload();
-                    }
-                })
-                .catch(() => setTimeout(esperarFin, 5000));
-        }
-
-        btnForzarEscaneo.addEventListener('click', function() {
-            btnForzarEscaneo.innerText = '⏳ Escaneando... (puede tardar varios minutos)';
-            btnForzarEscaneo.disabled = true;
-            btnForzarEscaneo.style.opacity = '0.7';
-
-            fetch('/admin/force-update', {
-                method: 'POST',
-                headers: { 'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').content }
+    const esperarFin = () => {
+        fetch('/admin/force-update/estado')
+            .then((r) => r.json())
+            .then((data) => {
+                if (data.en_curso) return setTimeout(esperarFin, 5000);
+                estado.textContent = 'Escaneo terminado. Recargando el panel…';
+                location.reload();
             })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.status === 'started') {
-                        esperarFin();
-                    } else {
-                        alert('⚠️ ' + data.message);
-                        restaurarBoton();
-                    }
-                })
-                .catch(() => {
-                    alert('❌ ERROR CRÍTICO:\nNo se pudo conectar con el servidor para iniciar el escaneo.');
-                    restaurarBoton();
-                });
-        });
-    }
+            .catch(() => setTimeout(esperarFin, 5000));
+    };
+
+    boton.addEventListener('click', () => {
+        texto.textContent = 'Escaneando…';
+        boton.disabled = true;
+        estado.textContent = 'Puede tardar varios minutos. Puedes seguir usando el panel; se recargará al terminar.';
+        fetch('/admin/force-update', {
+            method: 'POST',
+            headers: { 'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').content }
+        })
+            .then((r) => r.json())
+            .then((data) => (data.status === 'started' ? esperarFin() : restaurar(data.message)))
+            .catch(() => restaurar('No se pudo conectar con el servidor para iniciar el escaneo.'));
+    });
 });

@@ -1,48 +1,43 @@
-<div id="seccion-duplicados" class="admin-section">
-    <h2>🧩 Posibles Duplicados</h2>
-    <p class="text-muted small-text">Productos del mismo grado con nombres casi iguales. Al fusionar, las tiendas e historial del otro pasan al que conservas.</p>
-    <table>
-        <thead>
-            <tr>
-                <th>Producto</th>
-                <th>Posible duplicado</th>
-                <th>Parecido</th>
-                <th class="col-center">Acciones</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for d in duplicados %}
-            <tr>
-                <td><a href="/producto/{{ d.principal.id }}" target="_blank" class="enlace-grafico">{{ d.principal.nombre }}</a>
-                    <span class="text-muted small-text">({{ d.principal.tiendas }} tienda{{ 's' if d.principal.tiendas != 1 }})</span></td>
-                <td><a href="/producto/{{ d.duplicado.id }}" target="_blank" class="enlace-grafico">{{ d.duplicado.nombre }}</a>
-                    <span class="text-muted small-text">({{ d.duplicado.tiendas }} tienda{{ 's' if d.duplicado.tiendas != 1 }})</span></td>
-                <td>{{ d.similitud }}%</td>
-                <td class="col-center">
-                    <div class="action-buttons">
-                        <form method="POST" action="/admin/fusionar" class="form-accion">{{ campo_csrf() }}
-                            <input type="hidden" name="desde" value="duplicados">
-                            <input type="hidden" name="id_principal" value="{{ d.principal.id }}">
-                            <input type="hidden" name="id_duplicado" value="{{ d.duplicado.id }}">
-                            <button type="submit" class="btn btn-sm btn-blue" title="Conservar {{ d.principal.nombre }}">Conservar 1.º</button>
-                        </form>
-                        <form method="POST" action="/admin/fusionar" class="form-accion">{{ campo_csrf() }}
-                            <input type="hidden" name="desde" value="duplicados">
-                            <input type="hidden" name="id_principal" value="{{ d.duplicado.id }}">
-                            <input type="hidden" name="id_duplicado" value="{{ d.principal.id }}">
-                            <button type="submit" class="btn btn-sm btn-gray" title="Conservar {{ d.duplicado.nombre }}">Conservar 2.º</button>
-                        </form>
-                        <form method="POST" action="/admin/duplicados/descartar" class="form-accion">{{ campo_csrf() }}
-                            <input type="hidden" name="id_a" value="{{ d.principal.id }}">
-                            <input type="hidden" name="id_b" value="{{ d.duplicado.id }}">
-                            <button type="submit" class="btn btn-sm btn-red" title="No volver a sugerir este par">No son el mismo</button>
-                        </form>
-                    </div>
-                </td>
-            </tr>
-            {% else %}
-            <tr><td colspan="4" class="text-muted text-center">No hay posibles duplicados por revisar.</td></tr>
-            {% endfor %}
-        </tbody>
-    </table>
-</div>
+<section id="duplicados" class="panel seccion-panel">
+    <div class="seccion-panel-cabecera">
+        <div>
+            <h2>Posibles Duplicados</h2>
+            <p class="texto-tenue small mb-0">Mismo grado y nombres casi iguales. Al fusionar, las tiendas e historial del otro pasan al que conservas.</p>
+        </div>
+        {% if duplicados %}<span class="mono texto-suave small">{{ duplicados|length }} por revisar</span>{% endif %}
+    </div>
+    <div class="duplicados">
+        {% for d in duplicados %}
+        <div class="duplicado">
+            <div class="duplicado-par">
+                <a href="/producto/{{ d.principal.id }}" target="_blank" rel="noopener" class="mono">{{ d.principal.nombre }}</a>
+                <span class="texto-tenue small">{{ d.principal.tiendas }} tienda{{ 's' if d.principal.tiendas != 1 }}</span>
+                <a href="/producto/{{ d.duplicado.id }}" target="_blank" rel="noopener" class="mono">{{ d.duplicado.nombre }}</a>
+                <span class="texto-tenue small">{{ d.duplicado.tiendas }} tienda{{ 's' if d.duplicado.tiendas != 1 }}</span>
+            </div>
+            <div class="duplicado-acciones">
+                <span class="mono small texto-suave">{{ d.similitud }}% parecido</span>
+                <form method="POST" action="/admin/fusionar">{{ campo_csrf() }}
+                    <input type="hidden" name="desde" value="duplicados">
+                    <input type="hidden" name="id_principal" value="{{ d.principal.id }}">
+                    <input type="hidden" name="id_duplicado" value="{{ d.duplicado.id }}">
+                    <button type="submit" class="btn btn-sm boton-claro" title="Conservar {{ d.principal.nombre }}">Conservar 1.º</button>
+                </form>
+                <form method="POST" action="/admin/fusionar">{{ campo_csrf() }}
+                    <input type="hidden" name="desde" value="duplicados">
+                    <input type="hidden" name="id_principal" value="{{ d.duplicado.id }}">
+                    <input type="hidden" name="id_duplicado" value="{{ d.principal.id }}">
+                    <button type="submit" class="btn btn-sm boton-borde" title="Conservar {{ d.duplicado.nombre }}">Conservar 2.º</button>
+                </form>
+                <form method="POST" action="/admin/duplicados/descartar">{{ campo_csrf() }}
+                    <input type="hidden" name="id_a" value="{{ d.principal.id }}">
+                    <input type="hidden" name="id_b" value="{{ d.duplicado.id }}">
+                    <button type="submit" class="btn btn-sm boton-borde" title="No volver a sugerir este par">No son el mismo</button>
+                </form>
+            </div>
+        </div>
+        {% else %}
+        <p class="texto-tenue mb-0">No hay posibles duplicados por revisar.</p>
+        {% endfor %}
+    </div>
+</section>

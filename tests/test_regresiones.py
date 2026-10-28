@@ -60,7 +60,9 @@ class PanelTemporal(BaseTemporal):
         app.register_blueprint(crear_blueprint_admin(getattr(self, "manager", None)))
         app.register_blueprint(crear_blueprint_admin_login("admin", "clave"))
         from routes.public.views_institucional import crear_blueprint_institucional
+        from routes.public.views_inicio import crear_blueprint_inicio
         app.register_blueprint(crear_blueprint_institucional())  # el footer enlaza a estas páginas
+        app.register_blueprint(crear_blueprint_inicio())  # y el menú y el panel, al catálogo
         from core.seguridad import proteger_csrf
         proteger_csrf(app)
         self.cliente = app.test_client()

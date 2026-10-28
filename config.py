@@ -37,6 +37,8 @@ SECRET_KEY = os.getenv("SECRET_KEY") or secrets.token_hex(32)
 DEBUG = os.getenv("FLASK_DEBUG") == "1"
 HOST = os.getenv("HOST", "127.0.0.1")
 PORT = int(os.getenv("PORT", "5000"))
+# Con el sitio publicado en https, las cookies solo viajan cifradas. En local (http) debe quedar apagado o no se podría iniciar sesión.
+HTTPS = os.getenv("HTTPS") == "1"
 
 
 def validar_configuracion():

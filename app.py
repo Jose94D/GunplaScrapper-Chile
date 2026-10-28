@@ -2,7 +2,7 @@ from flask import Flask
 from apscheduler.schedulers.background import BackgroundScheduler
 
 # --- IMPORTAMOS CONFIGURACIÓN CENTRALIZADA ---
-from config import ADMIN_USER, ADMIN_PASS, SECRET_KEY, DEBUG, HOST, PORT, validar_configuracion
+from config import ADMIN_USER, ADMIN_PASS, SECRET_KEY, DEBUG, HOST, PORT, HTTPS, validar_configuracion
 
 # --- IMPORTAMOS LOS BLUEPRINTS (Rutas) ---
 from routes.admin.admin import crear_blueprint_admin
@@ -23,6 +23,7 @@ app = Flask(__name__)
 app.secret_key = SECRET_KEY
 # Lax: el navegador no manda la cookie de sesión en formularios POST que vengan de otros sitios
 app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
+app.config['SESSION_COOKIE_SECURE'] = HTTPS
 proteger_csrf(app)
 
 # 1. Inicializamos la Base de Datos (Crea tablas y parches si no existen)

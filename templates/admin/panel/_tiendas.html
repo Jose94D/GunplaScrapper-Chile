@@ -1,30 +1,28 @@
-<div class="admin-section">
-    <h2>🏪 Estado de las Tiendas</h2>
-    <table>
-        <thead>
-            <tr>
-                <th>Tienda</th>
-                <th>Estado</th>
-                <th>Último escaneo exitoso</th>
-                <th>Productos</th>
-                <th>Último error</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for t in tiendas %}
-            <tr>
-                <td><strong>{{ t.nombre }}</strong></td>
-                <td>
-                    {% if t.ok %}<span class="estado-tienda-ok">✅ Al día</span>
-                    {% else %}<span class="estado-tienda-falla">⚠️ Revisar</span>{% endif %}
-                </td>
-                <td class="small-text">{{ t.ultimo_exito|fecha }}</td>
-                <td>{{ t.productos }}</td>
-                <td class="small-text text-wrap">{{ t.error or '—' }}</td>
-            </tr>
-            {% else %}
-            <tr><td colspan="5" class="text-muted text-center">Aún no hay escaneos registrados.</td></tr>
-            {% endfor %}
-        </tbody>
-    </table>
-</div>
+<section id="tiendas" class="panel seccion-panel">
+    <div class="seccion-panel-cabecera">
+        <h2>Estado de las tiendas</h2>
+        {% if tiendas %}
+        <span class="estado {{ 'estado-ok' if tiendas_al_dia == tiendas|length else 'estado-falla' }}">{{ tiendas_al_dia }} de {{ tiendas|length }} al día</span>
+        {% endif %}
+    </div>
+    <div class="tabla-envoltura">
+        <table class="tabla">
+            <thead>
+                <tr><th scope="col">Tienda</th><th scope="col">Estado</th><th scope="col">Último éxito</th><th scope="col" class="text-end">Productos</th><th scope="col">Último error</th></tr>
+            </thead>
+            <tbody>
+                {% for t in tiendas %}
+                <tr>
+                    <td class="fw-semibold">{{ t.nombre }}</td>
+                    <td>{% if t.ok %}<span class="estado estado-ok">Al día</span>{% else %}<span class="estado estado-falla">Revisar</span>{% endif %}</td>
+                    <td class="mono texto-suave text-nowrap">{{ t.ultimo_exito|fecha }}</td>
+                    <td class="mono text-end">{{ t.productos }}</td>
+                    <td class="texto-suave small">{{ t.error or '—' }}</td>
+                </tr>
+                {% else %}
+                <tr><td colspan="5" class="texto-tenue text-center">Aún no hay escaneos registrados.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>

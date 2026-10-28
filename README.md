@@ -12,23 +12,33 @@ Es una aplicación web en **Flask** con su propia base **SQLite**: no depende de
 
 <!-- Sin tabla: en una tabla GitHub ajusta cada columna al texto y las imágenes quedan de distinto tamaño. -->
 <p align="center">
-  <img src="docs/capturas/inicio.png" width="420" alt="Catálogo con filtros por grado, buscador, orden y paginación">
-  <img src="docs/capturas/producto.png" width="420" alt="Gráfico del historial de precios de un producto en cada tienda">
+  <img src="docs/capturas/inicio.png" width="420" alt="Inicio con el banner, las cifras del radar y el carrusel de novedades">
+  <img src="docs/capturas/catalogo.png" width="420" alt="Catálogo filtrado por Master Grade en cuadrícula, con foto, precio y cantidad de tiendas">
+</p>
+<p align="center">
+  <img src="docs/capturas/catalogo_lista.png" width="420" alt="El mismo catálogo en vista de lista">
+  <img src="docs/capturas/producto.png" width="420" alt="Ficha del Gundam Exia MG: mejor precio, tienda, ahorro y sello de mínimo histórico">
+</p>
+<p align="center">
+  <img src="docs/capturas/producto_historial.png" width="420" alt="Gráfico del historial de precios del producto en cada tienda, con rango de 30, 90 días o todo">
+  <img src="docs/capturas/politicas.png" width="420" alt="Política de privacidad con índice, resumen y detalle de lo que guarda el navegador">
 </p>
 
-- **Inicio:** catálogo con filtros por grado, buscador, orden por precio o nombre, y carrusel de promociones.
-- **Producto:** precio y disponibilidad en cada tienda, con el gráfico de su historial.
+- **Inicio:** banner, cifras del radar (kits, tiendas, último y próximo escaneo), carrusel de novedades y buscador.
+- **Catálogo:** filtros por grado con la cantidad de kits de cada uno, orden por precio o nombre, y vista en cuadrícula o en lista que el navegador recuerda.
+- **Producto:** mejor precio y tienda, ahorro frente a la más cara, sello de mínimo histórico, tabla por tienda con el título original de cada una y gráfico del historial.
 - **Modo claro y oscuro:** se cambia con un botón y el navegador lo recuerda. Las capturas están en modo oscuro, el tema por defecto.
+- **Interfaz:** Bootstrap 5 con IBM Plex y los colores del banner, adaptada a celular. Fuentes, estilos y librerías se sirven desde el sitio, sin CDN ni servicios externos.
 
 ### Panel de administración
 
 <p align="center">
-  <img src="docs/capturas/admin_login.png" width="420" alt="Pantalla de acceso al panel con usuario y contraseña">
-  <img src="docs/capturas/admin_resumen.png" width="420" alt="Resumen del panel: visitas del mes, modelos en catálogo, último escaneo y últimos eventos">
+  <img src="docs/capturas/admin_login.png" width="420" alt="Pantalla de acceso al panel con la mascota del proyecto">
+  <img src="docs/capturas/admin_resumen.png" width="420" alt="Portada del panel: mascota, estado general, botones de escaneo, Excel y respaldo, y cifras del sitio">
 </p>
 <p align="center">
-  <img src="docs/capturas/admin_tiendas.png" width="420" alt="Estado de cada tienda: último escaneo exitoso, productos y último error">
-  <img src="docs/capturas/admin_duplicados.png" width="420" alt="Posibles duplicados con botones para conservar uno u otro, o marcarlos como distintos">
+  <img src="docs/capturas/admin_tiendas.png" width="420" alt="Estado de cada tienda, posibles duplicados, carrusel y eventos recientes">
+  <img src="docs/capturas/admin_carrusel.png" width="420" alt="Gestión del carrusel del inicio y registro de eventos">
 </p>
 <p align="center">
   <img src="docs/capturas/admin.png" width="420" alt="Listado de productos del panel con estado, mejor precio, última captura y acciones">
@@ -36,16 +46,17 @@ Es una aplicación web en **Flask** con su propia base **SQLite**: no depende de
 </p>
 <p align="center">
   <img src="docs/capturas/admin_editar.png" width="420" alt="Edición del nombre, grado e imagen de un modelo del catálogo">
-  <img src="docs/capturas/admin_acciones.png" width="420" alt="Acciones del sistema: cambiar credenciales, exportar a Excel, respaldo de la base y forzar escaneo">
 </p>
 
 - **Acceso:** usuario y contraseña. Al cambiarlos desde el panel, la contraseña se guarda como hash.
-- **Resumen:** visitas del mes, modelos en catálogo, último escaneo y los últimos eventos del registro. Avisa si el último escaneo exitoso tiene más de 48 horas.
+- **Resumen:** visitas del mes, productos en catálogo, visibles con stock y último escaneo, con los botones para forzar un escaneo, exportar a Excel y descargar un respaldo de la base. Avisa si el último escaneo exitoso tiene más de 48 horas.
 - **Estado de las tiendas:** último escaneo exitoso, productos y último error de cada tienda; marca para revisar las que llevan más de 48 horas sin un escaneo exitoso o fallaron en el último intento.
+- **Posibles duplicados:** pares del mismo grado con nombres casi iguales, para fusionarlos o marcarlos como distintos.
+- **Carrusel y eventos:** imágenes del carrusel del inicio con su enlace, y el registro de las últimas acciones y escaneos.
 - **Productos:** ordenados por estado (Visibles → No disponibles → Ocultos), con acciones para ocultar, editar, eliminar y fusionar.
 - **Fusión:** pasa las tiendas y el historial de un duplicado al producto principal.
-- **Edición:** nombre estandarizado y grado de cada modelo.
-- **Acciones del sistema:** cambiar credenciales, exportar a Excel, descargar la base y forzar un escaneo.
+- **Edición:** nombre estandarizado, grado e imagen de cada modelo.
+- **Cuenta:** cambio de usuario y contraseña del panel.
 
 ## Funciones
 
@@ -98,7 +109,7 @@ Cada tienda se evaluó contra su `robots.txt` antes de integrarla. Mirax, Top8, 
 | Tareas programadas | APScheduler (trigger `cron`, dentro del mismo proceso) |
 | Gráficos | Chart.js |
 | Reportes | pandas + openpyxl (`.xlsx`) |
-| Interfaz | HTML5 y CSS3 con variables CSS (tema claro y oscuro) |
+| Interfaz | Bootstrap 5 + IBM Plex, con variables CSS propias (tema claro y oscuro); todo servido desde el sitio, sin CDN |
 
 ### Base de datos
 
@@ -157,6 +168,7 @@ Variables opcionales del `.env`:
 | `HOST` | `127.0.0.1` | `0.0.0.0` para aceptar conexiones desde otros equipos |
 | `PORT` | `5000` | Puerto del sitio |
 | `FLASK_DEBUG` | apagado | `1` usa el servidor de desarrollo de Flask con depuración. **Nunca en un sitio publicado**: la consola de depuración permite ejecutar código en el servidor |
+| `HTTPS` | apagado | `1` cuando el sitio se publica con https: las cookies solo se envían cifradas. En local (http) dejarlo apagado, o no se puede iniciar sesión en el panel |
 
 Todos los días a las 03:00 se guarda una copia de la base en `respaldos/precios_AAAA-MM-DD.db`, y se borran las de más de 30 días. La carpeta no va al repositorio.
 
@@ -195,11 +207,11 @@ routes/
 └── admin/                   Login y panel de administración
 scrapers/                    Un módulo por tienda (8)
 templates/
-├── base.html                Plantilla común: cabecera, tema, banner y footer
+├── base.html                Plantilla común: menú, tema, banner y pie (Bootstrap)
 ├── public/                  Inicio, producto e institucionales
 └── admin/                   Login, panel y edición
-    └── panel/               Secciones del panel (resumen, eventos, carrusel, productos, acciones, fusión)
-static/                      CSS, JS, banners, fondos y carrusel
+    └── panel/               Secciones del panel (resumen, tiendas, duplicados, carrusel, eventos, productos, cuenta, fusión)
+static/                      tema.css, JS, Bootstrap y fuentes locales, banners, mascotas y carrusel
 tests/                       Pruebas de regresión (unittest)
 docs/
 ├── BASE-DE-DATOS.md         Tablas, columnas y procesos que modifican los datos

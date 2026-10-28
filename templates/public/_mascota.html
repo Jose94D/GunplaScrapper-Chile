@@ -1,0 +1,5 @@
+{# Mascota del sitio: Crossbone X1 en modo oscuro y X2 en modo claro (su fondo es blanco). Solo se muestra la del tema activo #}
+{% macro mascota(alt='Mascota Crossbone SD con el pulgar arriba', clase='mascota') -%}
+<img class="{{ clase }} solo-oscuro" src="{{ url_for('static', filename='mascota_oscura.webp') }}" alt="{{ alt }}" width="150" height="150">
+<img class="{{ clase }} solo-claro" src="{{ url_for('static', filename='mascota_clara.webp') }}" alt="{{ alt }}" width="150" height="150">
+{%- endmacro %}
