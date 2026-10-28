@@ -3,7 +3,7 @@
     <div class="log-viewer">
         {% for log in lista_logs %}
             <div class="log-entry">
-                <span class="log-date">[{{ log[0] }}]</span> <strong>{{ log[1] }}</strong>
+                <span class="log-date">[{{ log[0]|fecha }}]</span> <strong>{{ log[1] }}</strong>
             </div>
         {% else %}
             <p class="text-muted">No hay eventos registrados.</p>

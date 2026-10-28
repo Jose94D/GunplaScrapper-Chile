@@ -7,7 +7,7 @@ import unittest
 from unittest import mock
 
 import core.database
-from core.catalogo import slug
+from core.catalogo import formatear_fecha, slug
 from core.database import execute_query
 
 
@@ -17,6 +17,14 @@ class TestSlug(unittest.TestCase):
                  "Ñu Gúndam  (Ver.Ka)": "nu-gundam-ver-ka", "": "producto", "!!!": "producto"}
         for nombre, esperado in casos.items():
             self.assertEqual(slug(nombre), esperado, nombre)
+
+
+class TestFormatearFecha(unittest.TestCase):
+    def test_hora_dia_mes_anio(self):
+        casos = {"2026-10-28 12:05:09": "12:05 28/10/2026", "2026-10-28": "28/10/2026",
+                 "Nunca": "Nunca", "N/A": "N/A", None: None}
+        for valor, esperado in casos.items():
+            self.assertEqual(formatear_fecha(valor), esperado, valor)
 
 
 class TestSeo(unittest.TestCase):

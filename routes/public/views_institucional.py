@@ -1,5 +1,7 @@
 from flask import Blueprint, render_template
 
+from core.catalogo import formatear_fecha
+
 # =====================================================================
 # BLUEPRINT INSTITUCIONAL (Sobre Nosotros / FAQ)
 # =====================================================================
@@ -10,6 +12,8 @@ def crear_blueprint_institucional():
     y responsable del scraping, perfil del desarrollador, y preguntas frecuentes.
     """
     institucional_bp = Blueprint('institucional_bp', __name__)
+    # Aquí y no en otro blueprint porque toda página con el footer (que la usa) ya registra este
+    institucional_bp.add_app_template_filter(formatear_fecha, 'fecha')
 
     @institucional_bp.route('/sobre-nosotros')
     def sobre_nosotros():

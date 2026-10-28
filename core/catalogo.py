@@ -2,6 +2,7 @@
 import math
 import re
 import unicodedata
+from datetime import datetime
 
 from core.database import execute_query
 
@@ -27,6 +28,17 @@ def por_pagina_valida(valor):
 def formatear_precio(valor):
     """19990.0 -> '$19.990'; None -> 'N/A'."""
     return f"${int(valor):,.0f}".replace(",", ".") if valor is not None else "N/A"
+
+
+def formatear_fecha(valor):
+    """'2026-10-28 12:00:05' -> '12:00 28/10/2026'; '2026-10-28' -> '28/10/2026'; otro texto ('Nunca', 'N/A') queda igual."""
+    # La base guarda el formato ISO porque ordena bien como texto: solo se cambia al mostrar
+    for entrada, salida in (("%Y-%m-%d %H:%M:%S", "%H:%M %d/%m/%Y"), ("%Y-%m-%d", "%d/%m/%Y")):
+        try:
+            return datetime.strptime(valor, entrada).strftime(salida)
+        except (TypeError, ValueError):
+            pass
+    return valor
 
 
 def listar_catalogo_completo():
@@ -230,5 +242,5 @@ def detalle_producto(id):
             data.append(ultimo_conocido)
         datasets.append({"label": t_nombre, "data": data, "spanGaps": True})
 
-    return {"nombre": fila[0], "imagen": fila[1], "tiendas": tiendas, "fechas": fechas, "datasets": datasets,
+    return {"nombre": fila[0], "imagen": fila[1], "tiendas": tiendas, "fechas": [formatear_fecha(d) for d in fechas], "datasets": datasets,
             "mejor_precio": formatear_precio(min(precios_activos)) if precios_activos else None}

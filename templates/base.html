@@ -58,7 +58,7 @@
                 <p>{{ descripcion }}</p>
                 <p class="footer-linea"><strong>Tecnologías utilizadas:</strong> Hecho con Python, Flask y BeautifulSoup.</p>
                 <p class="footer-linea"><a href="{{ url_for('institucional_bp.sobre_nosotros') }}" class="enlace-grafico">Sobre Nosotros</a> · <a href="{{ url_for('institucional_bp.faq') }}" class="enlace-grafico">FAQ</a> · <a href="{{ url_for('institucional_bp.condiciones_servicio') }}" class="enlace-grafico">Condiciones de Servicio</a> · <a href="{{ url_for('institucional_bp.politicas') }}" class="enlace-grafico">Políticas de Privacidad</a></p>
-                <p class="footer-linea">Última actualización: <strong>{{ fecha }}</strong> | Visitas mensuales: <strong>{{ visitas }}</strong></p>
+                <p class="footer-linea">Última actualización: <strong>{{ fecha|fecha }}</strong> | Visitas mensuales: <strong>{{ visitas }}</strong></p>
                 <p class="footer-firma">Construido por Jose Dinamarca para la comunidad de modelismo.</p>
             </footer>
         </div>

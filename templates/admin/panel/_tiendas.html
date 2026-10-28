@@ -18,7 +18,7 @@
                     {% if t.ok %}<span class="estado-tienda-ok">✅ Al día</span>
                     {% else %}<span class="estado-tienda-falla">⚠️ Revisar</span>{% endif %}
                 </td>
-                <td class="small-text">{{ t.ultimo_exito }}</td>
+                <td class="small-text">{{ t.ultimo_exito|fecha }}</td>
                 <td>{{ t.productos }}</td>
                 <td class="small-text text-wrap">{{ t.error or '—' }}</td>
             </tr>

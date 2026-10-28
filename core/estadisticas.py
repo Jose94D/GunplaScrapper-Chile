@@ -68,7 +68,7 @@ def resumen_panel():
             fecha_obj = datetime.strptime(ultima_fecha, "%Y-%m-%d %H:%M:%S")
             if (datetime.now() - fecha_obj).total_seconds() > HORAS_ALERTA * 3600:
                 alerta_activa = True
-                mensaje_alerta = f"⚠️ ¡Atención! El último escaneo exitoso fue hace más de {HORAS_ALERTA} horas ({ultima_fecha}). Verifica los scrapers."
+                mensaje_alerta = f"⚠️ ¡Atención! El último escaneo exitoso fue hace más de {HORAS_ALERTA} horas ({fecha_obj:%H:%M %d/%m/%Y}). Verifica los scrapers."
         except ValueError:
             pass
 

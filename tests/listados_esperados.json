@@ -3644,9 +3644,9 @@
     }
    ],
    "fechas": [
-    "2026-01-01",
-    "2026-01-03",
-    "2026-01-05"
+    "01/01/2026",
+    "03/01/2026",
+    "05/01/2026"
    ],
    "datasets": [
     {
@@ -3682,8 +3682,8 @@
     }
    ],
    "fechas": [
-    "2026-01-01",
-    "2026-01-04"
+    "01/01/2026",
+    "04/01/2026"
    ],
    "datasets": [
     {
@@ -3709,7 +3709,7 @@
     }
    ],
    "fechas": [
-    "2026-01-02"
+    "02/01/2026"
    ],
    "datasets": [
     {
@@ -3736,7 +3736,7 @@
   "ultima_fecha": "2026-02-20 12:00:00",
   "escaneados_hoy": 0,
   "alerta_activa": true,
-  "mensaje_alerta": "⚠️ ¡Atención! El último escaneo exitoso fue hace más de 48 horas (2026-02-20 12:00:00). Verifica los scrapers.",
+  "mensaje_alerta": "⚠️ ¡Atención! El último escaneo exitoso fue hace más de 48 horas (12:00 20/02/2026). Verifica los scrapers.",
   "eventos": []
  },
  "excel": {
