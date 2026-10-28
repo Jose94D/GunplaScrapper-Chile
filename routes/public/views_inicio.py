@@ -1,6 +1,7 @@
 import json
 from datetime import datetime
-from flask import Blueprint, render_template, request, make_response
+from flask import Blueprint, Response, make_response, redirect, render_template, request, url_for
+from markupsafe import escape
 
 # Importamos las herramientas de la base de datos y métricas
 from core.database import get_estadisticas_globales
@@ -71,8 +72,11 @@ def crear_blueprint_producto():
     """
     producto_bp = Blueprint('producto_bp', __name__)
 
+    producto_bp.add_app_template_filter(catalogo.slug, 'slug')
+
     @producto_bp.route('/producto/<int:id>')
-    def ver_grafico(id):
+    @producto_bp.route('/producto/<int:id>-<slug>')
+    def ver_grafico(id, slug=None):
         # --- A. Mantener parámetros ---
         q = request.args.get('q', '')
         grado = request.args.get('grado', '')
@@ -85,9 +89,16 @@ def crear_blueprint_producto():
         if not detalle:
             return "Producto no encontrado", 404
 
+        # Una sola URL por producto (/producto/45-gfred-hg): la sin nombre o con nombre viejo redirige, sin perder los filtros
+        slug_correcto = catalogo.slug(detalle["nombre"])
+        if slug != slug_correcto:
+            return redirect(url_for('producto_bp.ver_grafico', id=id, slug=slug_correcto, **request.args), 301)
+
         return render_template('public/producto.html',
                                nombre_estandar=detalle["nombre"],
                                imagen=detalle["imagen"],
+                               mejor_precio=detalle["mejor_precio"],
+                               slug_producto=slug_correcto,
                                tiendas=detalle["tiendas"],
                                fechas_json=json.dumps(detalle["fechas"]),
                                datasets_json=json.dumps(detalle["datasets"]),
@@ -96,5 +107,23 @@ def crear_blueprint_producto():
                                sort=sort,
                                per_page=per_page,
                                page=page)
+
+    @producto_bp.route('/sitemap.xml')
+    def sitemap():
+        """Páginas públicas para los buscadores: inicio, institucionales y cada producto visible."""
+        urls = [url_for('inicio_bp.index', _external=True)]
+        urls += [url_for(f'institucional_bp.{p}', _external=True) for p in ('sobre_nosotros', 'faq', 'condiciones_servicio', 'politicas')]
+        urls += [url_for('producto_bp.ver_grafico', id=id, slug=catalogo.slug(nombre), _external=True)
+                 for id, nombre in catalogo.listar_para_sitemap()]
+        lineas = ['<?xml version="1.0" encoding="UTF-8"?>', '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">']
+        lineas += [f'  <url><loc>{escape(u)}</loc></url>' for u in urls]
+        lineas.append('</urlset>')
+        return Response('\n'.join(lineas) + '\n', mimetype='application/xml')
+
+    @producto_bp.route('/robots.txt')
+    def robots():
+        # El panel no debe aparecer en buscadores
+        lineas = ['User-agent: *', 'Disallow: /admin', f"Sitemap: {url_for('producto_bp.sitemap', _external=True)}"]
+        return Response('\n'.join(lineas) + '\n', mimetype='text/plain')
 
     return producto_bp

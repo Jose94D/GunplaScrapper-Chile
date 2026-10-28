@@ -86,7 +86,7 @@
                             {% endif %}
                             <a href="{{ url_for('admin_bp.editar_producto', id=prod[0], page=page, q_admin=search_query, grado_admin=grado_admin, sort_admin=sort_admin, per_page=per_page) }}" class="btn btn-icon btn-blue" title="Editar">✏️</a>
                             <form method="POST" action="{{ url_for('admin_bp.eliminar_producto', id=prod[0], page=page, q_admin=search_query, grado_admin=grado_admin, sort_admin=sort_admin, per_page=per_page) }}" class="form-accion" onsubmit="return confirm('¿Eliminar producto y todo su historial vinculado?');">{{ campo_csrf() }}<button type="submit" class="btn btn-icon btn-red" title="Eliminar">🗑️</button></form>
-                            <button type="button" class="btn btn-icon btn-orange btn-fusion" data-id="{{ prod[0] }}" data-nombre="{{ prod[1] }} {{ prod[2] }}" title="Fusionar con otro producto">🔗</button>
+                            <button type="button" class="btn btn-icon btn-orange btn-fusion" data-id="{{ prod[0] }}" data-nombre="{{ prod[1] }}{% if not prod[1].endswith(prod[2]) %} {{ prod[2] }}{% endif %}" title="Fusionar con otro producto">🔗</button>
                         </div>
                     </td>
                 </tr>

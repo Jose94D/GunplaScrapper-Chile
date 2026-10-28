@@ -4,6 +4,7 @@ import time
 import random
 from core.logger import registrar_log
 from core.precios import limpiar_precio
+from core.peticiones import pedir
 from core.imagenes import url_imagen
 
 class BlasterScraper:
@@ -29,24 +30,8 @@ class BlasterScraper:
 
         while True:
             url_target = f"{self.base_url}{self.collection_path}{self.filters}&page={pagina}"
-            intentos = 0
-            max_intentos = 3
-            res = None
-            
-            while intentos < max_intentos:
-                try:
-                    res = self.session.get(url_target, timeout=15)
-                    if res.status_code == 429:
-                        time.sleep((intentos + 1) * 15)
-                        intentos += 1
-                        continue 
-                    elif res.status_code != 200:
-                        registrar_log(f"Blaster bloqueó la conexión (Error {res.status_code})")
-                        break
-                    break 
-                except Exception as e:
-                    intentos += 1
-                    time.sleep(5)
+            # Reintenta ante 429 o cortes con la misma espera que usaba este scraper (15 s, 30 s)
+            res = pedir(url_target, sesion=self.session, espera_base=15)
 
             # Un fallo a mitad de la paginación no puede devolver una lista parcial:
             # ScraperManager marcaría como agotado todo lo que faltó por leer

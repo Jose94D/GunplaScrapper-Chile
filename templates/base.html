@@ -8,13 +8,15 @@
     {% set descripcion = "Herramienta de automatización y web scraping para monitoreo de mercado en tiempo real de coleccionables (Gunpla) en Chile. Desarrollo enfocado en extracción de datos, procesamiento, normalización y centralización de información." %}
     <meta name="description" content="{{ descripcion }}">
 
-    <!-- Open Graph (LinkedIn, Facebook) y Twitter -->
+    <!-- Open Graph (LinkedIn, Facebook, WhatsApp) y Twitter. La ficha de producto los reemplaza con su foto y precio -->
+    {% block compartir %}
     <meta property="og:type" content="website">
     <meta property="og:title" content="Gunpla Scraper Chile">
     <meta property="og:description" content="{{ descripcion }}">
     <meta name="twitter:card" content="summary">
     <meta name="twitter:title" content="Gunpla Scraper Chile">
     <meta name="twitter:description" content="{{ descripcion }}">
+    {% endblock %}
 
     <link rel="icon" type="image/png" href="{{ url_for('static', filename='Favicon.png') }}">
     <link rel="preconnect" href="https://fonts.googleapis.com">

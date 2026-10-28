@@ -275,3 +275,14 @@ a { color: var(--link-color); }
 .miniatura-vacia { display: inline-block; background: var(--search-bg); border: 1px solid var(--border-color); }
 /* Imagen grande del producto (ficha y edición en el panel) */
 .producto-imagen { display: block; width: 100%; max-width: 320px; height: auto; margin: 0 0 24px; border-radius: 12px; background: #fff; }
+
+/* Celulares: los márgenes de escritorio dejaban la tabla sin espacio y el contenedor cortaba la columna de precio */
+@media (max-width: 600px) {
+    body { padding: 16px 8px; }
+    .content-padding { padding: 20px 12px; }
+    th, td { padding: 10px 6px; }
+    th { font-size: 0.75rem; letter-spacing: 0; }
+    .enlace-producto { gap: 8px; }
+    .miniatura { width: 40px; height: 40px; }
+    .enlace-producto span { overflow-wrap: anywhere; }  /* nombres como GQUUUUUUX no caben en 320 px */
+}

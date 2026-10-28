@@ -1,0 +1,26 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            // F5: la app como en producción (Waitress), con puntos de interrupción
+            "name": "Iniciar app",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/app.py",
+            "cwd": "${workspaceFolder}",
+            "console": "integratedTerminal",
+            "justMyCode": true
+        },
+        {
+            // Servidor de desarrollo de Flask: muestra los errores en el navegador. Solo en tu equipo.
+            "name": "Iniciar app (modo desarrollo)",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/app.py",
+            "cwd": "${workspaceFolder}",
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "env": { "FLASK_DEBUG": "1" }
+        }
+    ]
+}

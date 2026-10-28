@@ -27,16 +27,21 @@ Es una aplicación web en **Flask** con su propia base **SQLite**: no depende de
   <img src="docs/capturas/admin_resumen.png" width="420" alt="Resumen del panel: visitas del mes, modelos en catálogo, último escaneo y últimos eventos">
 </p>
 <p align="center">
+  <img src="docs/capturas/admin_tiendas.png" width="420" alt="Estado de cada tienda: último escaneo exitoso, productos y último error">
+  <img src="docs/capturas/admin_duplicados.png" width="420" alt="Posibles duplicados con botones para conservar uno u otro, o marcarlos como distintos">
+</p>
+<p align="center">
   <img src="docs/capturas/admin.png" width="420" alt="Listado de productos del panel con estado, mejor precio, última captura y acciones">
   <img src="docs/capturas/admin_fusion.png" width="420" alt="Ventana para fusionar un producto duplicado con el principal">
 </p>
 <p align="center">
-  <img src="docs/capturas/admin_editar.png" width="420" alt="Edición del nombre y grado de un modelo del catálogo">
+  <img src="docs/capturas/admin_editar.png" width="420" alt="Edición del nombre, grado e imagen de un modelo del catálogo">
   <img src="docs/capturas/admin_acciones.png" width="420" alt="Acciones del sistema: cambiar credenciales, exportar a Excel, respaldo de la base y forzar escaneo">
 </p>
 
 - **Acceso:** usuario y contraseña. Al cambiarlos desde el panel, la contraseña se guarda como hash.
 - **Resumen:** visitas del mes, modelos en catálogo, último escaneo y los últimos eventos del registro. Avisa si el último escaneo exitoso tiene más de 48 horas.
+- **Estado de las tiendas:** último escaneo exitoso, productos y último error de cada tienda; marca para revisar las que llevan más de 48 horas sin un escaneo exitoso o fallaron en el último intento.
 - **Productos:** ordenados por estado (Visibles → No disponibles → Ocultos), con acciones para ocultar, editar, eliminar y fusionar.
 - **Fusión:** pasa las tiendas y el historial de un duplicado al producto principal.
 - **Edición:** nombre estandarizado y grado de cada modelo.
@@ -49,6 +54,7 @@ Es una aplicación web en **Flask** con su propia base **SQLite**: no depende de
 - **Catálogo** con paginación de 24, 48 o 120 productos, filtro por grado (PG, MG, RG, HG, EG, SD, FM, S/G) y orden por precio (ascendente o descendente) o alfabético.
 - **Ficha de producto** con el precio y el enlace de cada tienda, y un gráfico con *Chart.js* del historial de precios por tienda.
 - **Imágenes de los productos:** se toman de los listados de las tiendas durante el escaneo (sin peticiones extra), se descargan una sola vez por producto y se guardan reducidas a WebP de 400 px (unos 5 a 25 KB) en `static/productos/`. Desde el panel se puede reemplazar la imagen de cualquier producto.
+- **Compartir y buscadores:** cada producto tiene una URL con su nombre (`/producto/45-gfred-hg`; las antiguas redirigen) y, al compartirlo en WhatsApp o redes, aparece con su foto y el precio más bajo. `sitemap.xml` lista los productos visibles y `robots.txt` deja el panel fuera de los buscadores.
 - **Disponibilidad automática:** un producto sin stock en ninguna tienda pasa a "No disponible" y sale del catálogo, sin perder el estado Visible/Oculto que eligió el administrador.
 - **Catálogo estandarizado:** el nombre que publica cada tienda se limpia (marcas, escalas, texto de relleno), se detecta su grado y se agrupa con las publicaciones del mismo modelo en otras tiendas.
 - **Filtro de palabras bloqueadas:** descarta solo los productos de otras franquicias (Pokémon, Naruto, Dragon Ball…) que algunas tiendas mezclan en su catálogo.
@@ -116,9 +122,17 @@ erDiagram
 
 Requisitos: Python 3.10 o superior.
 
+Crea un entorno virtual en la carpeta del proyecto e instala las dependencias ahí (la carpeta `.venv` no va al repositorio):
+
 ```bash
-pip install -r requirements.txt
+python -m venv .venv
 ```
+
+```bash
+.venv\Scripts\python -m pip install -r requirements.txt
+```
+
+En Linux o macOS la ruta es `.venv/bin/python`. Desde ahí, todos los comandos se corren con ese Python (por ejemplo `.venv\Scripts\python app.py`), o activando el entorno antes con `.venv\Scripts\Activate.ps1` en PowerShell.
 
 Crea un archivo `.env` en la raíz con las credenciales iniciales del panel y la clave de sesión de Flask:
 
@@ -131,7 +145,7 @@ SECRET_KEY=una_cadena_larga_y_aleatoria
 Las tres son obligatorias: sin ellas la app no arranca.
 
 ```bash
-python app.py
+.venv\Scripts\python app.py
 ```
 
 La app se sirve con [Waitress](https://docs.pylonsproject.org/projects/waitress/) en `http://127.0.0.1:5000` y el panel queda en `/admin`. La base `precios_comunidad.db` se crea al primer inicio y se llena con el primer scraping (programado, o a mano desde el panel).
@@ -149,7 +163,7 @@ Todos los días a las 03:00 se guarda una copia de la base en `respaldos/precios
 Las pruebas usan una base temporal y no tocan `precios_comunidad.db`:
 
 ```bash
-python -m unittest discover tests
+.venv\Scripts\python -m unittest discover tests
 ```
 
 Cada push las corre también en GitHub Actions, con Python 3.10 y con la versión más reciente (pestaña **Actions** del repositorio).
@@ -172,6 +186,7 @@ core/                        Toda la lógica y el SQL; las rutas solo atienden H
 ├── seguridad.py             Token CSRF
 ├── precios.py               Conversión de precios a número
 ├── imagenes.py              Imágenes de productos: URL desde el listado, descarga única y WebP
+├── peticiones.py            Peticiones a las tiendas con reintentos (429, 5xx, cortes)
 ├── scraper_manager.py       Orquestador: corre cada scraper y guarda los resultados
 ├── catalog_manager.py       Limpieza de nombres, grado y palabras bloqueadas
 └── logger.py                Registro de eventos (tabla logs)

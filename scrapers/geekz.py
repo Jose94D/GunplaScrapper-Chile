@@ -1,8 +1,8 @@
-import requests
 from bs4 import BeautifulSoup
 import time
 from core.logger import registrar_log
 from core.precios import limpiar_precio
+from core.peticiones import pedir
 from core.imagenes import url_imagen
 
 class GeekzScraper:
@@ -25,7 +25,7 @@ class GeekzScraper:
                 else:
                     url_pagina = f"{self.base_url}{self.categoria_path}/page/{pagina}{self.query_params}"
 
-                res = requests.get(url_pagina, headers=self.headers, timeout=15)
+                res = pedir(url_pagina, headers=self.headers)
                 if res.status_code == 404 and pagina > 1:
                     break  # algunas tiendas responden 404 al pasar la última página
                 res.raise_for_status()

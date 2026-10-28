@@ -92,7 +92,7 @@
     {% for fila in datos %}
     <tr>
         <td class="col-left">
-            <a href="{{ url_for('producto_bp.ver_grafico', id=fila[0], q=search_query, grado=grado_filtro, sort=sort_order, per_page=per_page, page=page) }}" class="enlace-grafico enlace-producto">
+            <a href="{{ url_for('producto_bp.ver_grafico', id=fila[0], slug=fila[1]|slug, q=search_query, grado=grado_filtro, sort=sort_order, per_page=per_page, page=page) }}" class="enlace-grafico enlace-producto">
                 {%- if fila[4] %}<img src="{{ url_for('static', filename=fila[4]) }}" alt="" class="miniatura" width="48" height="48" loading="lazy">
                 {%- else %}<span class="miniatura miniatura-vacia" aria-hidden="true"></span>{% endif -%}
                 <span>{{ fila[1] }}</span></a>

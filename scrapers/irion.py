@@ -1,8 +1,8 @@
-import requests
 from bs4 import BeautifulSoup
 import time
 from core.logger import registrar_log
 from core.precios import limpiar_precio
+from core.peticiones import pedir
 from core.imagenes import url_imagen
 
 class IrionScraper:
@@ -27,7 +27,7 @@ class IrionScraper:
                 # Paginación simple (?page=N), no está afectada por ninguna regla de Disallow.
                 url_pagina = self.coleccion_url if pagina == 1 else f"{self.coleccion_url}?page={pagina}"
 
-                res = requests.get(url_pagina, headers=self.headers, timeout=15)
+                res = pedir(url_pagina, headers=self.headers)
                 if res.status_code == 404 and pagina > 1:
                     break  # algunas tiendas responden 404 al pasar la última página
                 res.raise_for_status()

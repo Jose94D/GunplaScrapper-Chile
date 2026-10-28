@@ -15,3 +15,6 @@ respaldos/
 
 # Imágenes de productos descargadas de las tiendas (se regeneran solas)
 static/productos/
+
+# Entorno virtual de Python
+.venv/

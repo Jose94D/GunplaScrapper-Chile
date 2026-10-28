@@ -16,7 +16,7 @@
         <select name="id_principal" id="id_principal" required class="search-input full-width mb-20">
             <option value="">-- Selecciona el producto destino --</option>
             {% for p in catalogo_completo %}
-                <option value="{{ p[0] }}">{{ p[1] }} {{ p[2] }}</option>
+                <option value="{{ p[0] }}">{{ p[1] }}{% if not p[1].endswith(p[2]) %} {{ p[2] }}{% endif %}</option>
             {% endfor %}
         </select>
         

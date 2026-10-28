@@ -83,7 +83,8 @@ class TestListados(unittest.TestCase):
             if template.name == plantilla:
                 capturado.update(context)
         with template_rendered.connected_to(guardar, self.app):
-            self.assertEqual(self.cliente.get(ruta, query_string=consulta).status_code, 200)
+            # follow_redirects: /producto/<id> redirige a la URL con nombre
+            self.assertEqual(self.cliente.get(ruta, query_string=consulta, follow_redirects=True).status_code, 200)
         return capturado
 
     def resultado_actual(self):

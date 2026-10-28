@@ -1,9 +1,9 @@
-import requests
 from bs4 import BeautifulSoup
 import time
 import re
 from core.logger import registrar_log
 from core.precios import limpiar_precio
+from core.peticiones import pedir
 from core.imagenes import url_imagen
 
 def reconstruir_nombre_desde_url(url):
@@ -50,7 +50,7 @@ class ChileRobotsScraper:
                 else:
                     url_pagina = f"{self.categoria_url}?page={pagina}&cr_view=all"
 
-                res = requests.get(url_pagina, headers=self.headers, timeout=15)
+                res = pedir(url_pagina, headers=self.headers)
                 if res.status_code == 404 and pagina > 1:
                     break  # algunas tiendas responden 404 al pasar la última página
                 res.raise_for_status()

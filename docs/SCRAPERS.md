@@ -55,6 +55,7 @@ Reglas que siguen todos:
 - **Solo productos en stock.** Lo que no se devuelve queda inactivo. Si la tienda lista agotados, el scraper debe filtrarlos (Geekz mira la etiqueta de stock, Weplay descarta los "Disponible solo en tienda", Blaster filtra por disponibilidad en la URL).
 - **Pausa entre páginas** con `time.sleep` (2 segundos en la mayoría; entre 3,5 y 7 al azar en Blaster).
 - **Fin de la paginación:** cuando una página no trae productos, o cuando vuelve a aparecer una URL ya vista (algunas tiendas repiten la última página en vez de devolver una vacía).
+- **Peticiones con `pedir()`** (`core/peticiones.py`), no con `requests.get`: ante un 429, un error 5xx o un corte de conexión reintenta hasta 3 veces, esperando lo que pida la tienda en `Retry-After` (máximo 60 s) o 5 s y 10 s. Un 404 u otro error definitivo no se reintenta.
 - **Errores:** se registran con `registrar_log` y se **relanzan**. Nunca se devuelve una lista parcial, porque `ScraperManager` marcaría como agotado todo lo que faltó por leer. Una respuesta HTTP con error también cuenta como fallo (`res.raise_for_status()`), salvo un 404 después de la primera página, que algunas tiendas usan para indicar que no hay más páginas.
 
 ## Tiendas

@@ -2,6 +2,26 @@
 
 {% block title %}Comparativa: {{ nombre_estandar }}{% endblock %}
 
+{% block compartir %}
+{% set url_producto = url_for('producto_bp.ver_grafico', id=request.view_args.id, slug=slug_producto, _external=True) %}
+{% set resumen = nombre_estandar ~ (' desde ' ~ mejor_precio if mejor_precio else '') ~ ' en tiendas chilenas. Compara precios e historial en Gunpla Scraper Chile.' %}
+<link rel="canonical" href="{{ url_producto }}">
+<meta property="og:type" content="product">
+<meta property="og:url" content="{{ url_producto }}">
+<meta property="og:title" content="{{ nombre_estandar }}{% if mejor_precio %} · desde {{ mejor_precio }}{% endif %}">
+<meta property="og:description" content="{{ resumen }}">
+<meta name="twitter:title" content="{{ nombre_estandar }}{% if mejor_precio %} · desde {{ mejor_precio }}{% endif %}">
+<meta name="twitter:description" content="{{ resumen }}">
+{% if imagen %}
+<meta property="og:image" content="{{ url_for('static', filename=imagen, _external=True) }}">
+<meta property="og:image:alt" content="{{ nombre_estandar }}">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="{{ url_for('static', filename=imagen, _external=True) }}">
+{% else %}
+<meta name="twitter:card" content="summary">
+{% endif %}
+{% endblock %}
+
 {% block extra_head %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.6.1/dist/chart.umd.min.js"></script>
 <link rel="stylesheet" href="{{ url_for('static', filename='css/producto.css') }}">

@@ -192,10 +192,76 @@ class TestProductoManual(PanelTemporal):
         self.assertEqual(execute_query("SELECT COUNT(*) FROM productos", fetchone=True)[0], 1)
 
 
-def respuesta(estado, html=""):
-    r = mock.Mock(status_code=estado, text=html)
+def respuesta(estado, html="", headers=None):
+    r = mock.Mock(status_code=estado, text=html, headers=headers or {})
     r.raise_for_status.side_effect = None if estado < 400 else Exception(f"HTTP {estado}")
     return r
+
+
+class TestCatalogoTransaccion(BaseTemporal):
+    def test_si_falla_a_mitad_no_queda_nada_a_medias(self):
+        from core.catalog_manager import CatalogManager
+        execute_query("INSERT INTO tiendas (id, nombre) VALUES (1, 'A')", commit=True)
+        for pub, nombre in [(1, "HG Zaku II"), (2, "Pokemon Pikachu"), (3, "HG Gouf")]:
+            execute_query("INSERT INTO publicacion_producto (id, tienda_id, nombre_original, url, precio) VALUES (?, 1, ?, ?, 1)", (pub, nombre, f"u{pub}"), commit=True)
+        cm = CatalogManager()
+        original = cm.normalizar_nombre
+        cm.normalizar_nombre = lambda n: (_ for _ in ()).throw(RuntimeError("falla")) if "Gouf" in n else original(n)
+        with self.assertRaises(RuntimeError):
+            cm.procesar_pendientes()
+        # Nada aplicado: ni el Zaku vinculado, ni el Pokémon borrado, ni productos creados
+        self.assertEqual(execute_query("SELECT COUNT(*) FROM publicacion_producto WHERE producto_id IS NULL", fetchone=True)[0], 3)
+        self.assertEqual(execute_query("SELECT COUNT(*) FROM productos", fetchone=True)[0], 0)
+        # Sin la falla, se procesa todo
+        CatalogManager().procesar_pendientes()
+        self.assertEqual(execute_query("SELECT COUNT(*) FROM publicacion_producto", fetchone=True)[0], 2)
+        self.assertEqual(execute_query("SELECT COUNT(*) FROM productos", fetchone=True)[0], 2)
+
+
+class TestReintentos(unittest.TestCase):
+    """core.peticiones.pedir: reintenta lo pasajero (429, 5xx, cortes) y no lo definitivo (404)."""
+
+    def pedir(self, respuestas, **kwargs):
+        from core.peticiones import pedir
+        with mock.patch("core.peticiones.requests.get", side_effect=respuestas) as get, \
+                mock.patch("core.peticiones.time.sleep") as dormir:
+            try:
+                resultado = pedir("https://tienda.cl", **kwargs)
+            except Exception as e:
+                resultado = e
+        return resultado, get.call_count, [c.args[0] for c in dormir.call_args_list]
+
+    def test_429_y_luego_bien(self):
+        r, llamadas, esperas = self.pedir([respuesta(429), respuesta(200)])
+        self.assertEqual((r.status_code, llamadas, esperas), (200, 2, [5]))
+
+    def test_respeta_retry_after_con_maximo(self):
+        _, _, esperas = self.pedir([respuesta(429, headers={"Retry-After": "20"}), respuesta(429, headers={"Retry-After": "600"}), respuesta(200)])
+        self.assertEqual(esperas, [20, 60])
+
+    def test_corte_de_conexion_se_reintenta(self):
+        import requests
+        r, llamadas, esperas = self.pedir([requests.ConnectionError("corte"), respuesta(200)])
+        self.assertEqual((r.status_code, llamadas, esperas), (200, 2, [5]))
+
+    def test_si_sigue_fallando_entrega_el_error(self):
+        import requests
+        r, llamadas, esperas = self.pedir([respuesta(503)] * 3)
+        self.assertEqual((r.status_code, llamadas, esperas), (503, 3, [5, 10]))
+        r, llamadas, _ = self.pedir([requests.ConnectionError("corte")] * 3)
+        self.assertEqual((type(r), llamadas), (requests.ConnectionError, 3))
+
+    def test_404_no_se_reintenta(self):
+        r, llamadas, esperas = self.pedir([respuesta(404)])
+        self.assertEqual((r.status_code, llamadas, esperas), (404, 1, []))
+
+    def test_blaster_usa_su_sesion_y_su_espera(self):
+        from core.peticiones import pedir
+        sesion = mock.Mock()
+        sesion.get.side_effect = [respuesta(429), respuesta(200)]
+        with mock.patch("core.peticiones.time.sleep") as dormir:
+            self.assertEqual(pedir("https://b.cl", sesion=sesion, espera_base=15).status_code, 200)
+        dormir.assert_called_once_with(15)
 
 
 PAGINA_HANGAR = '<div class="product-container"><a class="product-name" href="https://www.hangar019.cl/kit-{n}">Kit {n} HG</a><span class="product-price">$19.990</span></div>'
@@ -207,7 +273,8 @@ class TestFalloAMitadDePaginacion(BaseTemporal):
         from core.scraper_manager import ScraperManager
         mgr = ScraperManager()
         mgr.scrapers = {"Hangar019": (HangarScraper(), "https://www.hangar019.cl")}
-        with mock.patch("scrapers.hangar.requests.get", side_effect=respuestas), mock.patch("scrapers.hangar.time.sleep"):
+        with mock.patch("core.peticiones.requests.get", side_effect=respuestas), \
+                mock.patch("scrapers.hangar.time.sleep"), mock.patch("core.peticiones.time.sleep"):
             mgr.ejecutar_todos()
 
     def activas(self):
@@ -218,7 +285,7 @@ class TestFalloAMitadDePaginacion(BaseTemporal):
         self.correr([respuesta(200, PAGINA_HANGAR.format(n=1)), respuesta(200, PAGINA_HANGAR.format(n=2)), respuesta(200)])
         self.assertEqual(self.activas(), 2)
         # Corrida que falla en la página 2: antes dejaba el kit 2 como agotado
-        self.correr([respuesta(200, PAGINA_HANGAR.format(n=1)), respuesta(503)])
+        self.correr([respuesta(200, PAGINA_HANGAR.format(n=1))] + [respuesta(503)] * 3)  # 503 aun tras los reintentos
         self.assertEqual(self.activas(), 2)
 
     def test_error_al_guardar_revierte_toda_la_tienda(self):

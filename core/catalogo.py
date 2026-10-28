@@ -1,9 +1,22 @@
 """Listados del catálogo: el público del inicio y el del panel de administración."""
 import math
+import re
+import unicodedata
 
 from core.database import execute_query
 
 POR_PAGINA_PERMITIDOS = (24, 48, 120)
+
+
+def slug(nombre):
+    """'Gundam Exia RG' -> 'gundam-exia-rg': la parte legible de la URL de un producto."""
+    texto = unicodedata.normalize('NFKD', nombre or '').encode('ascii', 'ignore').decode('ascii').lower()
+    return re.sub(r'[^a-z0-9]+', '-', texto).strip('-') or 'producto'
+
+
+def listar_para_sitemap():
+    """[(id, nombre_estandar), ...] de los productos que se ven en el inicio (visibles y disponibles)."""
+    return execute_query("SELECT id, nombre_estandar FROM productos WHERE es_visible = 1 AND disponible = 1 ORDER BY id", fetchall=True)
 
 
 def por_pagina_valida(valor):
@@ -173,10 +186,20 @@ def detalle_producto(id):
         """, (id,), fetchall=True)
 
     tiendas = []
+    precios_activos = []  # último precio de cada tienda que hoy lo tiene: el "desde $X" al compartir
     todas_las_fechas = set()
     tienda_historial = {}
+    # Todo el historial del producto en una consulta (antes era una por tienda), agrupado por publicación
+    historial_por_pub = {}
+    for pub_id, precio, fecha in execute_query("""
+            SELECT h.publicacion_producto_id, h.precio, h.fecha_registro FROM historial_precios h
+            JOIN publicacion_producto pp ON h.publicacion_producto_id = pp.id
+            WHERE pp.producto_id = ? ORDER BY h.fecha_registro ASC, h.id ASC
+        """, (id,), fetchall=True):
+        historial_por_pub.setdefault(pub_id, []).append((precio, fecha))
+
     for pub_id, t_nombre, t_orig, t_url, t_activa in publicaciones:
-        historial = execute_query("SELECT precio, fecha_registro FROM historial_precios WHERE publicacion_producto_id = ? ORDER BY fecha_registro ASC, id ASC", (pub_id,), fetchall=True)
+        historial = historial_por_pub.get(pub_id, [])
 
         # La tarjeta muestra el último precio registrado en esa tienda
         tiendas.append({
@@ -186,6 +209,8 @@ def detalle_producto(id):
             "url": t_url,
             "disponible": bool(t_activa)
         })
+        if t_activa and historial and historial[-1][0]:
+            precios_activos.append(historial[-1][0])
 
         # Un precio por día (el último registrado ese día)
         precios_por_dia = {}
@@ -205,4 +230,5 @@ def detalle_producto(id):
             data.append(ultimo_conocido)
         datasets.append({"label": t_nombre, "data": data, "spanGaps": True})
 
-    return {"nombre": fila[0], "imagen": fila[1], "tiendas": tiendas, "fechas": fechas, "datasets": datasets}
+    return {"nombre": fila[0], "imagen": fila[1], "tiendas": tiendas, "fechas": fechas, "datasets": datasets,
+            "mejor_precio": formatear_precio(min(precios_activos)) if precios_activos else None}

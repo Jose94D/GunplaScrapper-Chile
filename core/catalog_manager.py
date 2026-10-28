@@ -1,6 +1,6 @@
 import re
 import unicodedata
-from core.database import execute_query
+from core.database import execute_query, transaccion
 from core.logger import registrar_log
 
 class CatalogManager:
@@ -121,33 +121,30 @@ class CatalogManager:
         nuevos_creados = 0
         descartados = 0
 
-        for pub in pendientes:
-            pub_id = pub[0]
-            nombre_orig = pub[1]
+        # Una sola transacción: si algo falla, ninguna publicación queda a medio vincular y todas se reintentan en el próximo escaneo
+        with transaccion() as conn:
+            for pub_id, nombre_orig in pendientes:
+                # Filtro de palabras bloqueadas: si el producto no es de nuestro interés
+                # (otra franquicia, decals sueltos, etc), se elimina en vez de catalogarlo.
+                if self.contiene_palabra_bloqueada(nombre_orig):
+                    # ON DELETE CASCADE en historial_precios limpia también su historial.
+                    conn.execute("DELETE FROM publicacion_producto WHERE id = ?", (pub_id,))
+                    descartados += 1
+                    continue
 
-            # Filtro de palabras bloqueadas: si el producto no es de nuestro interés
-            # (otra franquicia, decals sueltos, etc), se elimina en vez de catalogarlo.
-            palabra_bloqueada = self.contiene_palabra_bloqueada(nombre_orig)
-            if palabra_bloqueada:
-                # ON DELETE CASCADE en historial_precios limpia también su historial.
-                execute_query("DELETE FROM publicacion_producto WHERE id = ?", (pub_id,), commit=True)
-                descartados += 1
-                continue
+                nombre_estandar, grado = self.normalizar_nombre(nombre_orig)
 
-            nombre_estandar, grado = self.normalizar_nombre(nombre_orig)
+                # Buscamos la coincidencia en la nueva tabla 'productos'
+                prod_existente = conn.execute("SELECT id FROM productos WHERE nombre_estandar = ?", (nombre_estandar,)).fetchone()
 
-            # Buscamos la coincidencia en la nueva tabla 'productos'
-            prod_existente = execute_query("SELECT id FROM productos WHERE nombre_estandar = ?", (nombre_estandar,), fetchone=True)
+                if prod_existente:
+                    prod_id = prod_existente[0]
+                    vinculados += 1
+                else:
+                    prod_id = conn.execute("INSERT INTO productos (nombre_estandar, grado, marca) VALUES (?, ?, 'Bandai')", (nombre_estandar, grado)).lastrowid
+                    nuevos_creados += 1
 
-            if prod_existente:
-                prod_id = prod_existente[0]
-                vinculados += 1
-            else:
-                execute_query("INSERT INTO productos (nombre_estandar, grado, marca) VALUES (?, ?, 'Bandai')", (nombre_estandar, grado), commit=True)
-                prod_id = execute_query("SELECT id FROM productos WHERE nombre_estandar = ?", (nombre_estandar,), fetchone=True)[0]
-                nuevos_creados += 1
-
-            # Actualizamos la relación usando la columna 'producto_id'
-            execute_query("UPDATE publicacion_producto SET producto_id = ? WHERE id = ?", (prod_id, pub_id), commit=True)
+                # Actualizamos la relación usando la columna 'producto_id'
+                conn.execute("UPDATE publicacion_producto SET producto_id = ? WHERE id = ?", (prod_id, pub_id))
 
         registrar_log(f"Auto-vinculación completada. Vinculados a existentes: {vinculados} | Nuevos creados: {nuevos_creados} | Descartados por filtro: {descartados}")
