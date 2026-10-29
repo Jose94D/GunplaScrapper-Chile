@@ -153,6 +153,17 @@ class TestReemplazoDesdeElPanel(ConCarpetaTemporal, PanelTemporal):
         self.assertIn('enctype="multipart/form-data"', html)
         self.assertIn('name="imagen"', html)
 
+    def test_filtro_sin_imagen_y_vuelta_al_mismo_filtro(self):
+        execute_query("INSERT INTO productos (id, nombre_estandar, grado, imagen_producto) VALUES (2, 'CON FOTO HG', 'HG', 'productos/2.webp')", commit=True)
+        html = self.cliente.get("/admin/panel?sin_imagen=1").get_data(as_text=True)
+        self.assertIn(">KIT HG</a>", html)
+        self.assertNotIn(">CON FOTO HG</a>", html)  # el selector de la ventana de fusión sí lista todo el catálogo
+        self.assertIn("Sin imagen <span>1</span>", html)
+        # Al guardar la edición se vuelve al panel con el filtro puesto
+        self.assertIn('name="sin_imagen" value="1"', self.cliente.get("/admin/producto/editar/1?sin_imagen=1").get_data(as_text=True))
+        respuesta = self.post("/admin/producto/editar/1", {"producto": "KIT HG", "grado": "HG", "sin_imagen": "1"})
+        self.assertIn("sin_imagen=1", respuesta.headers["Location"])
+
 
 if __name__ == "__main__":
     unittest.main()

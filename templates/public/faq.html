@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% from "public/_mascota.html" import mascota %}
 
 {% block title %}Preguntas frecuentes · Gunpla Scraper Chile{% endblock %}
 
@@ -10,9 +11,20 @@
 {%- endmacro %}
 
 {% block content %}
-<div class="pagina pagina-sola">
+<div class="pagina">
+    <nav class="panel pagina-indice" aria-label="En esta página">
+        <p class="etiqueta">En esta página</p>
+        <ol>
+            <li><a href="#tiendas"><span class="mono">01</span>Las tiendas</a></li>
+            <li><a href="#precios"><span class="mono">02</span>Los precios</a></li>
+            <li><a href="#catalogo"><span class="mono">03</span>El catálogo</a></li>
+            <li><a href="#proyecto"><span class="mono">04</span>El proyecto</a></li>
+        </ol>
+    </nav>
+
     <div class="pagina-cuerpo">
         <section class="panel pagina-cabecera">
+            {{ mascota() }}
             <div class="pagina-cabecera-texto">
                 <p class="etiqueta">Preguntas frecuentes</p>
                 <h1>Lo que deberías saber del radar.</h1>
@@ -20,14 +32,14 @@
             </div>
         </section>
 
-        <section class="panel" aria-label="Preguntas">
+        <section id="tiendas" class="panel bloque-preguntas" aria-labelledby="titulo-tiendas">
+            <h2 id="titulo-tiendas"><span class="mono">01</span>Las tiendas</h2>
             {% call pregunta('¿Qué tiendas revisa esta página?', abierta=true) %}
                 <p>Actualmente el radar monitorea 8 tiendas chilenas:</p>
                 <ul class="etiquetas">
                     {% for t in ['Hangar019', 'Blaster Chile', 'ChileRobots', 'Irion Juguetería', 'Geekz', 'Weplay', 'LuffyToys', 'HobbyToys'] %}<li>{{ t }}</li>{% endfor %}
                 </ul>
             {% endcall %}
-
             {% call pregunta('¿Qué tiendas no están en la página, y por qué?') %}
                 <p>Evaluamos otras tiendas que decidimos dejar fuera por una razón ética y legal, no por falta de interés:</p>
                 <ul>
@@ -36,45 +48,47 @@
                 </ul>
                 <p>Si en algún momento estas tiendas habilitan el acceso a su catálogo, se evaluará incorporarlas.</p>
             {% endcall %}
-
             {% call pregunta('¿Esta página afecta los servidores de las tiendas?') %}
                 <p>No es la intención, y está pensado para que no ocurra. Los scrapers hacen pausas entre cada página que visitan y, si una tienda pide esperar o responde con un error pasajero, esperan antes de reintentar, en vez de insistir de forma agresiva.</p>
             {% endcall %}
+        </section>
 
+        <section id="precios" class="panel bloque-preguntas" aria-labelledby="titulo-precios">
+            <h2 id="titulo-precios"><span class="mono">02</span>Los precios</h2>
             {% call pregunta('¿Con qué frecuencia se actualizan los precios?') %}
                 <p>De forma automática, dos veces al día: a las 00:00 y a las 12:00.</p>
             {% endcall %}
-
             {% call pregunta('¿Los precios mostrados incluyen el despacho?') %}
                 <p>No. Los precios corresponden a lo publicado por cada tienda al momento del escaneo, sin incluir costos de despacho, que varían según la tienda y tu ubicación.</p>
             {% endcall %}
-
-            {% call pregunta('¿Puedo comprar directamente en este sitio?') %}
-                <p>No. Este es un comparador de precios, no una tienda. El botón "Ir a la tienda" te lleva a la publicación original para completar la compra ahí.</p>
-            {% endcall %}
-
             {% call pregunta('¿Qué significa "Mínimo histórico"?') %}
                 <p>Que el mejor precio de hoy es el más bajo que el radar ha registrado para ese kit, considerando todas las tiendas. Solo aparece si antes hubo un precio mayor.</p>
             {% endcall %}
+            {% call pregunta('¿Puedo comprar directamente en este sitio?') %}
+                <p>No. Este es un comparador de precios, no una tienda. El botón "Ir a la tienda" te lleva a la publicación original para completar la compra ahí.</p>
+            {% endcall %}
+        </section>
 
+        <section id="catalogo" class="panel bloque-preguntas" aria-labelledby="titulo-catalogo">
+            <h2 id="titulo-catalogo"><span class="mono">03</span>El catálogo</h2>
             {% call pregunta('¿Por qué un producto dejó de aparecer en el catálogo?') %}
                 <p>Porque en el último escaneo ninguna de las tiendas lo tenía disponible. Su ficha y su historial se conservan, y vuelve al catálogo apenas alguna tienda lo vuelva a listar.</p>
             {% endcall %}
-
-            {% call pregunta('¿Este sitio es oficial de alguna tienda o de Bandai Namco?') %}
-                <p>No. Es un proyecto independiente y sin fines de lucro, sin afiliación con ninguna de las tiendas listadas ni con Bandai Namco. Los precios y la disponibilidad son referenciales.</p>
-            {% endcall %}
-
             {% call pregunta('¿De dónde salen las imágenes de los productos?') %}
                 <p>De los listados públicos de las tiendas: se toman durante la misma revisión de precios, se descargan una sola vez por producto y se guardan en tamaño reducido. Pertenecen a Bandai Namco y a sus titulares; el detalle está en las <a href="{{ url_for('institucional_bp.politicas') }}#imagenes">políticas de privacidad</a>.</p>
             {% endcall %}
-
-            {% call pregunta('¿Por qué existe este proyecto?') %}
-                <p>Nace de una afición personal por el modelismo y por Gundam en particular, junto con las ganas de construir de punta a punta un proyecto real de datos: extracción, procesamiento, persistencia y visualización. También es una pieza de portafolio de desarrollo full stack.</p>
-            {% endcall %}
-
             {% call pregunta('Encontré un precio incorrecto o un error, ¿cómo lo reporto?') %}
                 <p>Puedes escribirle directamente al desarrollador por <a href="{{ url_for('institucional_bp.sobre_nosotros') }}#desarrollador">LinkedIn o GitHub</a>, en la página "Sobre el proyecto".</p>
+            {% endcall %}
+        </section>
+
+        <section id="proyecto" class="panel bloque-preguntas" aria-labelledby="titulo-proyecto">
+            <h2 id="titulo-proyecto"><span class="mono">04</span>El proyecto</h2>
+            {% call pregunta('¿Este sitio es oficial de alguna tienda o de Bandai Namco?') %}
+                <p>No. Es un proyecto independiente y sin fines de lucro, sin afiliación con ninguna de las tiendas listadas ni con Bandai Namco. Los precios y la disponibilidad son referenciales.</p>
+            {% endcall %}
+            {% call pregunta('¿Por qué existe este proyecto?') %}
+                <p>Nace de una afición personal por el modelismo y por Gundam en particular, junto con las ganas de construir de punta a punta un proyecto real de datos: extracción, procesamiento, persistencia y visualización. También es una pieza de portafolio de desarrollo full stack.</p>
             {% endcall %}
         </section>
     </div>

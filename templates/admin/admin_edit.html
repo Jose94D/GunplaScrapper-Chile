@@ -7,7 +7,7 @@
 {% block banner %}{% endblock %}
 
 {% block content %}
-{% set volver = url_for('admin_bp.admin_panel', page=params.page, q_admin=params.q_admin, sort_admin=params.sort_admin, per_page=params.per_page) ~ '#productos' %}
+{% set volver = url_for('admin_bp.admin_panel', **params) ~ '#productos' %}
 <div class="pagina pagina-sola">
     <div class="pagina-cuerpo">
         <nav aria-label="Ruta" class="ruta pt-0">
@@ -20,10 +20,7 @@
 
             <form method="POST" action="{{ url_for('admin_bp.editar_producto', id=prod[0]) }}" enctype="multipart/form-data" class="editar">
                 {{ campo_csrf() }}
-                <input type="hidden" name="page" value="{{ params.page }}">
-                <input type="hidden" name="q_admin" value="{{ params.q_admin }}">
-                <input type="hidden" name="sort_admin" value="{{ params.sort_admin }}">
-                <input type="hidden" name="per_page" value="{{ params.per_page }}">
+                {% for nombre, valor in params.items() %}<input type="hidden" name="{{ nombre }}" value="{{ valor }}">{% endfor %}
 
                 <div>
                     <label for="producto" class="form-label small texto-suave">Nombre del modelo</label>

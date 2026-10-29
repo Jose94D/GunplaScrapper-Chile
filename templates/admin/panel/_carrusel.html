@@ -1,7 +1,7 @@
 <section id="carrusel" class="panel seccion-panel">
     <div class="seccion-panel-cabecera">
         <h2>Carrusel del inicio</h2>
-        <span class="mono texto-suave small">{{ lista_carrusel|length }} imagen{{ 'es' if lista_carrusel|length != 1 }}</span>
+        <span class="mono texto-suave small">{{ lista_carrusel|length }} {{ 'imagen' if lista_carrusel|length == 1 else 'imágenes' }}</span>
     </div>
     <div class="carrusel-lista">
         {% for id, nombre, enlace in lista_carrusel %}

@@ -1,27 +1,84 @@
 {% extends "base.html" %}
+{% from "public/_mascota.html" import mascota %}
 
 {% block title %}Condiciones de servicio · Gunpla Scraper Chile{% endblock %}
 
 {% block content %}
-<div class="pagina pagina-sola">
+{% set condiciones = [
+    ('referencial', 'Información referencial'),
+    ('no-es-tienda', 'No somos una tienda'),
+    ('navegador', 'Lo que se guarda en tu navegador'),
+    ('cambios', 'Cambios en el sitio'),
+    ('uso', 'Proyecto independiente y buen uso'),
+    ('marcas', 'Marcas e imágenes'),
+] %}
+<div class="pagina">
+    <nav class="panel pagina-indice" aria-label="En esta página">
+        <p class="etiqueta">En esta página</p>
+        <ol>
+            <li><a href="#resumen"><span class="mono">00</span>Resumen</a></li>
+            {% for ancla, titulo in condiciones %}<li><a href="#{{ ancla }}"><span class="mono">{{ '%02d' % loop.index }}</span>{{ titulo }}</a></li>{% endfor %}
+        </ol>
+    </nav>
+
     <div class="pagina-cuerpo">
         <section class="panel pagina-cabecera">
+            {{ mascota() }}
             <div class="pagina-cabecera-texto">
                 <p class="etiqueta">Condiciones de servicio</p>
                 <h1>Las reglas del radar.</h1>
                 <p>Usar este sitio implica aceptar estas condiciones, que también aplican a la información y funciones disponibles en él.</p>
+                <p class="fecha-doc">Última actualización 28/10/2026</p>
             </div>
         </section>
 
-        <section class="panel bloque">
-            <ol class="condiciones">
-                <li><p>Gunpla Scraper Chile hace su mejor esfuerzo por mantener los precios y la disponibilidad actualizados y libres de errores, pero no puede garantizar su exactitud ni su integridad en todo momento. Todo lo publicado tiene un carácter exclusivamente <strong>referencial</strong>.</p></li>
-                <li><p>Los precios, nombres y demás datos de productos provienen de una recolección automatizada sobre tiendas de terceros y no constituyen una oferta, promoción ni invitación a contratar por parte de Gunpla Scraper Chile. Cualquier compra se hace directamente en la tienda, verificando ahí el precio, el stock y las condiciones vigentes.</p></li>
-                <li><p>El sitio guarda en tu navegador solo información técnica: una cookie para contar visitas de forma anónima y tus preferencias de tema y de vista. No se usan para publicidad ni se comparten con terceros. El detalle está en las <a href="{{ url_for('institucional_bp.politicas') }}">políticas de privacidad</a>.</p></li>
-                <li><p>El desarrollador puede modificar, actualizar o eliminar en cualquier momento y sin aviso previo el contenido, la configuración, las tiendas monitoreadas o estas mismas condiciones.</p></li>
-                <li><p>Gunpla Scraper Chile es un proyecto independiente, sin fines de lucro y sin afiliación con las tiendas listadas ni con Bandai Namco. El uso del sitio debe ajustarse a la ley y a la buena fe; se prohíbe cualquier uso que busque dañar, sobrecargar o vulnerar los derechos de terceros, incluidas las tiendas cuyos datos se muestran.</p></li>
-                <li><p>Gundam, Gunpla, los nombres de los modelos y las imágenes de sus cajas son propiedad de Bandai Namco y de sus titulares (Sotsu · Sunrise). Se muestran solo para identificar cada producto, y su aparición no implica respaldo ni relación con ellos. Las solicitudes de retiro de contenido se atienden desde la <a href="{{ url_for('institucional_bp.sobre_nosotros') }}#desarrollador">página Sobre el proyecto</a>.</p></li>
-            </ol>
+        <section id="resumen" class="resumen-tarjetas" aria-label="Resumen">
+            <div class="panel">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 8v4M12 16h.01"/></svg>
+                <h2>Precios referenciales</h2>
+                <p>El precio que vale es siempre el de la tienda.</p>
+            </div>
+            <div class="panel">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4ZM3 6h18M16 10a4 4 0 0 1-8 0"/></svg>
+                <h2>Se compra en la tienda</h2>
+                <p>Este sitio compara precios; no vende ni toma pedidos.</p>
+            </div>
+            <div class="panel">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 3 4 6v6c0 5 3.5 8 8 9 4.5-1 8-4 8-9V6Z"/><path d="m9 12 2 2 4-4"/></svg>
+                <h2>Proyecto independiente</h2>
+                <p>Sin fines de lucro y sin relación con las tiendas ni con Bandai Namco.</p>
+            </div>
+        </section>
+
+        <section id="referencial" class="panel bloque">
+            <h2><span class="mono numero-bloque">01</span>Información referencial</h2>
+            <p>Gunpla Scraper Chile hace su mejor esfuerzo por mantener los precios y la disponibilidad actualizados y libres de errores, pero no puede garantizar su exactitud ni su integridad en todo momento. Todo lo publicado tiene un carácter exclusivamente <strong>referencial</strong>.</p>
+        </section>
+
+        <section id="no-es-tienda" class="panel bloque">
+            <h2><span class="mono numero-bloque">02</span>No somos una tienda</h2>
+            <p>Los precios, nombres y demás datos de productos provienen de una recolección automatizada sobre tiendas de terceros y no constituyen una oferta, promoción ni invitación a contratar por parte de Gunpla Scraper Chile. Cualquier compra se hace directamente en la tienda, verificando ahí el precio, el stock y las condiciones vigentes.</p>
+        </section>
+
+        <section id="navegador" class="panel bloque">
+            <h2><span class="mono numero-bloque">03</span>Lo que se guarda en tu navegador</h2>
+            <p>El sitio guarda solo información técnica: una cookie para contar visitas de forma anónima y tus preferencias de tema y de vista. No se usan para publicidad ni se comparten con terceros. El detalle está en las <a href="{{ url_for('institucional_bp.politicas') }}">políticas de privacidad</a>.</p>
+        </section>
+
+        <section id="cambios" class="panel bloque">
+            <h2><span class="mono numero-bloque">04</span>Cambios en el sitio</h2>
+            <p>El desarrollador puede modificar, actualizar o eliminar en cualquier momento y sin aviso previo el contenido, la configuración, las tiendas monitoreadas o estas mismas condiciones.</p>
+        </section>
+
+        <section id="uso" class="panel bloque">
+            <h2><span class="mono numero-bloque">05</span>Proyecto independiente y buen uso</h2>
+            <p>Gunpla Scraper Chile es un proyecto independiente, sin fines de lucro y sin afiliación con las tiendas listadas ni con Bandai Namco. El uso del sitio debe ajustarse a la ley y a la buena fe; se prohíbe cualquier uso que busque dañar, sobrecargar o vulnerar los derechos de terceros, incluidas las tiendas cuyos datos se muestran.</p>
+        </section>
+
+        <section id="marcas" class="panel bloque">
+            <h2><span class="mono numero-bloque">06</span>Marcas e imágenes</h2>
+            <p>Gundam, Gunpla, los nombres de los modelos y las imágenes de sus cajas son propiedad de Bandai Namco y de sus titulares (Sotsu · Sunrise). Se muestran solo para identificar cada producto, y su aparición no implica respaldo ni relación con ellos.</p>
+            <a href="{{ url_for('institucional_bp.sobre_nosotros') }}#desarrollador" class="btn boton-acento boton-alto mt-2">Solicitar un retiro</a>
         </section>
     </div>
 </div>

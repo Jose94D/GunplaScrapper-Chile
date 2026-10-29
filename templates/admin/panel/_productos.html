@@ -1,8 +1,8 @@
 {# Enlace al panel conservando búsqueda, grado, orden y cantidad; url_for omite los valores None #}
-{% macro enlace_panel(page=1, grado=grado_admin) -%}
-{{ url_for('admin_bp.admin_panel', q_admin=search_query or None, grado_admin=grado or None, sort_admin=sort_admin, per_page=per_page, page=page if page > 1 else None) }}#productos
+{% macro enlace_panel(page=1, grado=grado_admin, solo_sin_imagen=sin_imagen) -%}
+{{ url_for('admin_bp.admin_panel', q_admin=search_query or None, grado_admin=grado or None, sort_admin=sort_admin, per_page=per_page, page=page if page > 1 else None, sin_imagen='1' if solo_sin_imagen else None) }}#productos
 {%- endmacro %}
-{% set filtros = dict(page=page, q_admin=search_query, grado_admin=grado_admin, sort_admin=sort_admin, per_page=per_page) %}
+{% set filtros = dict(page=page, q_admin=search_query, grado_admin=grado_admin, sort_admin=sort_admin, per_page=per_page, sin_imagen='1' if sin_imagen else '') %}
 
 <section id="productos" class="panel seccion-panel">
     <div class="seccion-panel-cabecera">
@@ -15,14 +15,17 @@
         {% for g in ['HG', 'MG', 'RG', 'SD', 'EG', 'PG', 'FM', 'S/G'] %}
         <a href="{{ enlace_panel(grado=g) }}" class="chip {% if grado_admin == g %}active{% endif %}">{{ g }}</a>
         {% endfor %}
+        <span class="chips-separador" aria-hidden="true"></span>
+        <a href="{{ enlace_panel(solo_sin_imagen=not sin_imagen) }}" class="chip {% if sin_imagen %}active{% endif %}" aria-pressed="{{ 'true' if sin_imagen else 'false' }}" title="Productos sin imagen, para subirla desde Editar">Sin imagen <span>{{ total_sin_imagen }}</span></a>
     </nav>
 
     <form action="{{ url_for('admin_bp.admin_panel') }}#productos" method="GET" class="filtros-panel">
         {% if grado_admin %}<input type="hidden" name="grado_admin" value="{{ grado_admin }}">{% endif %}
+        {% if sin_imagen %}<input type="hidden" name="sin_imagen" value="1">{% endif %}
         <label for="q_admin" class="visually-hidden">Buscar producto</label>
         <input type="search" id="q_admin" name="q_admin" class="form-control campo" placeholder="Buscar producto…" value="{{ search_query }}">
         <button type="submit" class="btn boton-acento">Buscar</button>
-        {% if search_query or grado_admin or sort_admin != 'date_desc' %}
+        {% if search_query or grado_admin or sin_imagen or sort_admin != 'date_desc' %}
         <a href="{{ url_for('admin_bp.admin_panel', per_page=per_page) }}#productos" class="btn boton-borde">Limpiar</a>
         {% endif %}
         <label for="sort_admin" class="small texto-tenue ms-md-auto">Ordenar</label>

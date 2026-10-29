@@ -7,7 +7,7 @@ from core.logger import registrar_log, ultimos_eventos
 from core.precios import limpiar_precio
 from core import carrusel, catalogo, duplicados, imagenes, estadisticas, exportar, productos, usuarios
 
-FILTROS_PANEL = ('page', 'q_admin', 'grado_admin', 'sort_admin', 'per_page')
+FILTROS_PANEL = ('page', 'q_admin', 'grado_admin', 'sort_admin', 'per_page', 'sin_imagen')
 
 
 def volver_al_panel(datos):
@@ -43,7 +43,8 @@ def crear_blueprint_admin(scraper_manager):
         sort_admin = request.args.get('sort_admin', 'date_desc')
         per_page = catalogo.por_pagina_valida(request.args.get('per_page', 24, type=int))
 
-        lista_productos, total_pages = catalogo.listar_productos_panel(q_admin, grado_admin, sort_admin, page, per_page)
+        sin_imagen = request.args.get('sin_imagen') == '1'
+        lista_productos, total_pages = catalogo.listar_productos_panel(q_admin, grado_admin, sort_admin, page, per_page, sin_imagen)
         catalogo_completo = catalogo.listar_catalogo_completo()
         tiendas = estadisticas.estado_tiendas()
 
@@ -52,7 +53,7 @@ def crear_blueprint_admin(scraper_manager):
                                total_productos=resumen["total_productos"], ultima_fecha=resumen["ultima_fecha"], 
                                lista_productos=lista_productos, lista_carrusel=lista_carrusel, 
                                lista_logs=lista_logs, tiendas=tiendas, tiendas_al_dia=sum(1 for t in tiendas if t['ok']), duplicados=duplicados.sugerir_duplicados(),
-                               visibles=catalogo.resumen_inicio()['total'], search_query=q_admin, grado_admin=grado_admin,
+                               visibles=catalogo.resumen_inicio()['total'], sin_imagen=sin_imagen, total_sin_imagen=catalogo.contar_sin_imagen(), search_query=q_admin, grado_admin=grado_admin,
                                page=page, total_pages=total_pages, alerta_activa=resumen["alerta_activa"], 
                                mensaje_alerta=resumen["mensaje_alerta"], per_page=per_page, sort_admin=sort_admin,
                                catalogo_completo=catalogo_completo)
@@ -127,13 +128,8 @@ def crear_blueprint_admin(scraper_manager):
         prod = productos.obtener_producto(id)
         if not prod: return redirect(url_for('admin_bp.admin_panel'))
         
-        params = {
-            'page': request.args.get('page', 1),
-            'q_admin': request.args.get('q_admin', ''),
-            'grado_admin': request.args.get('grado_admin', ''),
-            'sort_admin': request.args.get('sort_admin', 'date_desc'),
-            'per_page': request.args.get('per_page', 24)
-        }
+        # Los filtros del listado viajan como campos ocultos para volver a la misma vista al guardar
+        params = {k: request.args.get(k, '') for k in FILTROS_PANEL}
         return render_template('admin/admin_edit.html', prod=prod, params=params)
 
     @admin_bp.route('/admin/producto/toggle/<int:id>', methods=['POST'])

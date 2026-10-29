@@ -53,6 +53,11 @@ def resumen_inicio():
     return {"total": sum(conteo.values()), "por_grado": [(g, conteo[g]) for g in GRADOS if conteo.get(g)], "tiendas": tiendas}
 
 
+def contar_sin_imagen():
+    """Cuántos productos del catálogo no tienen imagen (el contador del filtro del panel)."""
+    return execute_query("SELECT COUNT(*) FROM productos WHERE imagen_producto IS NULL OR imagen_producto = ''", fetchone=True)[0]
+
+
 def listar_catalogo_completo():
     """[(id, nombre_estandar, grado), ...] de todos los productos, por nombre (selector de fusión)."""
     return execute_query("SELECT id, nombre_estandar, grado FROM productos ORDER BY nombre_estandar ASC, id ASC", fetchall=True)
@@ -115,9 +120,10 @@ def listar_catalogo_publico(busqueda='', grado='', orden='price_asc', pagina=1, 
     return [(f[0], f[1], f[2], formatear_precio(f[3]), f[4], f[5]) for f in filas], total_paginas
 
 
-def listar_productos_panel(busqueda='', grado='', orden='date_desc', pagina=1, por_pagina=24):
+def listar_productos_panel(busqueda='', grado='', orden='date_desc', pagina=1, por_pagina=24, sin_imagen=False):
     """
     Todos los productos para el panel, siempre agrupados por estado: Visibles, No disponibles, Ocultos.
+    sin_imagen deja solo los que no tienen imagen, para subirla a mano desde la edición.
     Retorna ([(id, nombre, grado, precio_texto, ultima_fecha, es_visible, disponible, tier_estado), ...], total_paginas).
     """
     order_clause = {
@@ -166,6 +172,9 @@ def listar_productos_panel(busqueda='', grado='', orden='date_desc', pagina=1, p
     if grado:
         where_conditions.append("c.grado = ?")
         params.append(grado)
+
+    if sin_imagen:
+        where_conditions.append("(c.imagen_producto IS NULL OR c.imagen_producto = '')")
 
     where_clause = ""
     if where_conditions:
