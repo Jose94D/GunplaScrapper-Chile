@@ -1,3 +1,9 @@
+// Formularios con data-confirmar piden confirmación antes de enviarse (reemplaza los onsubmit, que la CSP bloquea)
+document.addEventListener('submit', (e) => {
+    const mensaje = e.target.dataset.confirmar;
+    if (mensaje && !confirm(mensaje)) e.preventDefault();
+});
+
 document.addEventListener("DOMContentLoaded", () => {
     // --- Tema claro/oscuro ---
     // El <head> de base.html ya aplicó el tema guardado; aquí se sincronizan el banner y el botón,

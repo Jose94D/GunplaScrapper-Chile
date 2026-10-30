@@ -2,11 +2,12 @@
 import math
 import re
 import unicodedata
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from core.database import execute_query
 
 POR_PAGINA_PERMITIDOS = (24, 48, 120)
+DIAS_BAJA = 7  # una baja de precio se destaca durante una semana
 
 
 def slug(nombre):
@@ -204,6 +205,43 @@ def listar_productos_panel(busqueda='', grado='', orden='date_desc', pagina=1, p
     return lista, total_paginas
 
 
+def indicadores_precio(ids):
+    """{id: {"minimo_historico": bool, "baja_pct": int o None}} de los productos dados, para tarjetas y ficha.
+
+    Mínimo histórico: el mejor precio de hoy es el más bajo registrado y antes hubo alguno mayor (con precios planos no se marca).
+    Baja: la tienda con el mejor precio lo bajó en los últimos DIAS_BAJA días; el % es respecto de su precio anterior.
+    """
+    if not ids:
+        return {}
+    filas = execute_query(f"""
+            SELECT pp.producto_id, pp.id, pp.es_url_activa, h.precio, h.fecha_registro FROM historial_precios h
+            JOIN publicacion_producto pp ON h.publicacion_producto_id = pp.id
+            WHERE pp.producto_id IN ({','.join('?' * len(ids))}) AND h.precio
+            ORDER BY h.fecha_registro ASC, h.id ASC
+        """, tuple(ids), fetchall=True)
+
+    extremos = {}  # producto -> [mínimo, máximo] de todo su historial
+    pubs = {}      # publicación -> [producto, activa, precio actual, precio anterior, fecha del último cambio]
+    for prod, pub, activa, precio, fecha in filas:
+        e = extremos.setdefault(prod, [precio, precio])
+        e[0], e[1] = min(e[0], precio), max(e[1], precio)
+        p = pubs.setdefault(pub, [prod, activa, precio, None, None])
+        if precio != p[2]:
+            p[3], p[4] = p[2], fecha
+        p[2] = precio
+
+    desde = (datetime.now() - timedelta(days=DIAS_BAJA)).strftime("%Y-%m-%d %H:%M:%S")
+    resultado = {}
+    for prod, (minimo, maximo) in extremos.items():
+        activas = [p for p in pubs.values() if p[0] == prod and p[1]]
+        mejor = min((p[2] for p in activas), default=None)
+        bajas = [round((p[3] - p[2]) * 100 / p[3]) for p in activas
+                 if p[2] == mejor and p[3] and p[3] > p[2] and p[4] >= desde]
+        resultado[prod] = {"minimo_historico": mejor is not None and mejor <= minimo and maximo > mejor,
+                           "baja_pct": max(bajas) if bajas and max(bajas) >= 1 else None}
+    return resultado
+
+
 def detalle_producto(id):
     """
     Datos de la ficha de un producto: precio actual en cada tienda e historial para el gráfico.
@@ -274,9 +312,7 @@ def detalle_producto(id):
         t["diferencia"] = formatear_precio(t["precio_valor"] - mejor).replace("$", "+$") if activa and not t["es_mejor"] else None
     tiendas.sort(key=lambda t: (not (t["disponible"] and t["precio_valor"]), t["precio_valor"] or 0))
 
-    # Mínimo histórico: el mejor precio de hoy es el más bajo registrado y antes hubo alguno mayor (con precios planos no se marca)
-    historicos = [precio for filas in historial_por_pub.values() for precio, _ in filas if precio]
-    minimo_historico = mejor is not None and mejor <= min(historicos) and max(historicos) > mejor
+    indicadores = indicadores_precio([id]).get(id, {})
     ahorro = max(precios_activos) - mejor if len(precios_activos) > 1 else 0
     tiendas_total = execute_query("SELECT COUNT(*) FROM tiendas WHERE es_activa = 1", fetchone=True)[0]
 
@@ -285,5 +321,6 @@ def detalle_producto(id):
             "mejor_precio": formatear_precio(mejor) if mejor is not None else None,
             "mejor_tienda": next((t["nombre"] for t in tiendas if t["es_mejor"]), None),
             "ahorro": formatear_precio(ahorro) if ahorro else None, "ahorro_pct": round(ahorro * 100 / max(precios_activos)) if ahorro else None,
-            "minimo_historico": minimo_historico, "tiendas_con_stock": len(precios_activos), "tiendas_total": tiendas_total,
+            "minimo_historico": indicadores.get("minimo_historico", False), "baja_pct": indicadores.get("baja_pct"),
+            "tiendas_con_stock": len(precios_activos), "tiendas_total": tiendas_total,
             "seguimiento_desde": formatear_fecha(fechas[0]) if fechas else None}

@@ -32,3 +32,20 @@ def proteger_csrf(app):
             abort(400, 'Token CSRF inválido o ausente. Recarga la página e inténtalo de nuevo.')
 
     app.jinja_env.globals.update(csrf_token=token_csrf, campo_csrf=campo_csrf)
+
+
+# Todo (estilos, fuentes, scripts, imágenes) se sirve desde el propio sitio, así que la política puede ser estricta:
+# sin scripts en línea ni de otros dominios, y nadie puede meter el sitio dentro de un <iframe>.
+# img-src admite data: por los iconos SVG que Bootstrap trae dentro de su CSS.
+CSP = ("default-src 'self'; img-src 'self' data:; object-src 'none'; "
+       "frame-ancestors 'none'; base-uri 'self'; form-action 'self'")
+
+
+def cabeceras_seguridad(app):
+    """Agrega a cada respuesta las cabeceras que piden al navegador las protecciones básicas."""
+    @app.after_request
+    def agregar_cabeceras(respuesta):
+        respuesta.headers.setdefault('Content-Security-Policy', CSP)
+        respuesta.headers.setdefault('X-Content-Type-Options', 'nosniff')  # no adivinar el tipo de un archivo
+        respuesta.headers.setdefault('Referrer-Policy', 'strict-origin-when-cross-origin')  # a otros sitios solo llega el dominio
+        return respuesta

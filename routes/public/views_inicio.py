@@ -1,6 +1,6 @@
 import json
 from datetime import datetime
-from flask import Blueprint, Response, current_app, make_response, redirect, render_template, request, url_for
+from flask import Blueprint, Response, abort, current_app, make_response, redirect, render_template, request, url_for
 from markupsafe import escape
 
 # Importamos las herramientas de la base de datos y métricas
@@ -46,7 +46,9 @@ def crear_blueprint_inicio():
         # Los escaneos programados son a las 00:00 y 12:00
         proximo_escaneo = "12:00" if datetime.now().hour < 12 else "00:00"
 
-        response = make_response(render_template('public/inicio.html', datos=datos, carrusel_imgs=carrusel_imgs,
+        indicadores = catalogo.indicadores_precio([fila[0] for fila in datos])
+
+        response = make_response(render_template('public/inicio.html', datos=datos, indicadores=indicadores, carrusel_imgs=carrusel_imgs,
                                search_query=search_query, grado_filtro=grado_filtro,
                                sort_order=sort_order, page=page, per_page=per_page,
                                total_pages=total_pages, resumen=catalogo.resumen_inicio(), proximo_escaneo=proximo_escaneo))
@@ -92,7 +94,7 @@ def crear_blueprint_producto():
         # --- B. Datos de la ficha y del gráfico ---
         detalle = catalogo.detalle_producto(id)
         if not detalle:
-            return "Producto no encontrado", 404
+            abort(404)
 
         # Una sola URL por producto (/producto/45-gfred-hg): la sin nombre o con nombre viejo redirige, sin perder los filtros
         slug_correcto = catalogo.slug(detalle["nombre"])

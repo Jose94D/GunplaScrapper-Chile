@@ -18,15 +18,7 @@
     <meta name="twitter:description" content="{{ descripcion }}">
     {% endblock %}
 
-    <script>
-        // Tema inicial antes de dibujar la página (sin parpadeo): oscuro salvo que el visitante haya elegido claro.
-        // data-theme lo usan nuestros estilos y data-bs-theme los componentes de Bootstrap.
-        if (localStorage.getItem('theme') === 'light') {
-            document.documentElement.setAttribute('data-bs-theme', 'light');
-        } else {
-            document.documentElement.setAttribute('data-theme', 'dark');
-        }
-    </script>
+    <script src="{{ url_for('static', filename='js/tema-inicial.js') }}"></script>
 
     <link rel="icon" type="image/png" href="{{ url_for('static', filename='Favicon.png') }}">
     <!-- Todo se sirve desde el sitio: la IP de los visitantes no llega a Google ni a un CDN -->
@@ -72,13 +64,7 @@
              data-src-dark="{{ url_for('static', filename='Banner_dark.png') }}" alt="Gunpla Scraper Chile" width="1774" height="448">
     </div>
     {% endblock %}
-    <script>
-        // Banner del tema antes de que se dibuje; main.js lo actualiza al alternar
-        (function () {
-            var b = document.getElementById('main-banner');
-            if (b && !document.documentElement.dataset.theme) b.src = b.dataset.srcLight;
-        })();
-    </script>
+    <script src="{{ url_for('static', filename='js/banner-inicial.js') }}"></script>
 
     {% block alertas %}{% endblock %}
 

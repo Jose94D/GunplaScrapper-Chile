@@ -80,7 +80,7 @@
                                 <button type="button" class="boton-icono btn-fusion" data-bs-toggle="modal" data-bs-target="#modalFusion" data-id="{{ prod[0] }}" data-nombre="{{ nombre_completo }}" aria-label="Fusionar {{ prod[1] }} con otro producto" title="Fusionar con otro producto">
                                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M8 3v6a4 4 0 0 0 4 4h0a4 4 0 0 1 4 4v4M16 3v6a4 4 0 0 1-4 4"/></svg>
                                 </button>
-                                <form method="POST" action="{{ url_for('admin_bp.eliminar_producto', id=prod[0], **filtros) }}" onsubmit="return confirm('¿Eliminar producto y todo su historial vinculado?');">{{ campo_csrf() }}
+                                <form method="POST" action="{{ url_for('admin_bp.eliminar_producto', id=prod[0], **filtros) }}" data-confirmar="¿Eliminar producto y todo su historial vinculado?">{{ campo_csrf() }}
                                     <button type="submit" class="boton-icono boton-icono-peligro" aria-label="Eliminar {{ prod[1] }}" title="Eliminar">
                                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 7h16M10 11v6M14 11v6M5 7l1 13h12l1-13M9 7V4h6v3"/></svg>
                                     </button>

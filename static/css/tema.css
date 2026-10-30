@@ -147,6 +147,12 @@ a:hover { color: var(--acento-texto); }
 .tarjeta-foto .sin-foto { color: #9D9DA6; }
 .grado { font-family: var(--bs-font-monospace); font-size: 12px; font-weight: 600; letter-spacing: .5px; color: #F4F4F5; background: #0B0B0C; padding: 4px 8px; border-radius: 4px; }
 .tarjeta-foto .grado { position: absolute; top: 12px; left: 12px; }
+/* Mínimo histórico y baja de precio: arriba a la derecha de la foto en la cuadrícula, junto al nombre en la lista */
+.tarjeta-sellos { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 4px; }
+.tarjeta-foto .tarjeta-sellos { position: absolute; top: 12px; right: 12px; left: 64px; }
+.sello-chico { font-size: 11px; padding: 4px 7px; white-space: nowrap; }
+.sello-baja { font-family: var(--bs-font-monospace); font-size: 12px; font-weight: 600; color: var(--acento); background: #0B0B0C; padding: 4px 8px; border-radius: 4px; white-space: nowrap; }
+.sellos-lista { display: none; }
 .tarjeta-cuerpo { padding: 16px 18px 18px; display: flex; flex-direction: column; gap: 10px; flex: 1 1 auto; }
 .tarjeta-nombre { margin: 0; font-size: 15px; font-weight: 600; line-height: 1.35; overflow-wrap: anywhere; }
 .tarjeta-pie { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; margin-top: auto; }
@@ -162,7 +168,9 @@ a:hover { color: var(--acento-texto); }
 :root[data-vista="lista"] .catalogo .tarjeta:hover { transform: none; }
 :root[data-vista="lista"] .catalogo .tarjeta-foto { flex: 0 0 64px; height: 64px; border-radius: 8px; }
 :root[data-vista="lista"] .catalogo .tarjeta-foto img { width: 56px; height: 56px; }
-:root[data-vista="lista"] .catalogo .tarjeta-foto .grado { display: none; }
+:root[data-vista="lista"] .catalogo .tarjeta-foto .grado,
+:root[data-vista="lista"] .catalogo .tarjeta-foto .tarjeta-sellos { display: none; }
+:root[data-vista="lista"] .catalogo .sellos-lista { display: flex; flex: 0 0 auto; }
 :root[data-vista="lista"] .catalogo .tarjeta-cuerpo { flex-direction: row; align-items: center; padding: 0; gap: 16px; min-width: 0; }
 :root[data-vista="lista"] .catalogo .tarjeta-nombre { flex: 1 1 auto; min-width: 0; }
 :root[data-vista="lista"] .catalogo .tarjeta-pie { margin: 0; flex: 0 0 auto; gap: 20px; align-items: center; }
@@ -174,6 +182,9 @@ a:hover { color: var(--acento-texto); }
     .catalogo { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
     .tarjeta-cuerpo { padding: 10px 12px 12px; gap: 6px; }
     .tarjeta-nombre { font-size: 13px; }
+    /* En tarjetas angostas los sellos van abajo de la foto, donde tienen todo el ancho */
+    .tarjeta-foto .tarjeta-sellos { top: auto; bottom: 8px; left: 8px; right: 8px; justify-content: flex-start; }
+    .tarjeta-foto .sello-chico, .tarjeta-foto .sello-baja { font-size: 10px; padding: 3px 6px; }
     .tarjeta-pie { flex-direction: column; gap: 2px; }
     .precio { font-size: 17px; }
     :root[data-vista="lista"] .catalogo .tarjeta-cuerpo { flex-direction: column; align-items: flex-start; gap: 4px; }
@@ -281,6 +292,7 @@ main.container-xl, .banner-envoltura { padding: 0 24px; }
 .pagina-cuerpo { flex: 999 1 640px; min-width: 0; display: flex; flex-direction: column; gap: 24px; }
 .pagina-sola { max-width: 860px; margin: 0 auto; }
 .pagina-cabecera { padding: 28px 32px; display: flex; flex-wrap: wrap; align-items: center; gap: 24px; }
+.pagina-error { max-width: 760px; margin: 24px auto; }
 .pagina-cabecera-texto { flex: 1 1 320px; min-width: 0; }
 .pagina-cabecera .mascota { width: 150px; height: 150px; object-fit: contain; flex: 0 0 auto; }
 .pagina-cabecera h1 { margin: 6px 0 8px; font-size: clamp(28px, 4vw, 36px); line-height: 1.12; letter-spacing: -.8px; font-weight: 700; }

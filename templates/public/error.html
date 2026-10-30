@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% from "public/_mascota.html" import mascota %}
+
+{% block title %}{{ titulo }} · Gunpla Scraper Chile{% endblock %}
+
+{% block content %}
+<section class="panel pagina-cabecera pagina-error">
+    {{ mascota() }}
+    <div class="pagina-cabecera-texto">
+        <p class="etiqueta">Error {{ codigo }}</p>
+        <h1>{{ titulo }}</h1>
+        <p>{{ mensaje }}</p>
+        <a href="{{ url_for('inicio_bp.index') }}" class="btn boton-acento boton-alto mt-3">Volver al catálogo</a>
+    </div>
+</section>
+{% endblock %}

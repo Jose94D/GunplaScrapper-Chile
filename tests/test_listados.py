@@ -109,10 +109,12 @@ class TestListados(unittest.TestCase):
         resultado["estadisticas"]["eventos"] = [accion for _, accion in c["lista_logs"]]
         # Excel exportado
         import io
-        import pandas as pd
+        from openpyxl import load_workbook
         respuesta = self.cliente.get("/admin/exportar_excel")
-        hoja = pd.read_excel(io.BytesIO(respuesta.data), sheet_name="Historial Global")
-        resultado["excel"] = {"columnas": list(hoja.columns), "filas": hoja.astype(str).values.tolist()}
+        columnas, *filas = load_workbook(io.BytesIO(respuesta.data))["Historial Global"].iter_rows(values_only=True)
+        # Los precios son REAL en la base: 50019.0 se compara como "50019"
+        texto = lambda v: str(int(v)) if isinstance(v, float) and v.is_integer() else str(v)
+        resultado["excel"] = {"columnas": list(columnas), "filas": [[texto(v) for v in fila] for fila in filas]}
         return resultado
 
     def test_listados_no_cambian(self):

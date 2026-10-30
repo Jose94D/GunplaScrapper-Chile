@@ -1,7 +1,9 @@
 """Reporte en Excel con todo el historial de precios."""
 import io
 
-import pandas as pd
+from openpyxl import Workbook
+from openpyxl.cell import WriteOnlyCell
+from openpyxl.styles import Font
 
 from core.database import execute_query
 
@@ -24,10 +26,19 @@ def historial_excel():
             JOIN tiendas t ON pp.tienda_id = t.id
             ORDER BY hl.fecha_registro DESC, hl.id DESC;
         """
-    df = pd.DataFrame(execute_query(query, fetchall=True), columns=COLUMNAS)
+    # Modo de solo escritura: las filas van directo al archivo, sin armar la planilla completa en memoria
+    libro = Workbook(write_only=True)
+    hoja = libro.create_sheet('Historial Global')
+    encabezado = []
+    for nombre in COLUMNAS:
+        celda = WriteOnlyCell(hoja, value=nombre)
+        celda.font = Font(bold=True)
+        encabezado.append(celda)
+    hoja.append(encabezado)
+    for fila in execute_query(query, fetchall=True):
+        hoja.append(fila)
 
     archivo = io.BytesIO()
-    with pd.ExcelWriter(archivo, engine='openpyxl') as writer:
-        df.to_excel(writer, index=False, sheet_name='Historial Global')
+    libro.save(archivo)
     archivo.seek(0)
     return archivo

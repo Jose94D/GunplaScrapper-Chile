@@ -6,10 +6,11 @@ import time
 import requests
 from PIL import Image
 
+from config import BASE_DIR
 from core.database import execute_query
 from core.logger import registrar_log
 
-CARPETA = os.path.join('static', 'productos')
+CARPETA = os.path.join(BASE_DIR, 'static', 'productos')
 ANCHO_MAXIMO = 400
 CALIDAD_WEBP = 80
 BYTES_MAXIMOS = 5 * 1024 * 1024

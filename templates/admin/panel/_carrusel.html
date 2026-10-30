@@ -14,7 +14,7 @@
                 <input type="url" id="enlace-{{ id }}" name="nuevo_link" class="form-control form-control-sm campo" value="{{ enlace or '' }}" placeholder="Sin enlace">
                 <button type="submit" class="btn btn-sm boton-borde">Guardar</button>
             </form>
-            <form method="POST" action="/admin/carrusel/eliminar/{{ id }}" onsubmit="return confirm('¿Eliminar esta imagen del carrusel?');">
+            <form method="POST" action="/admin/carrusel/eliminar/{{ id }}" data-confirmar="¿Eliminar esta imagen del carrusel?">
                 {{ campo_csrf() }}
                 <button type="submit" class="btn btn-sm boton-peligro mt-2">Eliminar imagen</button>
             </form>

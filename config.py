@@ -10,8 +10,8 @@ BASE_DIR = os.path.abspath(os.path.dirname(__file__))
 # ==========================================
 # Configuración de la Base de Datos
 # ==========================================
-# El nombre de la DB no suele ser secreto, así que puede quedar aquí
-DB_NAME = "precios_comunidad.db"
+# Ruta absoluta: la app usa la misma base aunque se inicie desde otra carpeta
+DB_NAME = os.path.join(BASE_DIR, "precios_comunidad.db")
 
 # Respaldos diarios automáticos (carpeta fuera de git) y cuántos días se conservan
 CARPETA_RESPALDOS = os.path.join(BASE_DIR, "respaldos")

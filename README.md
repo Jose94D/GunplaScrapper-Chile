@@ -108,7 +108,7 @@ Cada tienda se evaluó contra su `robots.txt` antes de integrarla. Mirax, Top8, 
 | Scraping | Requests + BeautifulSoup4; cloudscraper para la tienda protegida por Cloudflare |
 | Tareas programadas | APScheduler (trigger `cron`, dentro del mismo proceso) |
 | Gráficos | Chart.js |
-| Reportes | pandas + openpyxl (`.xlsx`) |
+| Reportes | openpyxl (`.xlsx`) |
 | Interfaz | Bootstrap 5 + IBM Plex, con variables CSS propias (tema claro y oscuro); todo servido desde el sitio, sin CDN |
 
 ### Base de datos
@@ -131,7 +131,7 @@ erDiagram
 
 ## Ejecutar
 
-Requisitos: Python 3.10 o superior.
+Requisitos: Python 3.11 o superior.
 
 Crea un entorno virtual en la carpeta del proyecto e instala las dependencias ahí (la carpeta `.venv` no va al repositorio):
 
@@ -178,7 +178,7 @@ Las pruebas usan una base temporal y no tocan `precios_comunidad.db`:
 .venv\Scripts\python -m unittest discover tests
 ```
 
-Cada push las corre también en GitHub Actions, con Python 3.10 y con la versión más reciente (pestaña **Actions** del repositorio).
+Cada push las corre también en GitHub Actions, con Python 3.11 y con la versión más reciente (pestaña **Actions** del repositorio).
 
 > El scheduler arranca con `python app.py` y corre dentro de ese proceso: el scraping automático solo ocurre mientras la app está encendida. Importar `app.py` (por ejemplo desde un servidor WSGI) no lo arranca; en ese caso hay que llamar a `iniciar_scheduler()` en un único proceso.
 

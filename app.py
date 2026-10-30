@@ -1,4 +1,6 @@
-from flask import Flask
+from datetime import timedelta
+
+from flask import Flask, render_template
 from apscheduler.schedulers.background import BackgroundScheduler
 
 # --- IMPORTAMOS CONFIGURACIÓN CENTRALIZADA ---
@@ -15,7 +17,7 @@ from routes.public.views_institucional import crear_blueprint_institucional
 from core.database import init_db, get_estadisticas_globales
 from core.scraper_manager import ScraperManager
 from core.logger import registrar_log
-from core.seguridad import proteger_csrf
+from core.seguridad import proteger_csrf, cabeceras_seguridad
 from core.respaldos import respaldar_base
 
 # --- INICIALIZACIÓN DE LA APLICACIÓN ---
@@ -24,7 +26,10 @@ app.secret_key = SECRET_KEY
 # Lax: el navegador no manda la cookie de sesión en formularios POST que vengan de otros sitios
 app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
 app.config['SESSION_COOKIE_SECURE'] = HTTPS
+# La sesión del administrador se cierra sola tras 8 horas sin usar el sitio (cada visita renueva el plazo)
+app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(hours=8)
 proteger_csrf(app)
+cabeceras_seguridad(app)
 
 # 1. Inicializamos la Base de Datos (Crea tablas y parches si no existen)
 init_db()
@@ -53,6 +58,18 @@ app.register_blueprint(crear_blueprint_admin_login(ADMIN_USER, ADMIN_PASS))
 
 # Blueprint del Panel (Le inyectamos el orquestador en lugar del scraper individual)
 app.register_blueprint(crear_blueprint_admin(scraper_manager))
+
+# --- PÁGINAS DE ERROR CON EL ESTILO DEL SITIO ---
+@app.errorhandler(404)
+def no_encontrado(e):
+    return render_template('public/error.html', codigo=404, titulo="Esta página no existe.",
+                           mensaje="Puede que el kit ya no esté en el catálogo o que el enlace tenga un error."), 404
+
+
+@app.errorhandler(500)
+def error_interno(e):
+    return render_template('public/error.html', codigo=500, titulo="Algo falló de nuestro lado.",
+                           mensaje="El error quedó registrado. Inténtalo de nuevo en unos minutos."), 500
 
 # --- TAREAS PROGRAMADAS ---
 def iniciar_scheduler():
