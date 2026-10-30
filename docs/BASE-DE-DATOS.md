@@ -196,5 +196,7 @@ Desde el panel, al fusionar un producto duplicado con uno principal:
 
 ### Respaldo
 
-- **Backup DB** en el panel descarga el archivo `.db` completo.
+- La base funciona en **modo WAL**: los cambios recientes pasan un rato por `precios_comunidad.db-wal`. Por eso nunca se copia el archivo directamente; las copias usan la API de respaldo de SQLite (`core/respaldos.py`) y quedan en un solo archivo.
+- **Respaldo diario** a las 03:00 en `respaldos/precios_AAAA-MM-DD.db`, conservado 30 días. Después del respaldo se borran los eventos de `logs` con más de 90 días.
+- **Respaldo de la base** en el panel descarga una copia completa al momento.
 - **Exportar a Excel** genera un `.xlsx` con el historial de precios (hoja "Historial Global").

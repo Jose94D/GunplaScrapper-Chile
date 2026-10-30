@@ -6,6 +6,8 @@ Radar de precios de Gunpla en Chile. Recorre automáticamente 8 tiendas especial
 
 Es una aplicación web en **Flask** con su propia base **SQLite**: no depende de servicios externos ni de APIs de las tiendas, y el scraping respeta el `robots.txt` de cada una.
 
+> Para trabajar en el código, el punto de partida es el [Manual del desarrollador](docs/MANUAL-DESARROLLADOR.md).
+
 > **Estado:** catálogo público, ficha de producto con gráfico, panel de administración y scraping programado funcionando. Siguiente paso: cuentas de usuario con favoritos.
 
 ## Capturas
@@ -191,17 +193,19 @@ core/                        Toda la lógica y el SQL; las rutas solo atienden H
 ├── database.py              Conexión, transacciones, creación de tablas y migraciones
 ├── catalogo.py              Listados del inicio y del panel, y ficha de producto
 ├── productos.py             Editar, ocultar, eliminar, fusionar y crear productos
+├── duplicados.py            Sugerencia de posibles duplicados
 ├── carrusel.py              Imágenes del carrusel
 ├── usuarios.py              Credenciales del administrador
 ├── estadisticas.py          Resumen y alerta del panel
 ├── exportar.py              Reporte en Excel
-├── seguridad.py             Token CSRF
+├── seguridad.py             Token CSRF y cabeceras de seguridad (CSP)
+├── respaldos.py             Respaldo diario y copia de la base para descargar
 ├── precios.py               Conversión de precios a número
 ├── imagenes.py              Imágenes de productos: URL desde el listado, descarga única y WebP
 ├── peticiones.py            Peticiones a las tiendas con reintentos (429, 5xx, cortes)
 ├── scraper_manager.py       Orquestador: corre cada scraper y guarda los resultados
 ├── catalog_manager.py       Limpieza de nombres, grado y palabras bloqueadas
-└── logger.py                Registro de eventos (tabla logs)
+└── logger.py                Registro de eventos (tabla logs) y limpieza de los antiguos
 routes/
 ├── public/                  Inicio, producto e institucionales
 └── admin/                   Login y panel de administración
@@ -213,7 +217,9 @@ templates/
     └── panel/               Secciones del panel (resumen, tiendas, duplicados, carrusel, eventos, productos, cuenta, fusión)
 static/                      tema.css, JS, Bootstrap y fuentes locales, banners, mascotas y carrusel
 tests/                       Pruebas de regresión (unittest)
+└── paginas/                 Páginas reales de cada tienda para probar los scrapers sin conexión
 docs/
+├── MANUAL-DESARROLLADOR.md  Arquitectura, flujos, seguridad, pruebas y operación
 ├── BASE-DE-DATOS.md         Tablas, columnas y procesos que modifican los datos
 ├── SCRAPERS.md              Flujo del scraping, normalización y cómo agregar una tienda
 ├── ER_model.png             Diagrama entidad-relación completo
@@ -226,6 +232,7 @@ Proyecto con fines educativos y de análisis personal. Los precios pueden no est
 
 ## Documentación
 
+- [Manual del desarrollador](docs/MANUAL-DESARROLLADOR.md): arquitectura, flujos, seguridad, pruebas, operación y cómo extender el proyecto
 - [Base de datos](docs/BASE-DE-DATOS.md)
 - [Scrapers](docs/SCRAPERS.md)
 - [Diagrama entidad-relación](docs/ER_model.png)

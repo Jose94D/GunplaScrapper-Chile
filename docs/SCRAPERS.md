@@ -18,13 +18,15 @@ flowchart TD
 1. **Recolección:** cada scraper recorre el catálogo de su tienda y devuelve la lista de productos. Las tiendas se recorren una tras otra; si una falla, se registra el error y se sigue con la siguiente.
 2. **Guardado** (`guardar_datos`), por tienda:
    - Registra la tienda en `tiendas` si es la primera vez.
-   - Marca **todas** sus publicaciones como inactivas (`es_url_activa = 0`).
+   - Marca **todas** sus publicaciones como inactivas (`es_url_activa = 0`), salvo que el escaneo esté incompleto (ver abajo).
    - Por cada producto devuelto, busca la publicación por su `url`. Si existe, la reactiva y actualiza precio y título; si no, la crea sin producto asignado (`producto_id = NULL`).
    - Agrega una fila a `historial_precios` por cada producto devuelto.
    - Las publicaciones que no aparecieron en la corrida quedan inactivas: agotadas o retiradas.
 3. **Catálogo** (`CatalogManager.procesar_pendientes`): vincula cada publicación nueva con su producto. Ver [Normalización](#normalización-del-catálogo).
 4. **Imágenes:** descarga la imagen de cada producto que aún no tiene, desde la primera de sus publicaciones que traiga `imagen_url` (`core/imagenes.py`). Pausa de 1 s entre descargas; un producto con imagen, descargada o subida desde el panel, no se vuelve a tocar.
 5. **Disponibilidad:** recalcula `productos.disponible` (ver [BASE-DE-DATOS.md](BASE-DE-DATOS.md#disponibilidad)).
+
+**Escaneo incompleto:** si una tienda con al menos 10 productos trae menos de la mitad de los del último escaneo aceptado (por ejemplo, porque cambió su HTML), se guardan los precios de lo que vino pero no se marca nada como agotado, y el panel la muestra en "Revisar" con el motivo. Si el aviso dura 7 días, la cantidad nueva se acepta como real.
 
 Si un scraper falla o no devuelve nada, `guardar_datos` no se llama y las publicaciones de esa tienda conservan el estado anterior: una tienda caída, o que falla a mitad de la paginación, no deja productos marcados como agotados por error.
 
@@ -108,6 +110,7 @@ Las listas `correcciones`, `grados_regex`, `ruido` y `palabras_bloqueadas` está
    ```
 
    Revisar que los precios sean números sin puntos, que las URL sean absolutas y que no falten productos de la última página.
-4. **Registrarlo** en `ScraperManager.__init__`: importar la clase y agregarla a `self.scrapers` con el nombre que se mostrará en el sitio y su URL base.
-5. **Forzar un escaneo** desde el panel y revisar los eventos: cuántos productos trajo, cuántos se vincularon a productos existentes y cuántos se crearon. Si aparecen duplicados, fusionarlos o agregar una corrección.
-6. Agregar la tienda a la lista del [README](../README.md#tiendas-monitoreadas) y a la página de Preguntas Frecuentes.
+4. **Agregar su prueba:** guardar su primera página en `tests/paginas/<tienda>.html` (solo los bloques de producto, sin `<script>`), agregar lo que debe obtener a `tests/paginas/esperados.json` y la tienda a `SCRAPERS` en `tests/test_scrapers.py`.
+5. **Registrarlo** en `ScraperManager.__init__`: importar la clase y agregarla a `self.scrapers` con el nombre que se mostrará en el sitio y su URL base.
+6. **Forzar un escaneo** desde el panel y revisar los eventos: cuántos productos trajo, cuántos se vincularon a productos existentes y cuántos se crearon. Si aparecen duplicados, fusionarlos o agregar una corrección.
+7. Agregar la tienda a la lista del [README](../README.md#tiendas-monitoreadas) y a la página de Preguntas Frecuentes.
