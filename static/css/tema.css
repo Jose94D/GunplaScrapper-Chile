@@ -144,7 +144,11 @@ a:hover { color: var(--acento-texto); }
 .tarjeta:hover { border-color: var(--acento); color: var(--texto); transform: translateY(-2px); }
 .tarjeta-foto { position: relative; aspect-ratio: 1 / 1; background: var(--foto); display: grid; place-items: center; }
 .tarjeta-foto img { width: 86%; height: 86%; object-fit: contain; }
-.tarjeta-foto .sin-foto { color: #9D9DA6; }
+/* Producto sin foto: caja de kit dibujada y un aviso (el fondo de las fotos es claro en ambos temas) */
+.sin-imagen { width: 100%; display: flex; flex-direction: column; align-items: center; gap: 10px; }
+.sin-imagen svg { max-width: 60%; height: auto; }
+.sin-imagen-texto { font-family: var(--bs-font-monospace); font-size: 11px; letter-spacing: 1px; text-transform: uppercase; color: #71717A; text-align: center; }
+.editar-foto .sin-imagen-texto { font-size: 9px; }
 .grado { font-family: var(--bs-font-monospace); font-size: 12px; font-weight: 600; letter-spacing: .5px; color: #F4F4F5; background: #0B0B0C; padding: 4px 8px; border-radius: 4px; }
 .tarjeta-foto .grado { position: absolute; top: 12px; left: 12px; }
 /* Mínimo histórico y baja de precio: arriba a la derecha de la foto en la cuadrícula, junto al nombre en la lista */
@@ -168,6 +172,8 @@ a:hover { color: var(--acento-texto); }
 :root[data-vista="lista"] .catalogo .tarjeta:hover { transform: none; }
 :root[data-vista="lista"] .catalogo .tarjeta-foto { flex: 0 0 64px; height: 64px; border-radius: 8px; }
 :root[data-vista="lista"] .catalogo .tarjeta-foto img { width: 56px; height: 56px; }
+:root[data-vista="lista"] .catalogo .sin-imagen svg { max-width: 48px; }
+:root[data-vista="lista"] .catalogo .sin-imagen-texto { display: none; }
 :root[data-vista="lista"] .catalogo .tarjeta-foto .grado,
 :root[data-vista="lista"] .catalogo .tarjeta-foto .tarjeta-sellos { display: none; }
 :root[data-vista="lista"] .catalogo .sellos-lista { display: flex; flex: 0 0 auto; }
@@ -182,6 +188,7 @@ a:hover { color: var(--acento-texto); }
     .catalogo { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
     .tarjeta-cuerpo { padding: 10px 12px 12px; gap: 6px; }
     .tarjeta-nombre { font-size: 13px; }
+    .sin-imagen-texto { font-size: 9px; letter-spacing: .5px; }
     /* En tarjetas angostas los sellos van abajo de la foto, donde tienen todo el ancho */
     .tarjeta-foto .tarjeta-sellos { top: auto; bottom: 8px; left: 8px; right: 8px; justify-content: flex-start; }
     .tarjeta-foto .sello-chico, .tarjeta-foto .sello-baja { font-size: 10px; padding: 3px 6px; }
@@ -240,7 +247,6 @@ main.container-xl, .banner-envoltura { padding: 0 24px; }
 .ficha { margin-top: 20px; display: flex; flex-wrap: wrap; gap: 40px; align-items: flex-start; }
 .ficha-foto { flex: 1 1 380px; max-width: 520px; aspect-ratio: 1 / 1; background: var(--foto); border-radius: 16px; border: 1px solid var(--borde); display: grid; place-items: center; }
 .ficha-foto img { width: 82%; height: 82%; object-fit: contain; }
-.ficha-foto .sin-foto { color: #9D9DA6; }
 .ficha-datos { flex: 1 1 460px; min-width: 0; display: flex; flex-direction: column; gap: 24px; }
 .grado-claro { color: var(--fondo); background: var(--texto); }
 .ficha-titulo { margin: 12px 0 0; font-size: clamp(28px, 4.5vw, 44px); line-height: 1.1; font-weight: 700; letter-spacing: -1px; overflow-wrap: anywhere; }

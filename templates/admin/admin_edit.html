@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% from "public/_sin_imagen.html" import sin_imagen %}
 
 {% block title %}Editar producto · Gunpla Scraper Chile{% endblock %}
 
@@ -33,7 +34,7 @@
                 <div class="editar-imagen">
                     <div class="editar-foto">
                         {% if prod[3] %}<img src="{{ url_for('static', filename=prod[3]) }}" alt="Imagen actual de {{ prod[1] }}">
-                        {% else %}<span class="texto-tenue small">Sin imagen</span>{% endif %}
+                        {% else %}{{ sin_imagen(80) }}{% endif %}
                     </div>
                     <div class="flex-grow-1">
                         <label for="imagen" class="form-label small texto-suave">Reemplazar imagen (opcional)</label>

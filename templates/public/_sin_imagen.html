@@ -1,0 +1,15 @@
+{# Reemplazo cuando el producto no tiene foto: caja de kit en perspectiva con la V de Gundam y un aviso. El fondo de las fotos es claro en ambos temas #}
+{% macro sin_imagen(ancho=150) -%}
+<span class="sin-imagen">
+    <svg width="{{ ancho }}" height="{{ (ancho * 0.8)|int }}" viewBox="0 0 120 96" aria-hidden="true">
+        <g stroke="#A1A1AA" stroke-width="1.5" stroke-linejoin="round">
+            <path d="M18 34 40 18h62L80 34Z" fill="#EDEDF0"/>
+            <path d="M80 34 102 18v50L80 84Z" fill="#D4D4D8"/>
+            <path d="M18 34h62v50H18Z" fill="#E4E4E7"/>
+        </g>
+        <path d="M30 50l19 20 19-20" fill="none" stroke="#C29045" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+        <rect x="22" y="38" width="14" height="6" rx="1" fill="#0B0B0C"/>
+    </svg>
+    <span class="sin-imagen-texto">Imagen no disponible</span>
+</span>
+{%- endmacro %}

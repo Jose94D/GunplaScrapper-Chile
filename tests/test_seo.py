@@ -71,7 +71,8 @@ class TestSeo(unittest.TestCase):
 
     def test_metadatos_para_compartir(self):
         html = self.cliente.get("/producto/45-gfred-hg").get_data(as_text=True)
-        self.assertIn('<meta property="og:image" content="http://localhost/static/productos/45.webp">', html)
+        # ?v=<fecha> solo si la imagen existe en disco (en GitHub Actions no está)
+        self.assertRegex(html, r'<meta property="og:image" content="http://localhost/static/productos/45\.webp(\?v=\d+)?">')
         self.assertIn('content="GFRED HG · desde $27.990"', html)
         self.assertIn('<link rel="canonical" href="http://localhost/producto/45-gfred-hg">', html)
         self.assertIn('summary_large_image', html)

@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% from "public/_sin_imagen.html" import sin_imagen %}
 
 {% block title %}{{ nombre_estandar }} · Gunpla Scraper Chile{% endblock %}
 
@@ -33,7 +34,7 @@
 <section class="ficha">
     <div class="ficha-foto">
         {% if imagen %}<img src="{{ url_for('static', filename=imagen) }}" alt="Caja de {{ nombre_estandar }}" width="400" height="400">
-        {% else %}<svg class="sin-foto" width="72" height="72" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 15 5-5 4 4 3-3 6 6"/></svg>{% endif %}
+        {% else %}{{ sin_imagen(240) }}{% endif %}
     </div>
 
     <div class="ficha-datos">

@@ -3,6 +3,8 @@
 
 # Base de datos SQLite local
 *.db
+*.db-wal
+*.db-shm
 *.sqlite3
 
 # Caché compilada de Python

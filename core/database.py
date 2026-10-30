@@ -33,7 +33,10 @@ def init_db():
     """
     conn = get_connection()
     c = conn.cursor()
-    
+    # WAL: el sitio sigue leyendo mientras un escaneo escribe. Queda guardado en el archivo de la base.
+    # Los cambios recientes viven un rato en <base>-wal: para copiar la base, usar core.respaldos, nunca el archivo directo.
+    c.execute("PRAGMA journal_mode=WAL")
+
     # 1. Tabla de Productos
     c.execute('''CREATE TABLE IF NOT EXISTS productos (
         id INTEGER PRIMARY KEY AUTOINCREMENT,

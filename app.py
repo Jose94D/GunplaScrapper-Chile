@@ -1,6 +1,7 @@
+import os
 from datetime import timedelta
 
-from flask import Flask, render_template
+from flask import Flask, render_template, request
 from apscheduler.schedulers.background import BackgroundScheduler
 
 # --- IMPORTAMOS CONFIGURACIÓN CENTRALIZADA ---
@@ -30,6 +31,31 @@ app.config['SESSION_COOKIE_SECURE'] = HTTPS
 app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(hours=8)
 proteger_csrf(app)
 cabeceras_seguridad(app)
+
+# --- CACHÉ DE ARCHIVOS ESTÁTICOS ---
+UN_ANIO = 365 * 24 * 3600
+
+
+@app.url_defaults
+def version_estaticos(endpoint, valores):
+    """url_for('static', ...) agrega ?v=<fecha del archivo>: si el archivo cambia, cambia la URL y el navegador baja el nuevo.
+    Las fuentes van sin versión porque tema.css las pide por ruta fija (y la precarga de base.html debe pedir la misma URL)."""
+    if endpoint == 'static' and 'v' not in valores and not valores['filename'].startswith('fonts/'):
+        try:
+            valores['v'] = int(os.path.getmtime(os.path.join(app.static_folder, valores['filename'])))
+        except OSError:
+            pass  # archivo inexistente: la URL queda sin versión y responde 404 como antes
+
+
+@app.after_request
+def cache_estaticos(respuesta):
+    """Con versión en la URL el navegador guarda el archivo un año sin volver a preguntar. Las fuentes nunca cambian de contenido."""
+    if request.endpoint == 'static' and respuesta.status_code in (200, 304) and \
+            ('v' in request.args or (request.view_args or {}).get('filename', '').startswith('fonts/')):
+        respuesta.cache_control.no_cache = None
+        respuesta.cache_control.public = True
+        respuesta.cache_control.max_age = UN_ANIO
+    return respuesta
 
 # 1. Inicializamos la Base de Datos (Crea tablas y parches si no existen)
 init_db()

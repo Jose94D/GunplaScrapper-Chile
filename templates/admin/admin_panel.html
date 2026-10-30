@@ -34,7 +34,9 @@
                 Tema
             </button>
             <a class="panel-enlace" href="{{ url_for('inicio_bp.index') }}">Ver el sitio</a>
-            <a class="panel-enlace" href="/admin/logout">Cerrar sesión</a>
+            <form method="POST" action="{{ url_for('admin_bp.admin_logout') }}" class="d-grid">{{ campo_csrf() }}
+                <button type="submit" class="panel-enlace">Cerrar sesión</button>
+            </form>
         </div>
     </aside>
 

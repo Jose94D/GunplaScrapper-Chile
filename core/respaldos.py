@@ -5,9 +5,24 @@ from datetime import datetime, timedelta
 
 from config import CARPETA_RESPALDOS, DIAS_RESPALDO
 import core.database
-from core.logger import registrar_log
+from core.logger import borrar_eventos_antiguos, registrar_log
 
 PREFIJO = "precios_"
+
+
+def copia_en_memoria():
+    """La base completa como bytes, consistente e incluyendo lo que aún está en el archivo -wal (para descargarla)."""
+    origen = sqlite3.connect(core.database.DB_NAME)
+    copia = sqlite3.connect(":memory:")
+    try:
+        origen.backup(copia)
+        datos = bytearray(copia.serialize())
+    finally:
+        copia.close()
+        origen.close()
+    # Bytes 18 y 19 de la cabecera: 2 = modo WAL, 1 = clásico. En 1, el archivo descargado se abre solo, sin -wal.
+    datos[18] = datos[19] = 1
+    return bytes(datos)
 
 
 def respaldar_base(carpeta=None, dias=None):
@@ -25,6 +40,7 @@ def respaldar_base(carpeta=None, dias=None):
     copia = sqlite3.connect(destino)
     try:
         origen.backup(copia)
+        copia.execute("PRAGMA journal_mode=DELETE")  # el respaldo queda en un solo archivo, sin -wal
     finally:
         copia.close()
         origen.close()
@@ -37,5 +53,7 @@ def respaldar_base(carpeta=None, dias=None):
             os.remove(os.path.join(carpeta, nombre))
             borrados += 1
 
-    registrar_log(f"Respaldo diario creado: {os.path.basename(destino)} ({borrados} respaldos antiguos eliminados)")
+    eventos = borrar_eventos_antiguos()
+    registrar_log(f"Respaldo diario creado: {os.path.basename(destino)} ({borrados} respaldos antiguos eliminados, "
+                  f"{eventos} eventos de más de 90 días borrados)")
     return destino

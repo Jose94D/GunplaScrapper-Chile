@@ -1,6 +1,6 @@
 import threading
 import time
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from scrapers.hangar import HangarScraper
 from scrapers.blaster import BlasterScraper
@@ -11,11 +11,16 @@ from scrapers.weplay import WeplayScraper
 from scrapers.luffytoys import LuffyToysScraper
 from scrapers.hobbytoys import HobbyToysScraper
 
-from core.database import transaccion, actualizar_disponibilidad_productos
+from core.database import execute_query, transaccion, actualizar_disponibilidad_productos
 from core.logger import registrar_log
 # Importamos el gestor de catálogo (ajusta la ruta según la ubicación exacta en tu estructura)
 from core.catalog_manager import CatalogManager
 from core.imagenes import descargar_pendientes as descargar_imagenes_pendientes
+
+# Un escaneo con menos de la mitad de los productos del anterior no marca nada como agotado
+FRACCION_MINIMA = 0.5
+MINIMO_PARA_COMPARAR = 10  # tiendas con menos productos varían mucho de un escaneo a otro
+DIAS_TOLERANCIA = 7
 
 
 class ScraperManager:
@@ -37,11 +42,24 @@ class ScraperManager:
     def en_curso(self):
         return self._candado.locked()
 
-    def guardar_datos(self, nombre_tienda, url_base, datos):
+    def escaneo_incompleto(self, nombre_tienda, cantidad):
+        """Productos del escaneo anterior si este trajo menos de la mitad (posible cambio en la página de la tienda), o None.
+
+        No aplica a tiendas chicas ni a la primera vez. Si la tienda lleva DIAS_TOLERANCIA días sin un escaneo
+        aceptado, la cantidad nueva se toma como real: el aviso estuvo todo ese tiempo en el panel.
+        """
+        fila = execute_query("SELECT productos_ultimo_escaneo, ultimo_exito FROM tiendas WHERE nombre = ?", (nombre_tienda,), fetchone=True)
+        if not fila or not fila[0] or fila[0] < MINIMO_PARA_COMPARAR or not fila[1]:
+            return None
+        limite = (datetime.now() - timedelta(days=DIAS_TOLERANCIA)).strftime("%Y-%m-%d %H:%M:%S")
+        return fila[0] if cantidad < fila[0] * FRACCION_MINIMA and fila[1] >= limite else None
+
+    def guardar_datos(self, nombre_tienda, url_base, datos, desactivar_faltantes=True):
         """Procesa y guarda los datos de publicaciones e historial en la base de datos.
 
         Todo va en una sola transacción y una sola conexión: si algo falla a mitad, se revierte
         completo y la tienda no queda con sus publicaciones desactivadas y solo algunas reactivadas.
+        Con desactivar_faltantes=False (escaneo incompleto) se actualiza lo que vino, sin marcar el resto como agotado.
         """
         fecha_actual = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         with transaccion() as conn:
@@ -54,7 +72,8 @@ class ScraperManager:
             ).lastrowid
 
             # 2. Desactivar URLs de esta tienda para identificar publicaciones agotadas o retiradas
-            c.execute("UPDATE publicacion_producto SET es_url_activa = 0 WHERE tienda_id = ?", (tienda_id,))
+            if desactivar_faltantes:
+                c.execute("UPDATE publicacion_producto SET es_url_activa = 0 WHERE tienda_id = ?", (tienda_id,))
 
             for item in datos:
                 nombre_orig = item['nombre_original']
@@ -141,10 +160,15 @@ class ScraperManager:
                 datos = scraper_obj.extraer_datos()
                 
                 if datos:
-                    items_guardados = self.guardar_datos(nombre_tienda, url_base, datos)
-                    total_items += items_guardados
-                    self.registrar_estado(nombre_tienda, url_base, productos=len(datos))
-                    registrar_log(f"Scraper {nombre_tienda} completado. {len(datos)} items procesados.")
+                    antes = self.escaneo_incompleto(nombre_tienda, len(datos))
+                    total_items += self.guardar_datos(nombre_tienda, url_base, datos, desactivar_faltantes=antes is None)
+                    if antes is None:
+                        self.registrar_estado(nombre_tienda, url_base, productos=len(datos))
+                        registrar_log(f"Scraper {nombre_tienda} completado. {len(datos)} items procesados.")
+                    else:
+                        aviso = f"Trajo {len(datos)} productos (antes {antes}): posible cambio en la página. No se marcó nada sin stock."
+                        self.registrar_estado(nombre_tienda, url_base, error=aviso)
+                        registrar_log(f"Advertencia: {nombre_tienda} {aviso[0].lower()}{aviso[1:]}")
                 else:
                     self.registrar_estado(nombre_tienda, url_base, error="No devolvió productos")
                     registrar_log(f"Advertencia: {nombre_tienda} no devolvió productos.")

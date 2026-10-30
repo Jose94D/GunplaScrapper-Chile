@@ -1,9 +1,10 @@
+import io
 from datetime import datetime
 from functools import wraps
 from flask import Blueprint, render_template, request, session, redirect, url_for, send_file, jsonify
 
-from config import DB_NAME 
 from core.logger import registrar_log, ultimos_eventos
+from core.respaldos import copia_en_memoria
 from core.precios import limpiar_precio
 from core import carrusel, catalogo, duplicados, imagenes, estadisticas, exportar, productos, usuarios
 
@@ -71,7 +72,8 @@ def crear_blueprint_admin(scraper_manager):
     @login_required
     def descargar_backup():
         registrar_log("Se descargó un backup de la base de datos.")
-        return send_file(DB_NAME, as_attachment=True)
+        return send_file(io.BytesIO(copia_en_memoria()), as_attachment=True, download_name="precios_comunidad.db",
+                         mimetype="application/vnd.sqlite3")
 
     @admin_bp.route('/admin/exportar_excel')
     @login_required
@@ -166,9 +168,10 @@ def crear_blueprint_admin(scraper_manager):
             duplicados.descartar(id_a, id_b)
         return redirect(url_for('admin_bp.admin_panel') + '#seccion-duplicados')
 
-    @admin_bp.route('/admin/logout')
+    # Solo POST (con el token CSRF): un enlace o una imagen en otro sitio no puede cerrar la sesión
+    @admin_bp.route('/admin/logout', methods=['POST'])
     def admin_logout():
-        session.pop('admin_logged', None)
+        session.clear()
         registrar_log("Cierre de sesión.")
         return redirect(url_for('admin_login_bp.admin_login'))
 

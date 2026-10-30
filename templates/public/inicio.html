@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% from "public/_sin_imagen.html" import sin_imagen %}
 
 {# Enlace al inicio conservando búsqueda, grado, orden y cantidad; url_for omite los valores None #}
 {% macro enlace(page=1, grado=grado_filtro, ancla='#catalogo') -%}
@@ -118,7 +119,7 @@
     <a href="{{ url_for('producto_bp.ver_grafico', id=id, slug=nombre|slug, q=search_query, grado=grado_filtro, sort=sort_order, per_page=per_page, page=page) }}" class="tarjeta">
         <div class="tarjeta-foto">
             {% if imagen %}<img src="{{ url_for('static', filename=imagen) }}" alt="" width="240" height="240" loading="lazy">
-            {% else %}<svg class="sin-foto" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 15 5-5 4 4 3-3 6 6"/></svg>{% endif %}
+            {% else %}{{ sin_imagen() }}{% endif %}
             <span class="grado">{{ grado }}</span>
             {% if sellos %}<span class="tarjeta-sellos">{{ sellos }}</span>{% endif %}
         </div>

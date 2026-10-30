@@ -54,6 +54,24 @@ class TestLogin(PanelTemporal):
             self.assertTrue(s.permanent)
             self.assertNotIn("dato_previo", s)
 
+    def test_cerrar_sesion_solo_por_post_con_token(self):
+        with self.cliente.session_transaction() as s:
+            s["admin_logged"] = True
+        self.assertEqual(self.cliente.get("/admin/logout").status_code, 405)  # un enlace de otro sitio ya no la cierra
+        self.assertEqual(self.cliente.post("/admin/logout").status_code, 400)  # sin token CSRF
+        with self.cliente.session_transaction() as s:
+            self.assertTrue(s["admin_logged"])
+        self.assertEqual(self.post("/admin/logout").status_code, 302)
+        with self.cliente.session_transaction() as s:
+            self.assertEqual(dict(s), {})
+        # El panel muestra el botón dentro de un formulario con el token
+        with self.cliente.session_transaction() as s:
+            s["admin_logged"], s["csrf_token"] = True, "token-de-prueba"
+        html = self.cliente.get("/admin/panel").get_data(as_text=True)
+        formulario = html[html.index('action="/admin/logout"'):][:300]
+        self.assertIn('name="csrf_token"', formulario)
+        self.assertIn("Cerrar sesión", formulario)
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -415,6 +415,54 @@ class TestRespaldos(BaseTemporal):
         copia.close()
         self.assertEqual(sorted(os.listdir(carpeta)), sorted(["otro.db", "precios_2999-01-01.db", os.path.basename(destino)]))
 
+    def test_borra_eventos_de_mas_de_90_dias_despues_de_respaldarlos(self):
+        import sqlite3
+        from datetime import datetime
+        from core.respaldos import respaldar_base
+        execute_query("INSERT INTO logs (fecha_registro, accion) VALUES ('2020-01-01 10:00:00', 'viejo'), (?, 'reciente')",
+                      (datetime.now().strftime("%Y-%m-%d %H:%M:%S"),), commit=True)
+        destino = respaldar_base(tempfile.mkdtemp())
+        acciones = [a for (a,) in execute_query("SELECT accion FROM logs", fetchall=True)]
+        self.assertNotIn("viejo", acciones)
+        self.assertIn("reciente", acciones)
+        self.assertIn("1 eventos de más de 90 días borrados", acciones[-1])
+        copia = sqlite3.connect(destino)  # el respaldo de ese día todavía lo tiene
+        self.assertEqual(copia.execute("SELECT COUNT(*) FROM logs WHERE accion = 'viejo'").fetchone()[0], 1)
+        copia.close()
+
+    def test_modo_wal_y_copias_con_lo_que_aun_esta_en_el_wal(self):
+        import sqlite3
+        from core.respaldos import copia_en_memoria, respaldar_base
+        self.assertEqual(execute_query("PRAGMA journal_mode", fetchone=True)[0], "wal")
+        lector = sqlite3.connect(self.db)  # con una conexión abierta, lo nuevo queda en el -wal y no en el .db
+        lector.execute("SELECT 1 FROM productos").fetchall()
+        try:
+            execute_query("INSERT INTO productos (nombre_estandar) VALUES ('RECIENTE HG')", commit=True)
+            with open(self.db, "rb") as f:
+                self.assertNotIn(b"RECIENTE HG", f.read())  # copiar el archivo directo lo perdería
+            with open(respaldar_base(tempfile.mkdtemp()), "rb") as f:
+                respaldo = f.read()
+            for datos in (copia_en_memoria(), respaldo):
+                self.assertEqual(datos[18:20], b"\x01\x01")  # modo clásico: se abre sin archivo -wal
+                ruta = os.path.join(tempfile.mkdtemp(), "copia.db")
+                with open(ruta, "wb") as f:
+                    f.write(datos)
+                copia = sqlite3.connect(ruta)
+                self.assertEqual(copia.execute("SELECT nombre_estandar FROM productos").fetchall(), [("RECIENTE HG",)])
+                copia.close()
+        finally:
+            lector.close()
+
+
+class TestDescargaDeLaBase(PanelTemporal):
+    def test_el_panel_descarga_la_base_de_las_pruebas_completa(self):
+        execute_query("INSERT INTO productos (nombre_estandar) VALUES ('KIT HG')", commit=True)
+        r = self.cliente.get("/admin/backup")
+        self.assertEqual(r.status_code, 200)
+        self.assertIn("precios_comunidad.db", r.headers["Content-Disposition"])
+        self.assertTrue(r.data.startswith(b"SQLite format 3"))
+        self.assertIn(b"KIT HG", r.data)  # antes enviaba config.DB_NAME: en las pruebas, la base real
+
 
 class TestConfiguracion(unittest.TestCase):
     def test_no_arranca_sin_variables_obligatorias(self):
