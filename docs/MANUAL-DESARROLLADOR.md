@@ -210,6 +210,7 @@ Valores de negocio que viven como constantes con nombre, junto al código que lo
 
 ```
 app.py                     Punto de entrada: crea la app, registra blueprints, errores, caché y scheduler
+tareas.py                  Escaneo y respaldo desde el cron del servidor (hosting con LiteSpeed o Passenger)
 config.py                  Rutas y variables del .env
 core/
 ├── database.py            Conexión, transacciones, creación de tablas, migraciones y modo WAL
@@ -532,7 +533,14 @@ $env:REGENERAR_LISTADOS=1; .venv\Scripts\python -m unittest tests.test_listados;
 | 00:00 y 12:00 | Escaneo completo | `ScraperManager.ejecutar_todos` |
 | 03:00 | Respaldo de la base y limpieza de eventos de más de 90 días | `respaldar_base` |
 
-El scheduler arranca solo con `python app.py`. Importar `app` (pruebas, otro servidor WSGI) no lo inicia; en ese caso hay que llamar a `iniciar_scheduler()` en **un único** proceso.
+El scheduler interno arranca solo con `python app.py`. Cuando la app la sirve un servidor web (LiteSpeed, Passenger, Apache), ese servidor la importa, abre y cierra procesos según las visitas y puede tener varios a la vez: ahí el scheduler interno no corre, y las tareas se programan en el **cron del hosting** con `tareas.py`:
+
+```bash
+# 00:00 y 12:00
+cd /ruta/del/proyecto && /ruta/del/entorno/bin/python tareas.py escaneo
+# 03:00
+cd /ruta/del/proyecto && /ruta/del/entorno/bin/python tareas.py respaldo
+```
 
 ### 13.2 Monitoreo
 
@@ -559,7 +567,7 @@ Para restaurar:
 Lista mínima para publicar el sitio:
 
 - `HTTPS=1`, `FLASK_DEBUG` apagado y una `SECRET_KEY` propia del servidor.
-- Un solo proceso de la app, para que haya un solo scheduler.
+- Si la app corre con `python app.py`, un solo proceso, para que haya un solo scheduler. Si la sirve un servidor web, programar `tareas.py` en el cron ([13.1](#131-tareas-programadas)) y no llamar a `iniciar_scheduler()`.
 - Si va detrás de un proxy inverso (Nginx, Cloudflare), aplicar `ProxyFix` para que el límite de intentos del login vea la IP real del visitante.
 - Respaldos copiados fuera del servidor.
 
@@ -656,6 +664,8 @@ Resumen; el detalle está en [SCRAPERS.md](SCRAPERS.md#agregar-una-tienda).
 | Un cambio en CSS o JS no se ve | Caché del navegador con una URL sin versión | Usar siempre `url_for('static', ...)`; nunca escribir rutas `/static/` a mano en las plantillas |
 | Una tienda aparece en "Revisar" | Falló o trajo menos de la mitad de productos | Leer el motivo en el panel; probar el scraper solo ([SCRAPERS.md](SCRAPERS.md#agregar-una-tienda)) y comparar con `tests/paginas/` |
 | Alerta de más de 48 horas sin escaneo | La app estuvo apagada o todas las tiendas fallaron | Revisar los eventos y forzar un escaneo |
+| Error `'ascii' codec can't encode character` | Consola del servidor solo ASCII; corregido en `registrar_log` | Actualizar el código. Opcional: definir `PYTHONIOENCODING=utf-8` en el servidor |
+| Los escaneos programados no corren en el hosting | La app la sirve LiteSpeed o Passenger: el scheduler interno no arranca | Programar `tareas.py` en el cron ([13.1](#131-tareas-programadas)) |
 | Aparecen `precios_comunidad.db-wal` y `-shm` | Funcionamiento normal del modo WAL | No borrarlos con la app encendida; están en `.gitignore` |
 | Un botón deja de funcionar y la consola habla de CSP | Código JS en línea en una plantilla | Moverlo a `static/js/` y usar `addEventListener` |
 | `test_listados` falla tras un cambio intencional | La referencia guardada quedó desactualizada | Regenerarla ([12.4](#124-comandos)) y revisar el diff |

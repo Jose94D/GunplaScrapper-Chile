@@ -5,7 +5,13 @@ def registrar_log(accion):
     """Registra una acción en la base de datos o consola."""
     fecha_actual = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     execute_query("INSERT INTO logs (fecha_registro, accion) VALUES (?, ?)", (fecha_actual, accion), commit=True)
-    print(f"[{fecha_actual}] LOG: {accion}")
+    linea = f"[{fecha_actual}] LOG: {accion}"
+    try:
+        print(linea)
+    except UnicodeEncodeError:
+        # Consolas de hosting que solo aceptan ASCII (LiteSpeed): una tilde no puede tumbar un escaneo.
+        # El evento ya quedó completo en la base; en la consola sale como "recolecci\xf3n".
+        print(linea.encode("ascii", "backslashreplace").decode("ascii"))
 
 def borrar_eventos_antiguos(dias=90):
     """Borra los eventos de más de `dias` días y retorna cuántos. Se llama después del respaldo diario, que aún los tiene."""

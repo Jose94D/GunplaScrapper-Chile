@@ -454,6 +454,26 @@ class TestRespaldos(BaseTemporal):
             lector.close()
 
 
+class TestConsolaSoloAscii(BaseTemporal):
+    def test_una_tilde_no_tumba_el_registro_ni_el_escaneo(self):
+        import io
+        from core.logger import registrar_log
+        from core.scraper_manager import ScraperManager
+        consola = io.TextIOWrapper(io.BytesIO(), encoding="ascii")  # como la del hosting con LiteSpeed
+        mgr = ScraperManager()
+        kits = [{"nombre_original": f"Kit {n} HG", "precio": 19990.0, "url": f"https://t.cl/{n}"} for n in range(3)]
+        mgr.scrapers = {"Tienda": (mock.Mock(extraer_datos=lambda: kits), "https://t.cl"),
+                        "Otra": (mock.Mock(extraer_datos=lambda: kits[:1]), "https://o.cl")}
+        with mock.patch("sys.stdout", consola):
+            registrar_log("Iniciando recolección")
+            mgr.ejecutar_todos()  # "Iniciando recolección…", "FALLO CRÍTICO…": antes cortaban el escaneo
+        consola.flush()
+        self.assertIn(b"recolecci\\xf3n", consola.buffer.getvalue())
+        self.assertIn(("Iniciando recolección",), execute_query("SELECT accion FROM logs", fetchall=True))
+        self.assertEqual(execute_query("SELECT nombre, ultimo_error FROM tiendas ORDER BY nombre", fetchall=True),
+                         [("Otra", None), ("Tienda", None)])
+
+
 class TestDescargaDeLaBase(PanelTemporal):
     def test_el_panel_descarga_la_base_de_las_pruebas_completa(self):
         execute_query("INSERT INTO productos (nombre_estandar) VALUES ('KIT HG')", commit=True)

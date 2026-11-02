@@ -182,12 +182,13 @@ Las pruebas usan una base temporal y no tocan `precios_comunidad.db`:
 
 Cada push las corre también en GitHub Actions, con Python 3.11 y con la versión más reciente (pestaña **Actions** del repositorio).
 
-> El scheduler arranca con `python app.py` y corre dentro de ese proceso: el scraping automático solo ocurre mientras la app está encendida. Importar `app.py` (por ejemplo desde un servidor WSGI) no lo arranca; en ese caso hay que llamar a `iniciar_scheduler()` en un único proceso.
+> El scheduler arranca con `python app.py` y corre dentro de ese proceso: el scraping automático solo ocurre mientras la app está encendida. Si la app la sirve un servidor web (LiteSpeed, Passenger), el scheduler interno no arranca: el escaneo y el respaldo se programan en el cron del hosting con `python tareas.py escaneo` (00:00 y 12:00) y `python tareas.py respaldo` (03:00).
 
 ## Estructura
 
 ```
 app.py                       Punto de entrada: Flask, blueprints y scheduler
+tareas.py                    Escaneo y respaldo desde el cron del servidor
 config.py                    Configuración y variables del .env
 core/                        Toda la lógica y el SQL; las rutas solo atienden HTTP
 ├── database.py              Conexión, transacciones, creación de tablas y migraciones
