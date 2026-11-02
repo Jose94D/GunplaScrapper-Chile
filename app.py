@@ -62,6 +62,7 @@ init_db()
 
 # 2. Instanciamos el Orquestador de Scrapers
 scraper_manager = ScraperManager()
+scraper_manager.sincronizar_tiendas()  # TIENDAS_DESACTIVADAS del .env
 
 # --- INYECCIÓN GLOBAL DE DATOS PARA JINJA2 ---
 @app.context_processor

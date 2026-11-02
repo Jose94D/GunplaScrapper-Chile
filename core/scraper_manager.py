@@ -63,8 +63,11 @@ def _python():
 class ScraperManager:
     def __init__(self):
         self.scrapers = {nombre: (clase(), url) for nombre, (clase, url, _) in TIENDAS.items() if nombre not in TIENDAS_DESACTIVADAS}
-        # La tabla tiendas refleja el .env: una desactivada no cuenta en el sitio ni aparece en el panel, y sus publicaciones
-        # dejan de estar activas (si no, mostraría para siempre su último precio). Al reactivarla, el escaneo las recupera.
+
+    def sincronizar_tiendas(self):
+        """La tabla tiendas refleja el .env: una desactivada no cuenta en el sitio ni aparece en el panel, y sus publicaciones
+        dejan de estar activas (si no, mostraría para siempre su último precio). Al reactivarla, el escaneo las recupera.
+        Lo llama app.py al iniciar, ya creadas las tablas; crear un ScraperManager no escribe en la base."""
         with transaccion() as conn:
             for nombre in TIENDAS:
                 desactivada = nombre in TIENDAS_DESACTIVADAS

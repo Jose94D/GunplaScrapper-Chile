@@ -462,7 +462,9 @@ class TestTiendasDesactivadas(PanelTemporal):
         execute_query("INSERT INTO productos (id, nombre_estandar, grado) VALUES (1, 'KIT HG', 'HG')", commit=True)
         execute_query("INSERT INTO publicacion_producto (producto_id, tienda_id, url, precio, es_url_activa) VALUES (1, 1, 'w', 9990, 1)", commit=True)
         with mock.patch("core.scraper_manager.TIENDAS_DESACTIVADAS", {"Weplay"}):
-            self.assertNotIn("Weplay", ScraperManager().scrapers)
+            mgr = ScraperManager()
+            self.assertNotIn("Weplay", mgr.scrapers)
+            mgr.sincronizar_tiendas()
             # Su publicación ya no cuenta: el producto (solo estaba en Weplay) queda no disponible, sin precio viejo
             self.assertEqual(execute_query("SELECT disponible FROM productos WHERE id = 1", fetchone=True)[0], 0)
             self.assertEqual([t["nombre"] for t in estado_tiendas()], ["Geekz"])  # no queda en "Revisar"
@@ -471,7 +473,9 @@ class TestTiendasDesactivadas(PanelTemporal):
             self.assertNotIn("<li>Weplay</li>", faq)
             self.assertIn("7 tiendas chilenas", self.cliente.get("/sobre-nosotros").get_data(as_text=True))
         # Al reactivarla vuelve a escanearse y a contarse
-        self.assertIn("Weplay", ScraperManager().scrapers)
+        mgr = ScraperManager()
+        self.assertIn("Weplay", mgr.scrapers)
+        mgr.sincronizar_tiendas()
         self.assertEqual(execute_query("SELECT es_activa FROM tiendas WHERE nombre = 'Weplay'", fetchone=True)[0], 1)
         self.assertIn("monitorea 8 tiendas", self.cliente.get("/faq").get_data(as_text=True))
 
