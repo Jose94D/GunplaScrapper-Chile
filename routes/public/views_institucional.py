@@ -1,6 +1,7 @@
 from flask import Blueprint, render_template
 
 from core.catalogo import formatear_fecha
+from core.scraper_manager import tiendas_habilitadas
 
 # =====================================================================
 # BLUEPRINT INSTITUCIONAL (Sobre Nosotros / FAQ)
@@ -17,11 +18,11 @@ def crear_blueprint_institucional():
 
     @institucional_bp.route('/sobre-nosotros')
     def sobre_nosotros():
-        return render_template('public/sobre_nosotros.html')
+        return render_template('public/sobre_nosotros.html', tiendas=tiendas_habilitadas())
 
     @institucional_bp.route('/faq')
     def faq():
-        return render_template('public/faq.html')
+        return render_template('public/faq.html', tiendas=tiendas_habilitadas())
 
     @institucional_bp.route('/condiciones-de-servicio')
     def condiciones_servicio():

@@ -171,6 +171,7 @@ Variables opcionales del `.env`:
 | `PORT` | `5000` | Puerto del sitio |
 | `FLASK_DEBUG` | apagado | `1` usa el servidor de desarrollo de Flask con depuración. **Nunca en un sitio publicado**: la consola de depuración permite ejecutar código en el servidor |
 | `HTTPS` | apagado | `1` cuando el sitio se publica con https: las cookies solo se envían cifradas. En local (http) dejarlo apagado, o no se puede iniciar sesión en el panel |
+| `TIENDAS_DESACTIVADAS` | ninguna | Tiendas que este servidor no escanea, separadas por coma (por ejemplo `Weplay`, que bloquea las IP de servidores de hosting). No se muestran en el sitio ni en el panel |
 
 Todos los días a las 03:00 se guarda una copia de la base en `respaldos/precios_AAAA-MM-DD.db`, y se borran las de más de 30 días. La carpeta no va al repositorio.
 

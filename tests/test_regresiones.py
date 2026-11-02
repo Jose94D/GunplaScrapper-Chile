@@ -454,6 +454,28 @@ class TestRespaldos(BaseTemporal):
             lector.close()
 
 
+class TestTiendasDesactivadas(PanelTemporal):
+    def test_no_se_escanea_ni_cuenta_ni_aparece(self):
+        from core.estadisticas import estado_tiendas
+        from core.scraper_manager import ScraperManager
+        execute_query("INSERT INTO tiendas (id, nombre) VALUES (1, 'Weplay'), (2, 'Geekz')", commit=True)
+        execute_query("INSERT INTO productos (id, nombre_estandar, grado) VALUES (1, 'KIT HG', 'HG')", commit=True)
+        execute_query("INSERT INTO publicacion_producto (producto_id, tienda_id, url, precio, es_url_activa) VALUES (1, 1, 'w', 9990, 1)", commit=True)
+        with mock.patch("core.scraper_manager.TIENDAS_DESACTIVADAS", {"Weplay"}):
+            self.assertNotIn("Weplay", ScraperManager().scrapers)
+            # Su publicación ya no cuenta: el producto (solo estaba en Weplay) queda no disponible, sin precio viejo
+            self.assertEqual(execute_query("SELECT disponible FROM productos WHERE id = 1", fetchone=True)[0], 0)
+            self.assertEqual([t["nombre"] for t in estado_tiendas()], ["Geekz"])  # no queda en "Revisar"
+            faq = self.cliente.get("/faq").get_data(as_text=True)
+            self.assertIn("monitorea 7 tiendas", faq)
+            self.assertNotIn("<li>Weplay</li>", faq)
+            self.assertIn("7 tiendas chilenas", self.cliente.get("/sobre-nosotros").get_data(as_text=True))
+        # Al reactivarla vuelve a escanearse y a contarse
+        self.assertIn("Weplay", ScraperManager().scrapers)
+        self.assertEqual(execute_query("SELECT es_activa FROM tiendas WHERE nombre = 'Weplay'", fetchone=True)[0], 1)
+        self.assertIn("monitorea 8 tiendas", self.cliente.get("/faq").get_data(as_text=True))
+
+
 class TestConsolaSoloAscii(BaseTemporal):
     def test_una_tilde_no_tumba_el_registro_ni_el_escaneo(self):
         import io
@@ -526,18 +548,41 @@ class TestEscaneoUnoALaVez(PanelTemporal):
             time.sleep(0.05)
         self.fail("el escaneo no terminó")
 
-    def test_forzar_escaneo_corre_en_segundo_plano_y_no_se_duplica(self):
-        respuesta = self.post("/admin/force-update")
-        self.assertEqual(respuesta.status_code, 202)
-        self.assertTrue(self.cliente.get("/admin/force-update/estado").json["en_curso"])
-        # Mientras corre: ni otro forzado ni el programado inician un segundo escaneo
-        self.assertEqual(self.post("/admin/force-update").status_code, 409)
-        self.assertIsNone(self.manager.ejecutar_todos())
+    def test_forzar_escaneo_corre_en_otro_proceso_y_no_se_duplica(self):
+        lanzados = []
+
+        def popen(args, **kwargs):  # en vez de un proceso real con scrapers reales: el mismo trabajo en un hilo
+            lanzados.append((args, kwargs))
+            threading.Thread(target=self.manager.ejecutar_ya_bloqueado, daemon=True).start()
+
+        with mock.patch("core.scraper_manager.subprocess.Popen", popen):
+            respuesta = self.post("/admin/force-update")
+            self.assertEqual(respuesta.status_code, 202)
+            args, kwargs = lanzados[0]
+            self.assertEqual(args[1:], [os.path.join(os.path.dirname(os.path.dirname(__file__)), "tareas.py"), "escaneo-forzado"])
+            self.assertTrue(kwargs["start_new_session"])  # sobrevive aunque el servidor cierre el proceso de la app
+            self.assertTrue(self.cliente.get("/admin/force-update/estado").json["en_curso"])
+            # Mientras corre: ni otro forzado ni el programado (otro proceso, otra instancia) inician un segundo escaneo
+            self.assertEqual(self.post("/admin/force-update").status_code, 409)
+            from core.scraper_manager import ScraperManager
+            self.assertIsNone(ScraperManager().ejecutar_todos())
+            self.scraper.liberar.set()
+            self.esperar_fin()
+            self.assertFalse(self.cliente.get("/admin/force-update/estado").json["en_curso"])
+            self.assertEqual(self.post("/admin/force-update").status_code, 202)
+            self.esperar_fin()
+        self.assertEqual(len(lanzados), 2)
+
+    def test_candado_vencido_no_bloquea_para_siempre(self):
+        from core.scraper_manager import _ruta_candado
+        open(_ruta_candado(), "w").close()
+        self.assertTrue(self.manager.en_curso())
+        hace_una_hora = time.time() - 3600  # un proceso que murió sin soltarlo
+        os.utime(_ruta_candado(), (hace_una_hora, hace_una_hora))
+        self.assertFalse(self.manager.en_curso())
         self.scraper.liberar.set()
-        self.esperar_fin()
-        self.assertFalse(self.cliente.get("/admin/force-update/estado").json["en_curso"])
-        self.assertEqual(self.post("/admin/force-update").status_code, 202)
-        self.esperar_fin()
+        self.manager.ejecutar_todos()
+        self.assertFalse(os.path.exists(_ruta_candado()))
 
 
 class TestImportarApp(BaseTemporal):

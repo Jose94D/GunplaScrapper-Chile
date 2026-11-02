@@ -14,14 +14,14 @@ from core.respaldos import respaldar_base
 from core.scraper_manager import ScraperManager
 
 TAREAS = {
-    # shortcut: el candado que evita escaneos simultáneos es por proceso; uno forzado desde el panel justo a la
-    # misma hora que el del cron correrían a la vez. Si pasa seguido, usar un archivo de bloqueo compartido.
-    "escaneo": lambda: ScraperManager().ejecutar_todos(),
+    "escaneo": lambda: ScraperManager().ejecutar_todos(),  # se omite si ya hay uno en curso (panel o cron)
     "respaldo": respaldar_base,
+    # Lo lanza el botón Forzar escaneo, que ya tomó el candado: no es para el cron
+    "escaneo-forzado": lambda: ScraperManager().ejecutar_ya_bloqueado(),
 }
 
 if __name__ == "__main__":
     if len(sys.argv) != 2 or sys.argv[1] not in TAREAS:
-        raise SystemExit(f"Uso: python tareas.py {'|'.join(TAREAS)}")
+        raise SystemExit("Uso: python tareas.py escaneo|respaldo")
     init_db()  # por si el cron corre antes de que el sitio haya recibido su primera visita
     TAREAS[sys.argv[1]]()

@@ -20,7 +20,7 @@ def estado_tiendas():
                t.ultimo_intento, t.productos_ultimo_escaneo, t.ultimo_error,
                (SELECT COUNT(*) FROM publicacion_producto pp WHERE pp.tienda_id = t.id AND pp.es_url_activa = 1) AS activas
         FROM tiendas t
-        WHERE t.nombre != 'Manual'
+        WHERE t.nombre != 'Manual' AND t.es_activa = 1
         ORDER BY ultimo_exito ASC
     """, fetchall=True)
 

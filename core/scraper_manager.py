@@ -1,4 +1,6 @@
-import threading
+import os
+import subprocess
+import sys
 import time
 from datetime import datetime, timedelta
 
@@ -11,6 +13,8 @@ from scrapers.weplay import WeplayScraper
 from scrapers.luffytoys import LuffyToysScraper
 from scrapers.hobbytoys import HobbyToysScraper
 
+import core.database
+from config import BASE_DIR, TIENDAS_DESACTIVADAS
 from core.database import execute_query, transaccion, actualizar_disponibilidad_productos
 from core.logger import registrar_log
 # Importamos el gestor de catálogo (ajusta la ruta según la ubicación exacta en tu estructura)
@@ -21,26 +25,78 @@ from core.imagenes import descargar_pendientes as descargar_imagenes_pendientes
 FRACCION_MINIMA = 0.5
 MINIMO_PARA_COMPARAR = 10  # tiendas con menos productos varían mucho de un escaneo a otro
 DIAS_TOLERANCIA = 7
+# Nombre interno (el de la tabla tiendas) -> (scraper, URL base, nombre que se muestra en el sitio)
+TIENDAS = {
+    "Hangar019": (HangarScraper, "https://www.hangar019.cl", "Hangar019"),
+    "Blaster": (BlasterScraper, "https://www.blasterchile.cl", "Blaster Chile"),
+    "ChileRobots": (ChileRobotsScraper, "https://www.chilerobots.cl", "ChileRobots"),
+    "Irion": (IrionScraper, "https://irion.cl", "Irion Juguetería"),
+    "Geekz": (GeekzScraper, "https://geekz.cl", "Geekz"),
+    "Weplay": (WeplayScraper, "https://www.weplay.cl", "Weplay"),
+    "LuffyToys": (LuffyToysScraper, "https://luffytoys.cl", "LuffyToys"),
+    "HobbyToys": (HobbyToysScraper, "https://www.hobbytoys.cl", "HobbyToys"),
+}
+
+
+def tiendas_habilitadas():
+    """Nombres para mostrar de las tiendas que escanea este servidor (las de TIENDAS menos TIENDAS_DESACTIVADAS)."""
+    return [visible for nombre, (_, _, visible) in TIENDAS.items() if nombre not in TIENDAS_DESACTIVADAS]
+
+
+MINUTOS_CANDADO = 30  # un escaneo dura minutos: un candado más viejo es de un proceso que murió sin soltarlo
+
+
+def _ruta_candado():
+    # Un archivo y no un candado en memoria: el panel, el cron y el scheduler pueden ser procesos distintos.
+    # Va junto a la base (en las pruebas, junto a la temporal).
+    return core.database.DB_NAME + "-escaneo"
+
+
+def _python():
+    """Intérprete del entorno de la app. Bajo LiteSpeed, sys.executable puede ser el servidor y no Python."""
+    for ruta in (os.path.join(sys.prefix, "bin", "python"), os.path.join(sys.prefix, "Scripts", "python.exe")):
+        if os.path.exists(ruta):
+            return ruta
+    return sys.executable
 
 
 class ScraperManager:
     def __init__(self):
-        # Instanciamos los motores de extracción con sus URLs base
-        self.scrapers = {
-            "Hangar019": (HangarScraper(), "https://www.hangar019.cl"),
-            "Blaster": (BlasterScraper(), "https://www.blasterchile.cl"),
-            "ChileRobots": (ChileRobotsScraper(), "https://www.chilerobots.cl"),
-            "Irion": (IrionScraper(), "https://irion.cl"),
-            "Geekz": (GeekzScraper(), "https://geekz.cl"),
-            "Weplay": (WeplayScraper(), "https://www.weplay.cl"),
-            "LuffyToys": (LuffyToysScraper(), "https://luffytoys.cl"),
-            "HobbyToys": (HobbyToysScraper(), "https://www.hobbytoys.cl")
-        }
-        # Un solo escaneo a la vez: el programado y uno forzado desde el panel no deben cruzarse
-        self._candado = threading.Lock()
+        self.scrapers = {nombre: (clase(), url) for nombre, (clase, url, _) in TIENDAS.items() if nombre not in TIENDAS_DESACTIVADAS}
+        # La tabla tiendas refleja el .env: una desactivada no cuenta en el sitio ni aparece en el panel, y sus publicaciones
+        # dejan de estar activas (si no, mostraría para siempre su último precio). Al reactivarla, el escaneo las recupera.
+        with transaccion() as conn:
+            for nombre in TIENDAS:
+                desactivada = nombre in TIENDAS_DESACTIVADAS
+                conn.execute("UPDATE tiendas SET es_activa = ? WHERE nombre = ?", (0 if desactivada else 1, nombre))
+                if desactivada:
+                    conn.execute("UPDATE publicacion_producto SET es_url_activa = 0 WHERE tienda_id IN "
+                                 "(SELECT id FROM tiendas WHERE nombre = ?)", (nombre,))
+        if TIENDAS_DESACTIVADAS & TIENDAS.keys():
+            actualizar_disponibilidad_productos()
 
     def en_curso(self):
-        return self._candado.locked()
+        try:
+            return time.time() - os.path.getmtime(_ruta_candado()) < MINUTOS_CANDADO * 60
+        except OSError:
+            return False
+
+    def _tomar_candado(self):
+        """Un solo escaneo a la vez, entre todos los procesos. Retorna False si ya hay uno en curso."""
+        if self.en_curso():
+            return False
+        self.soltar_candado()  # si quedó uno vencido
+        try:
+            os.close(os.open(_ruta_candado(), os.O_CREAT | os.O_EXCL | os.O_WRONLY))
+            return True
+        except FileExistsError:  # otro proceso lo tomó en este mismo instante
+            return False
+
+    def soltar_candado(self):
+        try:
+            os.remove(_ruta_candado())
+        except FileNotFoundError:
+            pass
 
     def escaneo_incompleto(self, nombre_tienda, cantidad):
         """Productos del escaneo anterior si este trajo menos de la mitad (posible cambio en la página de la tienda), o None.
@@ -125,28 +181,37 @@ class ScraperManager:
     def ejecutar_todos(self):
         """Escaneo completo en este hilo (lo usa el scheduler).
         Si ya hay uno en curso no inicia otro: lo registra y retorna None."""
-        if not self._candado.acquire(blocking=False):
+        if not self._tomar_candado():
             registrar_log("Escaneo omitido: ya hay uno en curso.")
             return None
+        return self.ejecutar_ya_bloqueado()
+
+    def ejecutar_ya_bloqueado(self):
+        """Escaneo cuyo candado ya tomó quien lo lanzó (el panel); lo suelta al terminar, falle o no."""
         try:
             return self._ejecutar()
         finally:
-            self._candado.release()
+            self.soltar_candado()
 
     def iniciar_en_segundo_plano(self):
-        """Lanza el escaneo en otro hilo y retorna enseguida (lo usa Forzar Escaneo: tarda minutos
-        y la petición HTTP vencería antes). Retorna False si ya hay uno en curso.
-        El candado se toma aquí y no en el hilo, para que en_curso() sea verdadero apenas responde la petición."""
-        if not self._candado.acquire(blocking=False):
+        """Lanza el escaneo en un proceso aparte y retorna enseguida (lo usa Forzar escaneo: tarda minutos y la
+        petición HTTP vencería antes). Retorna False si ya hay uno en curso.
+
+        Proceso y no hilo: servidores como LiteSpeed cierran el proceso de la app al terminar de responder, y un hilo
+        moría con él a mitad de la primera tienda. El candado se toma aquí, para que en_curso() sea verdadero apenas
+        responde la petición; el proceso nuevo lo suelta al terminar.
+        """
+        if not self._tomar_candado():
             return False
-
-        def correr():
-            try:
-                self._ejecutar()
-            finally:
-                self._candado.release()
-
-        threading.Thread(target=correr, daemon=True).start()
+        try:
+            with open(os.path.join(BASE_DIR, "escaneo.log"), "ab") as salida:
+                subprocess.Popen([_python(), os.path.join(BASE_DIR, "tareas.py"), "escaneo-forzado"], cwd=BASE_DIR,
+                                 stdin=subprocess.DEVNULL, stdout=salida, stderr=subprocess.STDOUT,
+                                 env={**os.environ, "PYTHONIOENCODING": "utf-8", "PYTHONUNBUFFERED": "1"},  # log en vivo
+                                 start_new_session=True)  # sigue vivo aunque el servidor cierre el proceso que lo lanzó
+        except Exception:
+            self.soltar_candado()
+            raise
         return True
 
     def _ejecutar(self):

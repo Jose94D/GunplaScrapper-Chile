@@ -182,6 +182,7 @@ Las pruebas no usan red ni la base real, así que pueden correr sin `.env`.
 | `PORT` | No | `5000` | Puerto HTTP |
 | `HTTPS` | No | apagado | `1` en producción con https: cookies con `Secure`. En local debe quedar apagado |
 | `FLASK_DEBUG` | No | apagado | `1` usa el servidor de desarrollo con depurador. **Nunca en producción** |
+| `TIENDAS_DESACTIVADAS` | No | ninguna | Tiendas que este servidor no escanea (nombres de la tabla `tiendas`, separados por coma). No cuentan en el sitio ni aparecen en el panel, y sus publicaciones dejan de estar activas |
 
 `validar_configuracion()` (`config.py`) detiene el arranque si falta alguna obligatoria.
 
@@ -666,6 +667,7 @@ Resumen; el detalle está en [SCRAPERS.md](SCRAPERS.md#agregar-una-tienda).
 | Alerta de más de 48 horas sin escaneo | La app estuvo apagada o todas las tiendas fallaron | Revisar los eventos y forzar un escaneo |
 | Error `'ascii' codec can't encode character` | Consola del servidor solo ASCII; corregido en `registrar_log` | Actualizar el código. Opcional: definir `PYTHONIOENCODING=utf-8` en el servidor |
 | Los escaneos programados no corren en el hosting | La app la sirve LiteSpeed o Passenger: el scheduler interno no arranca | Programar `tareas.py` en el cron ([13.1](#131-tareas-programadas)) |
+| Una tienda da 403 solo desde el servidor, con "Just a moment..." | Cloudflare desafía a las IP de hosting (pasa con Weplay) | Es una decisión de la tienda: desactivarla en ese servidor con `TIENDAS_DESACTIVADAS` |
 | Aparecen `precios_comunidad.db-wal` y `-shm` | Funcionamiento normal del modo WAL | No borrarlos con la app encendida; están en `.gitignore` |
 | Un botón deja de funcionar y la consola habla de CSP | Código JS en línea en una plantilla | Moverlo a `static/js/` y usar `addEventListener` |
 | `test_listados` falla tras un cambio intencional | La referencia guardada quedó desactualizada | Regenerarla ([12.4](#124-comandos)) y revisar el diff |

@@ -35,9 +35,9 @@
         <section id="tiendas" class="panel bloque-preguntas" aria-labelledby="titulo-tiendas">
             <h2 id="titulo-tiendas"><span class="mono">01</span>Las tiendas</h2>
             {% call pregunta('¿Qué tiendas revisa esta página?', abierta=true) %}
-                <p>Actualmente el radar monitorea 8 tiendas chilenas:</p>
+                <p>Actualmente el radar monitorea {{ tiendas|length }} tiendas chilenas:</p>
                 <ul class="etiquetas">
-                    {% for t in ['Hangar019', 'Blaster Chile', 'ChileRobots', 'Irion Juguetería', 'Geekz', 'Weplay', 'LuffyToys', 'HobbyToys'] %}<li>{{ t }}</li>{% endfor %}
+                    {% for t in tiendas %}<li>{{ t }}</li>{% endfor %}
                 </ul>
             {% endcall %}
             {% call pregunta('¿Qué tiendas no están en la página, y por qué?') %}
