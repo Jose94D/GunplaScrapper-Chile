@@ -2,6 +2,7 @@
 {% from "public/_mascota.html" import mascota %}
 
 {% block title %}Preguntas frecuentes · Gunpla Scraper Chile{% endblock %}
+{% block descripcion %}Respuestas sobre Gunpla Scraper Chile: de dónde salen los precios, cada cuánto se actualizan, qué tiendas chilenas se comparan y cómo se agrupa cada kit.{% endblock %}
 
 {% macro pregunta(titulo, abierta=false) -%}
 <details class="pregunta" {% if abierta %}open{% endif %}>

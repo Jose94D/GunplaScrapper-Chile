@@ -319,6 +319,8 @@ def detalle_producto(id):
     return {"nombre": fila[0], "imagen": fila[1], "grado": fila[2], "nombre_grado": NOMBRES_GRADO.get(fila[2], fila[2]),
             "tiendas": tiendas, "fechas": [formatear_fecha(d) for d in fechas], "datasets": datasets,
             "mejor_precio": formatear_precio(mejor) if mejor is not None else None,
+            # Números, para los datos de Google
+            "precio_minimo": int(mejor) if mejor is not None else None, "precio_maximo": int(max(precios_activos)) if precios_activos else None,
             "mejor_tienda": next((t["nombre"] for t in tiendas if t["es_mejor"]), None),
             "ahorro": formatear_precio(ahorro) if ahorro else None, "ahorro_pct": round(ahorro * 100 / max(precios_activos)) if ahorro else None,
             "minimo_historico": indicadores.get("minimo_historico", False), "baja_pct": indicadores.get("baja_pct"),

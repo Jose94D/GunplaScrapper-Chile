@@ -183,6 +183,7 @@ Las pruebas no usan red ni la base real, así que pueden correr sin `.env`.
 | `HTTPS` | No | apagado | `1` en producción con https: cookies con `Secure`. En local debe quedar apagado |
 | `FLASK_DEBUG` | No | apagado | `1` usa el servidor de desarrollo con depurador. **Nunca en producción** |
 | `TIENDAS_DESACTIVADAS` | No | ninguna | Tiendas que este servidor no escanea (nombres de la tabla `tiendas`, separados por coma). No cuentan en el sitio ni aparecen en el panel, y sus publicaciones dejan de estar activas |
+| `URL_SITIO` | No | vacía | Dirección oficial, p. ej. `https://www.gunplascraper-chile.cl`. Las visitas por otra dirección (sin `www` o por `http`) se redirigen con 301, y el canonical, `og:url` y `og:image` la usan. Vacía en local |
 
 `validar_configuracion()` (`config.py`) detiene el arranque si falta alguna obligatoria.
 

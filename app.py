@@ -1,11 +1,11 @@
 import os
 from datetime import timedelta
 
-from flask import Flask, render_template, request
+from flask import Flask, redirect, render_template, request
 from apscheduler.schedulers.background import BackgroundScheduler
 
 # --- IMPORTAMOS CONFIGURACIÓN CENTRALIZADA ---
-from config import ADMIN_USER, ADMIN_PASS, SECRET_KEY, DEBUG, HOST, PORT, HTTPS, validar_configuracion
+from config import ADMIN_USER, ADMIN_PASS, SECRET_KEY, DEBUG, HOST, PORT, HTTPS, URL_SITIO, validar_configuracion
 
 # --- IMPORTAMOS LOS BLUEPRINTS (Rutas) ---
 from routes.admin.admin import crear_blueprint_admin
@@ -57,6 +57,14 @@ def cache_estaticos(respuesta):
         respuesta.cache_control.max_age = UN_ANIO
     return respuesta
 
+@app.before_request
+def direccion_oficial():
+    """Una sola dirección para todo el sitio: sin ella, Google indexa por separado la versión con y sin www (o por http)
+    y reparte la relevancia entre ambas. 301 = mudanza permanente, los buscadores la siguen."""
+    # Solo GET/HEAD: un 301 convierte un POST en GET y el formulario se perdería
+    if URL_SITIO and request.method in ('GET', 'HEAD') and request.host_url.rstrip('/') != URL_SITIO:
+        return redirect(URL_SITIO + request.full_path.rstrip('?'), 301)
+
 # 1. Inicializamos la Base de Datos (Crea tablas y parches si no existen)
 init_db()
 
@@ -73,7 +81,8 @@ def inject_global_data():
     except Exception:
         # Fallback en caso de que la DB aún no tenga registros
         fecha, visitas = "N/A", 0
-    return dict(fecha=fecha, visitas=visitas)
+    # Base de las direcciones absolutas que leen buscadores y redes (canonical, og:url, og:image)
+    return dict(fecha=fecha, visitas=visitas, url_sitio=URL_SITIO or request.host_url.rstrip('/'))
 
 # --- REGISTRO DE RUTAS (BLUEPRINTS) ---
 app.register_blueprint(crear_blueprint_inicio())

@@ -3,24 +3,37 @@
 
 {% block title %}{{ nombre_estandar }} · Gunpla Scraper Chile{% endblock %}
 
+{% block descripcion %}{{ nombre_estandar }}{% if mejor_precio %} desde {{ mejor_precio }}{% endif %}: compara su precio en tiendas chilenas y revisa su historial de precios en Gunpla Scraper Chile.{% endblock %}
+
+{% set url_producto = url_sitio ~ url_for('producto_bp.ver_grafico', id=request.view_args.id, slug=slug_producto) %}
 {% block compartir %}
-{% set url_producto = url_for('producto_bp.ver_grafico', id=request.view_args.id, slug=slug_producto, _external=True) %}
-{% set resumen = nombre_estandar ~ (' desde ' ~ mejor_precio if mejor_precio else '') ~ ' en tiendas chilenas. Compara precios e historial en Gunpla Scraper Chile.' %}
+{% set titulo = nombre_estandar ~ (' · desde ' ~ mejor_precio if mejor_precio else '') %}
+{# Con foto, la del kit; sin foto, la imagen general del sitio #}
+{% set foto = url_sitio ~ url_for('static', filename=imagen or 'compartir.jpg') %}
 <link rel="canonical" href="{{ url_producto }}">
 <meta property="og:type" content="product">
 <meta property="og:url" content="{{ url_producto }}">
-<meta property="og:title" content="{{ nombre_estandar }}{% if mejor_precio %} · desde {{ mejor_precio }}{% endif %}">
-<meta property="og:description" content="{{ resumen }}">
-<meta name="twitter:title" content="{{ nombre_estandar }}{% if mejor_precio %} · desde {{ mejor_precio }}{% endif %}">
-<meta name="twitter:description" content="{{ resumen }}">
-{% if imagen %}
-<meta property="og:image" content="{{ url_for('static', filename=imagen, _external=True) }}">
+<meta property="og:title" content="{{ titulo }}">
+<meta property="og:description" content="{{ self.descripcion() }}">
+<meta property="og:image" content="{{ foto }}">
 <meta property="og:image:alt" content="{{ nombre_estandar }}">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:image" content="{{ url_for('static', filename=imagen, _external=True) }}">
-{% else %}
-<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="{{ titulo }}">
+<meta name="twitter:description" content="{{ self.descripcion() }}">
+<meta name="twitter:image" content="{{ foto }}">
+{% endblock %}
+
+{# Google puede mostrar el rango de precios del kit en los resultados #}
+{% block datos_estructurados %}
+{% set producto = {"@context": "https://schema.org", "@type": "Product", "name": nombre_estandar, "url": url_producto,
+                   "category": ficha.nombre_grado, "brand": {"@type": "Brand", "name": "Bandai"}} %}
+{% if imagen %}{% set _ = producto.update({"image": url_sitio ~ url_for('static', filename=imagen)}) %}{% endif %}
+{% if ficha.precio_minimo %}
+{% set _ = producto.update({"offers": {"@type": "AggregateOffer", "priceCurrency": "CLP", "lowPrice": ficha.precio_minimo,
+                                        "highPrice": ficha.precio_maximo, "offerCount": ficha.tiendas_con_stock,
+                                        "availability": "https://schema.org/InStock"}}) %}
 {% endif %}
+<script type="application/ld+json">{{ producto|tojson }}</script>
 {% endblock %}
 
 {% block content %}

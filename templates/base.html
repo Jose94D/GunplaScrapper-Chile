@@ -3,24 +3,53 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>{% block title %}Gunpla Scraper Chile{% endblock %}</title>
+    <title>{% block title %}Gunpla Scraper Chile · Compara precios de Gunpla en Chile{% endblock %}</title>
 
-    {% set descripcion = "Herramienta de automatización y web scraping para monitoreo de mercado en tiempo real de coleccionables (Gunpla) en Chile. Desarrollo enfocado en extracción de datos, procesamiento, normalización y centralización de información." %}
+    {# La descripción es lo que Google muestra bajo el título: dice qué gana quien entra. Cada página puede cambiarla #}
+    {% set descripcion %}{% block descripcion %}Compara el precio de cada Gunpla (HG, MG, RG, SD y más) en tiendas chilenas: encuentra el más barato y revisa el historial de precios, actualizado dos veces al día.{% endblock %}{% endset %}
     <meta name="description" content="{{ descripcion }}">
+    {% set titulo_compartir %}{% block titulo_compartir %}{{ self.title() }}{% endblock %}{% endset %}
 
-    <!-- Open Graph (LinkedIn, Facebook, WhatsApp) y Twitter. La ficha de producto los reemplaza con su foto y precio -->
+    <!-- Open Graph (WhatsApp, Facebook, LinkedIn) y Twitter. La ficha de producto los reemplaza con su foto y precio -->
+    <meta property="og:site_name" content="Gunpla Scraper Chile">
+    <meta property="og:locale" content="es_CL">
     {% block compartir %}
+    {% set url_pagina = url_sitio ~ request.path %}
+    <link rel="canonical" href="{{ url_pagina }}">
     <meta property="og:type" content="website">
-    <meta property="og:title" content="Gunpla Scraper Chile">
+    <meta property="og:url" content="{{ url_pagina }}">
+    <meta property="og:title" content="{{ titulo_compartir }}">
     <meta property="og:description" content="{{ descripcion }}">
-    <meta name="twitter:card" content="summary">
-    <meta name="twitter:title" content="Gunpla Scraper Chile">
+    <meta property="og:image" content="{{ url_sitio }}{{ url_for('static', filename='compartir.jpg') }}">
+    <meta property="og:image:type" content="image/jpeg">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:alt" content="Gunpla Scraper Chile: el precio más bajo de cada Gunpla en Chile">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="{{ titulo_compartir }}">
     <meta name="twitter:description" content="{{ descripcion }}">
+    <meta name="twitter:image" content="{{ url_sitio }}{{ url_for('static', filename='compartir.jpg') }}">
     {% endblock %}
+
+    {# Datos para Google: el nombre del sitio (en vez del dominio) y su logo e Instagram #}
+    <script type="application/ld+json">{{ {
+        "@context": "https://schema.org",
+        "@graph": [
+            {"@type": "WebSite", "@id": url_sitio ~ "/#sitio", "name": "Gunpla Scraper Chile", "alternateName": "Gunpla Scraper",
+             "url": url_sitio ~ "/", "inLanguage": "es-CL"},
+            {"@type": "Organization", "@id": url_sitio ~ "/#organizacion", "name": "Gunpla Scraper Chile", "url": url_sitio ~ "/",
+             "logo": url_sitio ~ url_for('static', filename='icono-512.png'),
+             "sameAs": ["https://www.instagram.com/gunplascraper.chile/"]}
+        ]
+    }|tojson }}</script>
+    {% block datos_estructurados %}{% endblock %}
 
     <script src="{{ url_for('static', filename='js/tema-inicial.js') }}"></script>
 
-    <link rel="icon" type="image/png" href="{{ url_for('static', filename='Favicon.png') }}">
+    <meta name="theme-color" content="#0F0F0F">
+    <link rel="icon" href="/favicon.ico" sizes="48x48">
+    <link rel="icon" type="image/png" sizes="192x192" href="{{ url_for('static', filename='icono-192.png') }}">
+    <link rel="apple-touch-icon" href="{{ url_for('static', filename='apple-touch-icon.png') }}">
     <!-- Todo se sirve desde el sitio: la IP de los visitantes no llega a Google ni a un CDN -->
     <link rel="preload" href="{{ url_for('static', filename='fonts/ibm-plex-sans-latin.woff2') }}" as="font" type="font/woff2" crossorigin>
     <link rel="stylesheet" href="{{ url_for('static', filename='vendor/bootstrap/bootstrap.min.css') }}">

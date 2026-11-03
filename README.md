@@ -174,6 +174,7 @@ Variables opcionales del `.env`:
 | `FLASK_DEBUG` | apagado | `1` usa el servidor de desarrollo de Flask con depuración. **Nunca en un sitio publicado**: la consola de depuración permite ejecutar código en el servidor |
 | `HTTPS` | apagado | `1` cuando el sitio se publica con https: las cookies solo se envían cifradas. En local (http) dejarlo apagado, o no se puede iniciar sesión en el panel |
 | `TIENDAS_DESACTIVADAS` | ninguna | Tiendas que este servidor no escanea, separadas por coma (por ejemplo `Weplay`, que bloquea las IP de servidores de hosting). No se muestran en el sitio ni en el panel |
+| `URL_SITIO` | vacía | Dirección oficial del sitio (por ejemplo `https://www.gunplascraper-chile.cl`): redirige ahí las visitas sin `www` o por `http`, y es la que ven Google y las redes sociales |
 
 Todos los días a las 03:00 se guarda una copia de la base en `respaldos/precios_AAAA-MM-DD.db`, y se borran las de más de 30 días. La carpeta no va al repositorio.
 

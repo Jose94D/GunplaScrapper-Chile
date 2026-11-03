@@ -77,6 +77,31 @@ class TestSeo(unittest.TestCase):
         self.assertIn('<link rel="canonical" href="http://localhost/producto/45-gfred-hg">', html)
         self.assertIn('summary_large_image', html)
         self.assertEqual(html.count('property="og:title"'), 1)  # el bloque reemplaza al general, no lo duplica
+        self.assertEqual(html.count('rel="canonical"'), 1)
+        self.assertIn('"lowPrice": 27990', html)  # datos de Google: precio como número, no "$27.990"
+        self.assertIn('"priceCurrency": "CLP"', html)
+
+    def test_paginas_con_imagen_y_descripcion_propias(self):
+        html = self.cliente.get("/faq").get_data(as_text=True)
+        self.assertRegex(html, r'<meta property="og:image" content="http://localhost/static/compartir\.jpg(\?v=\d+)?">')
+        self.assertIn('<link rel="canonical" href="http://localhost/faq">', html)
+        self.assertIn('<meta name="description" content="Respuestas sobre Gunpla Scraper Chile', html)
+        self.assertIn('"@type": "WebSite"', html)
+        self.assertNotIn("web scraping", html.split("</head>")[0])
+        # Con filtros, el inicio apunta a la dirección limpia: Google no indexa cada combinación de búsqueda
+        self.assertIn('<link rel="canonical" href="http://localhost/">', self.cliente.get("/?q=zaku&page=2").get_data(as_text=True))
+        self.assertIn("noindex", self.cliente.get("/no-existe").get_data(as_text=True))
+        self.assertEqual(self.cliente.get("/favicon.ico").status_code, 200)
+
+    def test_redirige_a_la_direccion_oficial(self):
+        with mock.patch("app.URL_SITIO", "https://www.ejemplo.cl"):
+            r = self.cliente.get("/faq?x=1", base_url="http://ejemplo.cl")
+            self.assertEqual((r.status_code, r.location), (301, "https://www.ejemplo.cl/faq?x=1"))
+            r = self.cliente.get("/faq", base_url="https://www.ejemplo.cl")
+            self.assertEqual(r.status_code, 200)
+            self.assertIn('href="https://www.ejemplo.cl/faq"', r.get_data(as_text=True))
+            # Un POST no se redirige (se perdería el formulario)
+            self.assertNotEqual(self.cliente.post("/visita", base_url="http://ejemplo.cl", headers={"User-Agent": "Mozilla/5.0"}).status_code, 301)
 
     def test_el_inicio_enlaza_a_la_url_con_nombre(self):
         self.assertIn('/producto/45-gfred-hg?', self.cliente.get("/").get_data(as_text=True))

@@ -125,6 +125,11 @@ def crear_blueprint_producto():
         lineas.append('</urlset>')
         return Response('\n'.join(lineas) + '\n', mimetype='application/xml')
 
+    @producto_bp.route('/favicon.ico')
+    def favicon():
+        # Google y algunos navegadores lo piden siempre en la raíz, sin mirar el <link rel="icon">
+        return current_app.send_static_file('favicon.ico')
+
     @producto_bp.route('/robots.txt')
     def robots():
         # El panel no debe aparecer en buscadores
