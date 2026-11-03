@@ -2,8 +2,6 @@
 
 SQLite en un solo archivo, `precios_comunidad.db` (nombre definido en `config.py`). Las 9 tablas se crean al iniciar la app con `init_db()` en `core/database.py`, solo si no existen. Las claves foráneas están activas en cada conexión (`PRAGMA foreign_keys = ON`).
 
-Diagrama entidad-relación completo: [ER_model.png](ER_model.png).
-
 ## Diagrama
 
 ```mermaid

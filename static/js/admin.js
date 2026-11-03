@@ -17,6 +17,8 @@
     };
     window.addEventListener('hashchange', mostrar);
     mostrar();
+    // El navegador salta al #ancla por su cuenta al terminar de cargar: se vuelve a ajustar después de ese salto
+    window.addEventListener('load', () => setTimeout(mostrar));
 })();
 
 document.addEventListener('DOMContentLoaded', () => {

@@ -34,31 +34,37 @@ Es una aplicación web en **Flask** con su propia base **SQLite**: no depende de
 
 ### Panel de administración
 
+El menú lateral muestra una sección a la vez y cada acción vuelve a la pestaña donde se hizo.
+
 <p align="center">
   <img src="docs/capturas/admin_login.png" width="420" alt="Pantalla de acceso al panel con la mascota del proyecto">
-  <img src="docs/capturas/admin_resumen.png" width="420" alt="Portada del panel: mascota, estado general, botones de escaneo, Excel y respaldo, y cifras del sitio">
+  <img src="docs/capturas/admin_resumen.png" width="420" alt="Resumen del panel: cifras del sitio, pendientes con acceso directo, visitas de la semana, vista previa del carrusel, estado de las tiendas y eventos">
 </p>
 <p align="center">
-  <img src="docs/capturas/admin_tiendas.png" width="420" alt="Estado de cada tienda, posibles duplicados, carrusel y eventos recientes">
-  <img src="docs/capturas/admin_carrusel.png" width="420" alt="Gestión del carrusel del inicio y registro de eventos">
+  <img src="docs/capturas/admin_visitas.png" width="420" alt="Gráfico de visitas y páginas vistas con filtros de período y agrupación, y totales de visitas, personas únicas y páginas vistas">
+  <img src="docs/capturas/admin.png" width="420" alt="Listado de productos del panel con filtros por grado y sin imagen, estado, mejor precio, última captura y acciones">
 </p>
 <p align="center">
-  <img src="docs/capturas/admin.png" width="420" alt="Listado de productos del panel con estado, mejor precio, última captura y acciones">
   <img src="docs/capturas/admin_fusion.png" width="420" alt="Ventana para fusionar un producto duplicado con el principal">
+  <img src="docs/capturas/admin_duplicados.png" width="420" alt="Posibles duplicados con su porcentaje de parecido y los botones para conservar uno o descartarlos">
 </p>
 <p align="center">
+  <img src="docs/capturas/admin_carrusel.png" width="420" alt="Carrusel del inicio con la posición de cada imagen, flechas para reordenarlas, enlace y subida de imágenes nuevas">
   <img src="docs/capturas/admin_editar.png" width="420" alt="Edición del nombre, grado e imagen de un modelo del catálogo">
 </p>
 
-- **Acceso:** usuario y contraseña. Al cambiarlos desde el panel, la contraseña se guarda como hash.
-- **Pestañas:** el menú lateral muestra una sección a la vez (Resumen, Visitas, Productos, Duplicados, Carrusel y Cuenta), y cada acción vuelve a su pestaña.
-- **Resumen:** visitas del mes, productos en catálogo, visibles con stock y último escaneo, con los botones para forzar un escaneo, exportar a Excel y descargar un respaldo de la base. Avisa si el último escaneo exitoso tiene más de 48 horas.
-- **Estado de las tiendas:** último escaneo exitoso, productos y último error de cada tienda; marca para revisar las que llevan más de 48 horas sin un escaneo exitoso o fallaron en el último intento.
-- **Posibles duplicados:** pares del mismo grado con nombres casi iguales, para fusionarlos o marcarlos como distintos.
-- **Carrusel:** imágenes del inicio con su enlace, en el orden que se elige con las flechas de cada una.
-- **Eventos:** registro de las últimas acciones y escaneos, junto al estado de las tiendas.
-- **Productos:** ordenados por estado (Visibles → No disponibles → Ocultos), con acciones para ocultar, editar, eliminar y fusionar.
+- **Acceso:** usuario y contraseña, con límite de intentos fallidos por IP y sesión que vence a las 8 horas sin uso. Al cambiarlos desde el panel, la contraseña se guarda como hash.
+- **Resumen:** visitas del mes, productos en catálogo, visibles con stock y último escaneo, con los botones para forzar un escaneo, exportar a Excel y descargar un respaldo de la base. Debajo:
+  - **Pendientes:** tiendas por revisar, posibles duplicados y productos sin imagen, cada uno con acceso directo a donde se resuelve.
+  - **Visitas:** los últimos 7 días comparados con los 7 anteriores y la tendencia de las últimas dos semanas.
+  - **Carrusel:** vista previa de las imágenes del inicio en su orden.
+  - **Estado de las tiendas:** último escaneo exitoso, productos y último error de cada tienda. Marca para revisar las que llevan más de 48 horas sin un escaneo exitoso o fallaron en el último intento.
+  - **Eventos recientes:** las últimas acciones del panel, escaneos, inicios de sesión y respaldos.
+- **Visitas:** gráfico de visitas y páginas vistas por día, semana o mes, con períodos de 7 días a todo el historial, y los totales de visitas, personas únicas y páginas vistas. No cuenta bots ni al administrador.
+- **Productos:** búsqueda, filtro por grado o sin imagen, orden y paginación. Ordenados por estado (Visibles → No disponibles → Ocultos), con acciones para ocultar, editar, eliminar y fusionar.
 - **Fusión:** pasa las tiendas y el historial de un duplicado al producto principal.
+- **Duplicados:** pares del mismo grado con nombres casi iguales, para fusionarlos o marcarlos como distintos.
+- **Carrusel:** imágenes del inicio con su enlace, en el orden que se elige con las flechas de cada una.
 - **Edición:** nombre estandarizado, grado e imagen de cada modelo.
 - **Cuenta:** cambio de usuario y contraseña del panel.
 
@@ -227,7 +233,6 @@ docs/
 ├── MANUAL-DESARROLLADOR.md  Arquitectura, flujos, seguridad, pruebas y operación
 ├── BASE-DE-DATOS.md         Tablas, columnas y procesos que modifican los datos
 ├── SCRAPERS.md              Flujo del scraping, normalización y cómo agregar una tienda
-├── ER_model.png             Diagrama entidad-relación completo
 └── capturas/                Imágenes de este README
 ```
 
@@ -240,4 +245,3 @@ Proyecto con fines educativos y de análisis personal. Los precios pueden no est
 - [Manual del desarrollador](docs/MANUAL-DESARROLLADOR.md): arquitectura, flujos, seguridad, pruebas, operación y cómo extender el proyecto
 - [Base de datos](docs/BASE-DE-DATOS.md)
 - [Scrapers](docs/SCRAPERS.md)
-- [Diagrama entidad-relación](docs/ER_model.png)

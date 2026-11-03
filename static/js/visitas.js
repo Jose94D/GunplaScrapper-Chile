@@ -43,7 +43,7 @@ document.addEventListener('DOMContentLoaded', () => {
             maintainAspectRatio: false,
             interaction: { mode: 'index', intersect: false },
             plugins: {
-                legend: { position: 'top', align: 'start', labels: { usePointStyle: true, boxWidth: 8, font: { family: 'IBM Plex Sans' } } },
+                legend: { position: 'top', align: 'start', labels: { usePointStyle: true, pointStyle: 'circle', boxWidth: 8, boxHeight: 8, font: { family: 'IBM Plex Sans' } } },
                 tooltip: { callbacks: { label: (c) => ` ${c.dataset.label}: ${numero(c.raw)}` } }
             },
             scales: {

@@ -35,7 +35,7 @@ Este manual explica cómo está construido el sistema, por qué se tomaron sus d
 Gunpla Scraper Chile recorre dos veces al día el catálogo de 8 tiendas chilenas, normaliza los nombres de los productos para agrupar las publicaciones de un mismo kit y guarda cada precio observado. Con eso ofrece:
 
 - **Sitio público:** catálogo con filtros, ficha por producto con el mejor precio del día, comparación entre tiendas, historial en gráfico y etiquetas de mínimo histórico y bajas recientes.
-- **Panel de administración:** estado de cada tienda, sugerencia y fusión de duplicados, edición del catálogo, imágenes, carrusel, exportación a Excel y respaldo de la base.
+- **Panel de administración:** organizado en pestañas (Resumen, Visitas, Productos, Duplicados, Carrusel y Cuenta): estado de cada tienda, pendientes, visitas sin bots, sugerencia y fusión de duplicados, edición del catálogo, imágenes, orden del carrusel, exportación a Excel y respaldo de la base.
 
 Funciona como **un solo proceso** sin servicios externos: Flask sirve el sitio, APScheduler programa los escaneos y los respaldos, y SQLite guarda todo en un archivo. Todo lo que ve el navegador (estilos, fuentes, librerías) se sirve desde el propio sitio.
 
@@ -249,7 +249,7 @@ static/
 ├── productos/             Imágenes descargadas (fuera de git, se regeneran)
 └── carrusel/              Imágenes subidas desde el panel
 tests/                     Pruebas unittest, páginas reales de tiendas y resultados de referencia
-docs/                      Este manual, base de datos, scrapers, diagrama ER y capturas
+docs/                      Este manual, base de datos, scrapers y capturas
 ```
 
 ---
@@ -316,8 +316,11 @@ sequenceDiagram
     U->>P: GET con filtros (q_admin, grado_admin, sin_imagen…)
     P-->>U: Panel
     U->>P: POST acción (editar, fusionar…) + token
-    P-->>U: 302 al panel con los mismos filtros
+    P-->>U: 302 al panel con los mismos filtros y en la misma pestaña
 ```
+
+- **Pestañas:** el panel es una sola página; cada opción del menú es un `#ancla` y `admin.js` muestra solo la `.vista-panel` que la contiene (`#tiendas` abre Resumen). Sin JavaScript se ven todas seguidas. Las redirecciones de cada acción terminan en el ancla de su pestaña (`#productos`, `#duplicados`, `#carrusel`, `#cuenta`).
+- **Resumen:** cifras del sitio, pendientes con acceso directo (tiendas por revisar, duplicados, productos sin imagen), visitas de la semana (`visitas.vistazo()`), vista previa del carrusel, estado de las tiendas y eventos.
 
 - Todas las rutas del panel usan el decorador `login_required`.
 - Toda acción que modifica datos es POST y lleva el token CSRF. El escaneo forzado lo envía en la cabecera `X-CSRF-Token`.
@@ -327,7 +330,7 @@ sequenceDiagram
 
 ## 8. Modelo de datos
 
-Nueve tablas en SQLite. El detalle de columnas y procesos está en [BASE-DE-DATOS.md](BASE-DE-DATOS.md) y el diagrama completo en [ER_model.png](ER_model.png).
+Nueve tablas en SQLite. El detalle de columnas y procesos está en [BASE-DE-DATOS.md](BASE-DE-DATOS.md) con el diagrama de relaciones.
 
 ```mermaid
 erDiagram
@@ -371,7 +374,7 @@ Prácticas de la capa de datos:
 | Método | Ruta | Descripción |
 |---|---|---|
 | GET, POST | `/admin` | Acceso (público); bloqueo de 15 min tras 5 intentos fallidos por IP |
-| GET | `/admin/panel` | Panel completo (`q_admin`, `grado_admin`, `sort_admin`, `page`, `per_page`, `sin_imagen`) |
+| GET | `/admin/panel` | Panel con todas sus pestañas (`q_admin`, `grado_admin`, `sort_admin`, `page`, `per_page`, `sin_imagen`) |
 | POST | `/admin/force-update` | Lanza un escaneo en segundo plano |
 | GET | `/admin/force-update/estado` | Estado del escaneo en curso (JSON) |
 | GET | `/admin/backup` | Descarga una copia consistente de la base |
@@ -553,6 +556,8 @@ El panel es la consola de operación:
 - **Alerta general** si el último escaneo exitoso tiene más de 48 horas.
 - **Estado de las tiendas:** último éxito, productos y último error. "Revisar" indica un fallo o un escaneo incompleto, con el motivo.
 - **Eventos recientes:** cada escaneo, acción del panel, inicio de sesión (exitoso o fallido) y respaldo queda en la tabla `logs`.
+- **Pendientes** en el Resumen: lo que requiere acción, con acceso directo a su pestaña.
+- **Visitas:** pestaña con el gráfico y los totales; el Resumen muestra la semana frente a la anterior.
 
 ### 13.3 Respaldos y restauración
 
@@ -598,8 +603,8 @@ Resumen; el detalle está en [SCRAPERS.md](SCRAPERS.md#agregar-una-tienda).
 ### 14.3 Agregar una acción al panel
 
 1. Lógica y SQL en `core/` (si escribe en varias tablas, dentro de `transaccion()`).
-2. Ruta POST en `routes/admin/admin.py` con `@login_required`, que termine en `volver_al_panel(request.form)`.
-3. Formulario con `{{ campo_csrf() }}`. Si pide confirmación, agregar `data-confirmar="¿…?"`.
+2. Ruta POST en `routes/admin/admin.py` con `@login_required`, que termine en `volver_al_panel(request.form, '<pestaña>')` o en una redirección al `#ancla` de su pestaña.
+3. Formulario con `{{ campo_csrf() }}` dentro del parcial de su pestaña (`templates/admin/panel/`). Si pide confirmación, agregar `data-confirmar="¿…?"`. Una sección nueva va en su propio `<div class="vista-panel" data-vista="…">` de `admin_panel.html`, con su enlace en el menú lateral.
 4. Prueba en `test_regresiones.py` usando `PanelTemporal`.
 
 ### 14.4 Cambiar el esquema de la base
