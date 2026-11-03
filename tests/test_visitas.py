@@ -65,5 +65,17 @@ class TestVisitas(unittest.TestCase):
         self.assertEqual(serie["totales"][7], {"visitas": 2, "personas": 2, "paginas": 3})
 
 
+class TestVistazo(unittest.TestCase):
+    def test_semana_contra_la_anterior(self):
+        v = visitas.vistazo({"visitas": [1] * 7 + [2] * 6 + [5]})
+        self.assertEqual((v["hoy"], v["semana"], v["cambio"]), (5, 17, 143))  # 7 → 17
+        self.assertEqual(len(v["puntos"].split()), 14)
+        self.assertTrue(v["puntos"].endswith("100.0,2.0"))  # el máximo queda arriba
+
+    def test_sin_historial_previo_no_compara(self):
+        v = visitas.vistazo({"visitas": [0, 3]})
+        self.assertEqual((v["hoy"], v["semana"], v["cambio"]), (3, 3, None))
+
+
 if __name__ == "__main__":
     unittest.main()

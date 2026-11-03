@@ -51,3 +51,17 @@ def serie_diaria():
                           (desde,), fetchone=True)
         totales[dias] = {"visitas": t[0], "personas": t[1], "paginas": t[2]}
     return {"fechas": fechas, "visitas": visitas, "paginas": paginas, "totales": totales}
+
+
+def vistazo(serie):
+    """Resumen del panel a partir de serie_diaria(): hoy, últimos 7 días contra los 7 anteriores y la línea de 14 días
+    (puntos para un <polyline> de 100×32)."""
+    v = serie["visitas"]
+    semana, anterior = sum(v[-7:]), sum(v[-14:-7])
+    ultimos = ([0] * 14 + v)[-14:]
+    tope = max(ultimos) or 1
+    return {
+        "hoy": v[-1], "semana": semana,
+        "cambio": round((semana - anterior) * 100 / anterior) if anterior else None,
+        "puntos": " ".join(f"{i * 100 / 13:.1f},{30 - n * 28 / tope:.1f}" for i, n in enumerate(ultimos)),
+    }

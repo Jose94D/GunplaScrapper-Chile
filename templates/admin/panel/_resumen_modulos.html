@@ -1,0 +1,58 @@
+{% set flecha %}<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>{% endset %}
+<div class="resumen-modulos">
+    {# Lo que requiere acción, con acceso directo a donde se resuelve #}
+    <section class="panel seccion-panel" aria-labelledby="titulo-pendientes">
+        <h2 id="titulo-pendientes">Pendientes</h2>
+        {% set pendientes = [
+            (tiendas|length - tiendas_al_dia, 'tienda por revisar', 'tiendas por revisar', '#tiendas'),
+            (duplicados|length, 'posible duplicado', 'posibles duplicados', '#duplicados'),
+            (total_sin_imagen, 'producto sin imagen', 'productos sin imagen', url_for('admin_bp.admin_panel', sin_imagen='1') ~ '#productos'),
+        ] %}
+        <ul class="pendientes">
+            {% for cantidad, singular, plural, destino in pendientes %}
+            <li>
+                <a href="{{ destino }}" class="{{ 'pendiente-activo' if cantidad else 'pendiente-listo' }}">
+                    <span class="pendiente-cantidad mono">{{ cantidad if cantidad else '✓' }}</span>
+                    <span>{% if cantidad %}{{ singular if cantidad == 1 else plural }}{% else %}Sin {{ plural }}{% endif %}</span>
+                    {{ flecha }}
+                </a>
+            </li>
+            {% endfor %}
+        </ul>
+    </section>
+
+    <section class="panel seccion-panel" aria-labelledby="titulo-vistazo">
+        <div class="seccion-panel-cabecera mb-2">
+            <h2 id="titulo-vistazo">Visitas</h2>
+            <a href="#visitas" class="enlace-modulo">Ver detalle {{ flecha }}</a>
+        </div>
+        <p class="vistazo-cifra mono">{{ '{:,}'.format(vistazo.semana).replace(',', '.') }}</p>
+        <p class="texto-tenue small mb-2">
+            en los últimos 7 días
+            {% if vistazo.cambio is not none %}
+            · <span class="{{ 'cambio-sube' if vistazo.cambio >= 0 else 'cambio-baja' }}">{{ '↑' if vistazo.cambio >= 0 else '↓' }} {{ vistazo.cambio|abs }} %</span> frente a los 7 anteriores
+            {% endif %}
+        </p>
+        <svg class="vistazo-linea" viewBox="0 0 100 32" preserveAspectRatio="none" role="img" aria-label="Visitas diarias de las últimas dos semanas">
+            <polyline points="{{ vistazo.puntos }}" fill="none" stroke="currentColor" stroke-width="2" vector-effect="non-scaling-stroke" stroke-linejoin="round"/>
+        </svg>
+        <p class="texto-tenue small mb-0 mt-2">Hoy: <span class="mono">{{ vistazo.hoy }}</span> · últimas 2 semanas</p>
+    </section>
+
+    <section class="panel seccion-panel" aria-labelledby="titulo-galeria">
+        <div class="seccion-panel-cabecera mb-2">
+            <h2 id="titulo-galeria">Carrusel</h2>
+            <a href="#carrusel" class="enlace-modulo">Administrar {{ flecha }}</a>
+        </div>
+        {% if lista_carrusel %}
+        <ol class="galeria-mini">
+            {% for _, nombre, _ in lista_carrusel[:4] %}
+            <li><img src="{{ url_for('static', filename='carrusel/' ~ nombre) }}" alt="Imagen {{ loop.index }} del carrusel: {{ nombre }}" loading="lazy"><span class="carrusel-posicion mono">{{ loop.index }}</span></li>
+            {% endfor %}
+        </ol>
+        {% if lista_carrusel|length > 4 %}<p class="texto-tenue small mb-0 mt-2">y {{ lista_carrusel|length - 4 }} más</p>{% endif %}
+        {% else %}
+        <p class="texto-tenue small mb-0">Sin imágenes: el carrusel no se muestra en el inicio.</p>
+        {% endif %}
+    </section>
+</div>

@@ -397,7 +397,30 @@ main.container-xl, .banner-envoltura { padding: 0 24px; }
 .seccion-panel .tabla-envoltura { margin: 0 -22px -20px; border-top: 1px solid var(--borde); }
 .seccion-panel .tabla { min-width: 560px; }
 .seccion-panel .tabla th, .seccion-panel .tabla td { padding: 11px 22px; }
-.visitas-cifras { margin: 0 0 20px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1px; background: var(--borde); border: 1px solid var(--borde); border-radius: 12px; overflow: hidden; }
+.resumen-modulos { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr)); gap: 24px; }
+.resumen-modulos h2 { margin: 0; }
+.resumen-modulos .seccion-panel-cabecera { align-items: center; }
+.enlace-modulo { display: inline-flex; align-items: center; gap: 4px; font-size: 13px; color: var(--acento-texto); }
+.pendientes { list-style: none; margin: 12px 0 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.pendientes a { min-height: 44px; padding: 0 12px; border-radius: 8px; border: 1px solid var(--borde); display: flex; align-items: center; gap: 12px; color: var(--texto); font-size: 14px; }
+.pendientes a span:nth-child(2) { flex: 1; }
+.pendientes a:hover { border-color: var(--borde-fuerte); background: var(--superficie-2); }
+.pendiente-cantidad { min-width: 28px; height: 24px; padding: 0 7px; border-radius: 12px; display: inline-grid; place-items: center; font-size: 12px; font-weight: 600; }
+.pendiente-activo .pendiente-cantidad { color: var(--sobre-acento); background: var(--acento); }
+.pendiente-listo { color: var(--texto-tenue) !important; }
+.pendiente-listo .pendiente-cantidad { color: #23855A; background: rgba(47, 158, 107, .12); }
+:root[data-theme="dark"] .pendiente-listo .pendiente-cantidad { color: #7DD3A8; }
+.vistazo-cifra { margin: 0; font-size: 32px; font-weight: 600; line-height: 1.1; }
+.cambio-sube { color: #23855A; }
+.cambio-baja { color: #A8640A; }
+:root[data-theme="dark"] .cambio-sube { color: #7DD3A8; }
+:root[data-theme="dark"] .cambio-baja { color: #F2B45C; }
+.vistazo-linea { display: block; width: 100%; height: 56px; color: var(--acento); overflow: visible; }
+.galeria-mini { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.galeria-mini li { position: relative; }
+.galeria-mini img { width: 100%; aspect-ratio: 3 / 1; object-fit: cover; border-radius: 6px; border: 1px solid var(--borde); display: block; }
+.galeria-mini .carrusel-posicion { position: absolute; top: 4px; left: 4px; min-width: 20px; height: 20px; font-size: 11px; }
+.visitas-cifras {margin: 0 0 20px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1px; background: var(--borde); border: 1px solid var(--borde); border-radius: 12px; overflow: hidden; }
 .visitas-cifras > div { background: var(--superficie); padding: 14px 16px; }
 .visitas-cifras dt { font-size: 12px; font-weight: 400; color: var(--texto-tenue); }
 .visitas-cifras dd { margin: 2px 0 0; font-family: var(--bs-font-monospace); font-size: 22px; font-weight: 600; }

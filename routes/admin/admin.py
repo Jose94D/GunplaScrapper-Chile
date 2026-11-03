@@ -48,6 +48,7 @@ def crear_blueprint_admin(scraper_manager):
         lista_productos, total_pages = catalogo.listar_productos_panel(q_admin, grado_admin, sort_admin, page, per_page, sin_imagen)
         catalogo_completo = catalogo.listar_catalogo_completo()
         tiendas = estadisticas.estado_tiendas()
+        serie_visitas = visitas.serie_diaria()
 
         return render_template('admin/admin_panel.html', 
                                usuario=admin_actual, escaneados_hoy=resumen["escaneados_hoy"], 
@@ -57,7 +58,7 @@ def crear_blueprint_admin(scraper_manager):
                                visibles=catalogo.resumen_inicio()['total'], sin_imagen=sin_imagen, total_sin_imagen=catalogo.contar_sin_imagen(), search_query=q_admin, grado_admin=grado_admin,
                                page=page, total_pages=total_pages, alerta_activa=resumen["alerta_activa"], 
                                mensaje_alerta=resumen["mensaje_alerta"], per_page=per_page, sort_admin=sort_admin,
-                               catalogo_completo=catalogo_completo, serie_visitas=visitas.serie_diaria())
+                               catalogo_completo=catalogo_completo, serie_visitas=serie_visitas, vistazo=visitas.vistazo(serie_visitas))
 
     @admin_bp.route('/admin/credenciales/actualizar', methods=['POST'])
     @login_required
