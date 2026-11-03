@@ -3,7 +3,7 @@ import os
 
 from werkzeug.utils import secure_filename
 
-from core.database import execute_query
+from core.database import execute_query, transaccion
 from core.logger import registrar_log
 
 CARRUSEL_FOLDER = os.path.join('static', 'carrusel')
@@ -11,8 +11,8 @@ EXTENSIONES_CARRUSEL = {'.png', '.jpg', '.jpeg', '.webp', '.gif'}
 
 
 def listar_imagenes():
-    """[(id, nombre_archivo, enlace), ...] en el orden en que se subieron."""
-    return execute_query("SELECT id, nombre_archivo, enlace FROM banners ORDER BY id ASC", fetchall=True)
+    """[(id, nombre_archivo, enlace), ...] en el orden elegido en el panel (las que nunca se movieron, por fecha de subida)."""
+    return execute_query("SELECT id, nombre_archivo, enlace FROM banners ORDER BY COALESCE(orden, id), id", fetchall=True)
 
 
 def agregar_imagen(archivo, enlace=''):
@@ -26,7 +26,9 @@ def agregar_imagen(archivo, enlace=''):
         return False
     os.makedirs(CARRUSEL_FOLDER, exist_ok=True)
     archivo.save(os.path.join(CARRUSEL_FOLDER, nombre))
-    execute_query("INSERT INTO banners (nombre_archivo, enlace) VALUES (?, ?)", (nombre, enlace), commit=True)
+    # Al final del carrusel
+    execute_query("INSERT INTO banners (nombre_archivo, enlace, orden) VALUES (?, ?, (SELECT COALESCE(MAX(COALESCE(orden, id)), 0) + 1 FROM banners))",
+                  (nombre, enlace), commit=True)
     registrar_log(f"Imagen subida a banners con enlace: {nombre}")
     return True
 
@@ -47,3 +49,18 @@ def eliminar_imagen(id):
         pass
     execute_query("DELETE FROM banners WHERE id = ?", (id,), commit=True)
     registrar_log(f"Imagen eliminada de banners: {fila[0]}")
+
+
+def mover_imagen(id, paso):
+    """Cambia de lugar la imagen con su vecina (paso -1: antes, +1: después) y renumera el orden de todas."""
+    ids = [fila[0] for fila in listar_imagenes()]
+    if id not in ids:
+        return
+    i = ids.index(id)
+    j = i + paso
+    if not 0 <= j < len(ids):
+        return
+    ids[i], ids[j] = ids[j], ids[i]
+    with transaccion() as conn:
+        conn.executemany("UPDATE banners SET orden = ? WHERE id = ?", [(posicion, id_imagen) for posicion, id_imagen in enumerate(ids, 1)])
+    registrar_log(f"Orden del carrusel cambiado (ID imagen: {id}, posición {j + 1})")

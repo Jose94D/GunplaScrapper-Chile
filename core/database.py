@@ -125,10 +125,13 @@ def init_db():
         orden INTEGER
     )''')
 
-    # 8. Tabla de Visitas Mensuales
-    c.execute('''CREATE TABLE IF NOT EXISTS visitas_mensuales (
-        mes TEXT PRIMARY KEY, 
-        contador INTEGER DEFAULT 0
+    # 8. Visitas: una fila por visitante (cookie anónima) y por día. Reemplaza a visitas_mensuales,
+    # que contaba cada carga sin cookie y se inflaba con los bots; esa tabla queda en las bases antiguas sin usarse.
+    c.execute('''CREATE TABLE IF NOT EXISTS visitas_diarias (
+        dia TEXT,
+        visitante TEXT,
+        paginas INTEGER NOT NULL DEFAULT 0,
+        PRIMARY KEY (dia, visitante)
     )''')
 
     # 9. Tabla de Logs del Sistema
@@ -181,31 +184,17 @@ def execute_query(query, args=(), fetchall=False, fetchone=False, commit=False):
     conn.close()
     return result
 
-def get_estadisticas_globales(incrementar_visita=False):
+def get_estadisticas_globales():
     """
-    Obtiene la última fecha en que se actualizaron precios y el contador de visitas
-    del mes en curso.
+    Obtiene la última fecha en que se actualizaron precios y las visitas
+    del mes en curso (una por visitante y por día, ver core/visitas.py).
     """
-    mes_actual = datetime.now().strftime("%Y-%m")
-    
-    if incrementar_visita:
-        execute_query(
-            "INSERT OR IGNORE INTO visitas_mensuales (mes, contador) VALUES (?, 0)", 
-            (mes_actual,), 
-            commit=True
-        )
-        execute_query(
-            "UPDATE visitas_mensuales SET contador = contador + 1 WHERE mes = ?", 
-            (mes_actual,), 
-            commit=True
-        )
-    
     visitas = execute_query(
-        "SELECT contador FROM visitas_mensuales WHERE mes = ?", 
-        (mes_actual,), 
+        "SELECT COUNT(*) FROM visitas_diarias WHERE dia LIKE ?",
+        (datetime.now().strftime("%Y-%m") + "-%",),
         fetchone=True
     )
-    
+
     # Consulta apuntando a historial_precios
     fecha_res = execute_query(
         "SELECT MAX(fecha_registro) FROM historial_precios", 

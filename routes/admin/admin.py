@@ -6,14 +6,14 @@ from flask import Blueprint, render_template, request, session, redirect, url_fo
 from core.logger import registrar_log, ultimos_eventos
 from core.respaldos import copia_en_memoria
 from core.precios import limpiar_precio
-from core import carrusel, catalogo, duplicados, imagenes, estadisticas, exportar, productos, usuarios
+from core import carrusel, catalogo, duplicados, imagenes, estadisticas, exportar, productos, usuarios, visitas
 
 FILTROS_PANEL = ('page', 'q_admin', 'grado_admin', 'sort_admin', 'per_page', 'sin_imagen')
 
 
-def volver_al_panel(datos):
-    """Redirige al listado del panel conservando la página y los filtros que traía la petición."""
-    return redirect(url_for('admin_bp.admin_panel', **{k: datos.get(k) for k in FILTROS_PANEL}))
+def volver_al_panel(datos, seccion='productos'):
+    """Redirige al listado del panel conservando la página y los filtros que traía la petición, en la pestaña indicada."""
+    return redirect(url_for('admin_bp.admin_panel', **{k: datos.get(k) for k in FILTROS_PANEL}) + '#' + seccion)
 
 def crear_blueprint_admin(scraper_manager):
     admin_bp = Blueprint('admin_bp', __name__)
@@ -57,7 +57,7 @@ def crear_blueprint_admin(scraper_manager):
                                visibles=catalogo.resumen_inicio()['total'], sin_imagen=sin_imagen, total_sin_imagen=catalogo.contar_sin_imagen(), search_query=q_admin, grado_admin=grado_admin,
                                page=page, total_pages=total_pages, alerta_activa=resumen["alerta_activa"], 
                                mensaje_alerta=resumen["mensaje_alerta"], per_page=per_page, sort_admin=sort_admin,
-                               catalogo_completo=catalogo_completo)
+                               catalogo_completo=catalogo_completo, serie_visitas=visitas.serie_diaria())
 
     @admin_bp.route('/admin/credenciales/actualizar', methods=['POST'])
     @login_required
@@ -66,7 +66,7 @@ def crear_blueprint_admin(scraper_manager):
         nueva_pass = request.form.get('nueva_password')
         if nuevo_user and nueva_pass:
             usuarios.guardar_credenciales_admin(nuevo_user, nueva_pass)
-        return redirect(url_for('admin_bp.admin_panel'))
+        return redirect(url_for('admin_bp.admin_panel') + '#cuenta')
 
     @admin_bp.route('/admin/backup')
     @login_required
@@ -93,19 +93,25 @@ def crear_blueprint_admin(scraper_manager):
     @login_required
     def subir_carrusel():
         carrusel.agregar_imagen(request.files.get('imagen'), request.form.get('link') or '')
-        return redirect(url_for('admin_bp.admin_panel') + '#seccion-carrusel')
+        return redirect(url_for('admin_bp.admin_panel') + '#carrusel')
     
     @admin_bp.route('/admin/carrusel/editar_link/<int:img_id>', methods=['POST'])
     @login_required
     def editar_link_carrusel(img_id):
         carrusel.actualizar_enlace(img_id, request.form.get('nuevo_link') or '')
-        return redirect(url_for('admin_bp.admin_panel') + '#seccion-carrusel')
+        return redirect(url_for('admin_bp.admin_panel') + '#carrusel')
 
     @admin_bp.route('/admin/carrusel/eliminar/<int:img_id>', methods=['POST'])
     @login_required
     def eliminar_carrusel(img_id):
         carrusel.eliminar_imagen(img_id)
-        return redirect(url_for('admin_bp.admin_panel') + '#seccion-carrusel')
+        return redirect(url_for('admin_bp.admin_panel') + '#carrusel')
+
+    @admin_bp.route('/admin/carrusel/mover/<int:img_id>', methods=['POST'])
+    @login_required
+    def mover_carrusel(img_id):
+        carrusel.mover_imagen(img_id, -1 if request.form.get('direccion') == 'subir' else 1)
+        return redirect(url_for('admin_bp.admin_panel') + '#carrusel')
 
     @admin_bp.route('/admin/producto/nuevo', methods=['POST'])
     @login_required
@@ -155,10 +161,8 @@ def crear_blueprint_admin(scraper_manager):
         if id_duplicado and id_principal and id_duplicado != id_principal:
             productos.fusionar_productos(id_principal, id_duplicado)
 
-        respuesta = volver_al_panel(request.form)
-        if request.form.get('desde') == 'duplicados':  # valor fijo, no una URL: evita redirecciones a otros sitios
-            respuesta.location += '#seccion-duplicados'
-        return respuesta
+        # Valor fijo, no una URL: evita redirecciones a otros sitios
+        return volver_al_panel(request.form, 'duplicados' if request.form.get('desde') == 'duplicados' else 'productos')
 
     @admin_bp.route('/admin/duplicados/descartar', methods=['POST'])
     @login_required
@@ -166,7 +170,7 @@ def crear_blueprint_admin(scraper_manager):
         id_a, id_b = request.form.get('id_a', type=int), request.form.get('id_b', type=int)
         if id_a and id_b and id_a != id_b:
             duplicados.descartar(id_a, id_b)
-        return redirect(url_for('admin_bp.admin_panel') + '#seccion-duplicados')
+        return redirect(url_for('admin_bp.admin_panel') + '#duplicados')
 
     # Solo POST (con el token CSRF): un enlace o una imagen en otro sitio no puede cerrar la sesión
     @admin_bp.route('/admin/logout', methods=['POST'])

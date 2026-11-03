@@ -51,10 +51,12 @@ Es una aplicación web en **Flask** con su propia base **SQLite**: no depende de
 </p>
 
 - **Acceso:** usuario y contraseña. Al cambiarlos desde el panel, la contraseña se guarda como hash.
+- **Pestañas:** el menú lateral muestra una sección a la vez (Resumen, Visitas, Productos, Duplicados, Carrusel y Cuenta), y cada acción vuelve a su pestaña.
 - **Resumen:** visitas del mes, productos en catálogo, visibles con stock y último escaneo, con los botones para forzar un escaneo, exportar a Excel y descargar un respaldo de la base. Avisa si el último escaneo exitoso tiene más de 48 horas.
 - **Estado de las tiendas:** último escaneo exitoso, productos y último error de cada tienda; marca para revisar las que llevan más de 48 horas sin un escaneo exitoso o fallaron en el último intento.
 - **Posibles duplicados:** pares del mismo grado con nombres casi iguales, para fusionarlos o marcarlos como distintos.
-- **Carrusel y eventos:** imágenes del carrusel del inicio con su enlace, y el registro de las últimas acciones y escaneos.
+- **Carrusel:** imágenes del inicio con su enlace, en el orden que se elige con las flechas de cada una.
+- **Eventos:** registro de las últimas acciones y escaneos, junto al estado de las tiendas.
 - **Productos:** ordenados por estado (Visibles → No disponibles → Ocultos), con acciones para ocultar, editar, eliminar y fusionar.
 - **Fusión:** pasa las tiendas y el historial de un duplicado al producto principal.
 - **Edición:** nombre estandarizado, grado e imagen de cada modelo.
@@ -81,7 +83,7 @@ Es una aplicación web en **Flask** con su propia base **SQLite**: no depende de
   - Carrusel de imágenes con enlace y orden editables (solo acepta PNG, JPG, WebP y GIF).
   - Descarga de la base de datos completa y reporte de precios en Excel.
   - Todas las acciones que modifican datos van por POST con token CSRF, y la cookie de sesión es `SameSite=Lax`.
-- **Métricas y registro:** visitas únicas por mes (una por visitante al día, con cookie) y registro de las acciones del panel y de cada corrida de scraping.
+- **Métricas y registro:** gráfico de visitas, personas únicas y páginas vistas, con período y agrupación por día, semana o mes (sin bots ni el administrador), y registro de las acciones del panel y de cada corrida de scraping.
 - **Páginas institucionales:** Sobre Nosotros, Preguntas Frecuentes, Condiciones de Servicio y Políticas de Privacidad.
 
 **Próximos pasos:**
@@ -129,7 +131,7 @@ erDiagram
 - Un **producto** es el modelo estandarizado (nombre, grado, imagen, visible, disponible).
 - Una **publicación** es ese producto en una tienda concreta, con su URL y precio actual.
 - El **historial** guarda cada precio observado de una publicación, con su fecha.
-- Además: `banners` (carrusel), `visitas_mensuales` y `logs`.
+- Además: `banners` (carrusel), `visitas_diarias` y `logs`.
 
 ## Ejecutar
 

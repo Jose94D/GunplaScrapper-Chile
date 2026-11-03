@@ -25,3 +25,6 @@ static/productos/
 
 # Entorno virtual de Python
 .venv/
+
+# Configuración local de herramientas del editor
+.impeccable/

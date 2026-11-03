@@ -4,6 +4,11 @@ document.addEventListener('submit', (e) => {
     if (mensaje && !confirm(mensaje)) e.preventDefault();
 });
 
+// Cuenta la visita (core/visitas.py). Desde aquí y no al servir la página, para que los bots que no ejecutan JavaScript no sumen
+if (document.body.dataset.contarVisita !== undefined) {
+    fetch('/visita', { method: 'POST', keepalive: true, credentials: 'same-origin' }).catch(() => {});
+}
+
 document.addEventListener("DOMContentLoaded", () => {
     // --- Tema claro/oscuro ---
     // El <head> de base.html ya aplicó el tema guardado; aquí se sincronizan el banner y el botón,

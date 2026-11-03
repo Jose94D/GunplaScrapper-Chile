@@ -1,3 +1,24 @@
+// --- Pestañas del panel: se muestra la que contiene el #ancla (#tiendas abre Resumen), o Resumen si no hay ---
+// Corre apenas carga el script (al final del <body>) y no en DOMContentLoaded, para que no se vean todas un instante
+(() => {
+    const vistas = [...document.querySelectorAll('.vista-panel')];
+    const enlaces = document.querySelectorAll('.panel-menu a');
+    if (!vistas.length) return;
+    const mostrar = () => {
+        const destino = location.hash.length > 1 ? document.getElementById(location.hash.slice(1)) : null;
+        const vista = (destino && destino.closest('.vista-panel')) || vistas[0];
+        vistas.forEach((v) => { v.hidden = v !== vista; });
+        enlaces.forEach((a) => {
+            if (a.hash === '#' + vista.dataset.vista) a.setAttribute('aria-current', 'page');
+            else a.removeAttribute('aria-current');
+        });
+        if (destino && destino.id !== vista.dataset.vista) destino.scrollIntoView();  // una sección dentro de la pestaña
+        else window.scrollTo(0, 0);
+    };
+    window.addEventListener('hashchange', mostrar);
+    mostrar();
+})();
+
 document.addEventListener('DOMContentLoaded', () => {
     // --- Modal de fusión (Bootstrap): se llena con el producto del botón que lo abrió ---
     const modalFusion = document.getElementById('modalFusion');

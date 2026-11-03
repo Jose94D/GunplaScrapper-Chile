@@ -97,8 +97,8 @@ class TestSeo(unittest.TestCase):
             html = self.cliente.get(ruta).get_data(as_text=True)
             for externo in ("googleapis", "gstatic", "jsdelivr"):
                 self.assertNotIn(externo, html, ruta)
-        cookie = self.app.test_client().get("/").headers["Set-Cookie"]  # cliente nuevo: el anterior ya tiene la cookie
-        self.assertIn("visita_contada=", cookie)
+        cookie = self.app.test_client().post("/visita", headers={"User-Agent": "Mozilla/5.0"}).headers["Set-Cookie"]
+        self.assertIn("visitante=", cookie)
         self.assertIn("HttpOnly", cookie)
         self.assertIn("SameSite=Lax", cookie)
 

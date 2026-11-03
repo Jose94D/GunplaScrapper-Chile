@@ -69,7 +69,7 @@ scraper_manager.sincronizar_tiendas()  # TIENDAS_DESACTIVADAS del .env
 def inject_global_data():
     """Datos del footer de todas las páginas: última actualización y visitas del mes."""
     try:
-        fecha, visitas = get_estadisticas_globales(incrementar_visita=False)
+        fecha, visitas = get_estadisticas_globales()
     except Exception:
         # Fallback en caso de que la DB aún no tenga registros
         fecha, visitas = "N/A", 0

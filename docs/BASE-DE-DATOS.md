@@ -59,7 +59,7 @@ erDiagram
     }
 ```
 
-Tablas sin relaciones: `banners`, `visitas_mensuales` y `logs`.
+Tablas sin relaciones: `banners`, `visitas_diarias` y `logs`.
 
 ## Catálogo
 
@@ -154,16 +154,19 @@ Imágenes del carrusel de inicio, administradas desde el panel.
 | `id` | INTEGER PK | |
 | `nombre_archivo` | TEXT | Archivo dentro de `static/carrusel/`. |
 | `enlace` | TEXT | Destino al hacer clic. |
-| `orden` | INTEGER | Posición en el carrusel. |
+| `orden` | INTEGER | Posición en el carrusel, elegida con las flechas del panel. Si es NULL (imágenes que nunca se movieron), se ordena por `id`. |
 
-### `visitas_mensuales`
+### `visitas_diarias`
 
 | Columna | Tipo | Descripción |
 |---|---|---|
-| `mes` | TEXT PK | `YYYY-MM`. |
-| `contador` | INTEGER | Visitas únicas del mes. |
+| `dia` | TEXT PK | `YYYY-MM-DD`. |
+| `visitante` | TEXT PK | Código al azar de la cookie `visitante` (dura un año desde la última visita). |
+| `paginas` | INTEGER | Páginas públicas que abrió ese día. |
 
-La página de inicio suma una visita por navegador y por día: deja una cookie `visita_contada` que vence a medianoche.
+Una fila por visitante y día. Cada página pública avisa desde `main.js` con `POST /visita`, así que los bots que no ejecutan JavaScript no cuentan; tampoco los que se identifican como bots ni el administrador con sesión abierta. Visitas = filas; personas únicas = `COUNT(DISTINCT visitante)`; páginas vistas = `SUM(paginas)`.
+
+Reemplaza a `visitas_mensuales`, que se inflaba con los bots: las bases antiguas la conservan, pero el código ya no la usa.
 
 ### `logs`
 

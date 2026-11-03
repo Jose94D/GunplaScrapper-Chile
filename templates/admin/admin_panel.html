@@ -18,12 +18,11 @@
         <a class="marca" href="{{ url_for('inicio_bp.index') }}">GUNPLA <span>SCRAPER</span></a>
         <nav aria-label="Secciones del panel">
             <ul class="list-unstyled panel-menu">
-                <li><a href="#resumen">Resumen</a></li>
-                <li><a href="#tiendas">Tiendas <span class="mono">{{ tiendas|length }}</span></a></li>
+                <li><a href="#resumen">Resumen {% if tiendas_al_dia != tiendas|length %}<span class="mono aviso" title="Tiendas por revisar">{{ tiendas|length - tiendas_al_dia }}</span>{% endif %}</a></li>
+                <li><a href="#visitas">Visitas</a></li>
                 <li><a href="#productos">Productos <span class="mono">{{ total_productos }}</span></a></li>
                 <li><a href="#duplicados">Duplicados {% if duplicados %}<span class="mono aviso">{{ duplicados|length }}</span>{% endif %}</a></li>
                 <li><a href="#carrusel">Carrusel <span class="mono">{{ lista_carrusel|length }}</span></a></li>
-                <li><a href="#eventos">Eventos</a></li>
                 <li><a href="#cuenta">Cuenta</a></li>
             </ul>
         </nav>
@@ -45,19 +44,19 @@
         <div class="alerta" role="alert">{{ mensaje_alerta }}</div>
         {% endif %}
 
-        {% include "admin/panel/_resumen.html" %}
-        <div class="panel-columnas">
-            <div class="panel-columna-ancha">
-                {% include "admin/panel/_tiendas.html" %}
-                {% include "admin/panel/_duplicados.html" %}
-            </div>
-            <div class="panel-columna-angosta">
-                {% include "admin/panel/_carrusel.html" %}
-                {% include "admin/panel/_eventos.html" %}
+        {# Una pestaña por opción del menú (admin.js muestra la del #ancla); sin JavaScript se ven todas seguidas #}
+        <div class="vista-panel" data-vista="resumen">
+            {% include "admin/panel/_resumen.html" %}
+            <div class="panel-columnas">
+                <div class="panel-columna-ancha">{% include "admin/panel/_tiendas.html" %}</div>
+                <div class="panel-columna-angosta">{% include "admin/panel/_eventos.html" %}</div>
             </div>
         </div>
-        {% include "admin/panel/_productos.html" %}
-        {% include "admin/panel/_acciones.html" %}
+        <div class="vista-panel" data-vista="visitas">{% include "admin/panel/_visitas.html" %}</div>
+        <div class="vista-panel" data-vista="productos">{% include "admin/panel/_productos.html" %}</div>
+        <div class="vista-panel" data-vista="duplicados">{% include "admin/panel/_duplicados.html" %}</div>
+        <div class="vista-panel" data-vista="carrusel">{% include "admin/panel/_carrusel.html" %}</div>
+        <div class="vista-panel" data-vista="cuenta">{% include "admin/panel/_acciones.html" %}</div>
     </main>
 </div>
 {% include "admin/panel/_modal_fusion.html" %}
@@ -65,4 +64,6 @@
 
 {% block scripts %}
     <script src="{{ url_for('static', filename='js/admin.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/vendor/chart.umd.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/visitas.js') }}"></script>
 {% endblock %}

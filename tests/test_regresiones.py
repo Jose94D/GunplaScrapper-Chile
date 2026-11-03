@@ -135,6 +135,22 @@ class TestSeguridadPanel(PanelTemporal):
         self.assertEqual(os.listdir(carpeta), ["banner.png"])
         self.assertEqual(execute_query("SELECT nombre_archivo FROM banners", fetchall=True), [("banner.png",)])
 
+    def test_cambiar_el_orden_del_carrusel(self):
+        from core.carrusel import listar_imagenes
+        execute_query("INSERT INTO banners (id, nombre_archivo) VALUES (1, 'a.png'), (2, 'b.png'), (3, 'c.png')", commit=True)
+        orden = lambda: [n for _, n, _ in listar_imagenes()]
+        respuesta = self.post("/admin/carrusel/mover/3", {"direccion": "subir"})
+        self.assertTrue(respuesta.location.endswith("#carrusel"))
+        self.assertEqual(orden(), ["a.png", "c.png", "b.png"])
+        self.post("/admin/carrusel/mover/1", {"direccion": "subir"})  # ya es la primera: no cambia
+        self.post("/admin/carrusel/mover/1", {"direccion": "bajar"})
+        self.assertEqual(orden(), ["c.png", "a.png", "b.png"])
+        carpeta = tempfile.mkdtemp()
+        with mock.patch("core.carrusel.CARRUSEL_FOLDER", carpeta):  # la nueva queda al final
+            import io
+            self.post("/admin/carrusel/nuevo", {"imagen": (io.BytesIO(b"x"), "d.png")}, content_type="multipart/form-data")
+        self.assertEqual(orden(), ["c.png", "a.png", "b.png", "d.png"])
+
 
 class TestDuplicados(PanelTemporal):
     def setUp(self):
@@ -161,12 +177,12 @@ class TestDuplicados(PanelTemporal):
 
     def test_descartar_no_vuelve_a_sugerir(self):
         respuesta = self.post("/admin/duplicados/descartar", {"id_a": "12", "id_b": "11"})
-        self.assertTrue(respuesta.location.endswith("#seccion-duplicados"))
+        self.assertTrue(respuesta.location.endswith("#duplicados"))
         self.assertEqual(self.pares(), [(2, 1)])
 
     def test_fusionar_desde_sugerencias(self):
         respuesta = self.post("/admin/fusionar", {"id_principal": "2", "id_duplicado": "1", "desde": "duplicados"})
-        self.assertTrue(respuesta.location.endswith("#seccion-duplicados"))
+        self.assertTrue(respuesta.location.endswith("#duplicados"))
         self.assertEqual(self.pares(), [(11, 12)])
         self.assertEqual(execute_query("SELECT COUNT(*) FROM publicacion_producto WHERE producto_id = 2", fetchone=True)[0], 3)
 

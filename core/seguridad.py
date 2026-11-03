@@ -24,7 +24,8 @@ def proteger_csrf(app):
     """
     @app.before_request
     def verificar_csrf():
-        if request.method != 'POST':
+        # /visita solo suma un contador anónimo: los visitantes no tienen sesión ni token
+        if request.method != 'POST' or request.endpoint == 'inicio_bp.registrar_visita':
             return
         esperado = session.get('csrf_token')
         enviado = request.form.get('csrf_token') or request.headers.get('X-CSRF-Token', '')

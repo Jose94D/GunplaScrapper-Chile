@@ -288,9 +288,10 @@ El detalle de la normalización y el contrato de cada scraper están en [SCRAPER
 `GET /` → `views_inicio.index`:
 
 1. Valida los parámetros (`q`, `grado`, `sort`, `page`, `per_page`). El orden se elige de una lista cerrada y el tamaño de página de `POR_PAGINA_PERMITIDOS`.
-2. Cuenta una visita por navegador y día con la cookie `visita_contada` (`HttpOnly`, `SameSite=Lax`). No guarda datos personales.
-3. `catalogo.listar_catalogo_publico` devuelve la página pedida. El precio mostrado es el más bajo entre las tiendas **con stock hoy**.
-4. `catalogo.indicadores_precio` calcula, en una sola consulta para toda la página, el mínimo histórico y la baja de los últimos 7 días.
+2. `catalogo.listar_catalogo_publico` devuelve la página pedida. El precio mostrado es el más bajo entre las tiendas **con stock hoy**.
+3. `catalogo.indicadores_precio` calcula, en una sola consulta para toda la página, el mínimo histórico y la baja de los últimos 7 días.
+
+**Visitas.** Cada página pública (`<body data-contar-visita>`) hace `POST /visita` desde `main.js`; la ruta está exenta de CSRF porque solo suma un contador anónimo. `core/visitas.py` guarda una fila por visitante y día (cookie `visitante`, código al azar, `HttpOnly`, un año) y descarta a los bots por su User-Agent y al administrador con sesión abierta. Contar desde el navegador y no al servir la página deja fuera a los bots que no ejecutan JavaScript. El panel muestra el gráfico con `visitas.serie_diaria()`.
 
 ### 7.3 Ficha de producto
 
@@ -383,6 +384,7 @@ Prácticas de la capa de datos:
 | POST | `/admin/carrusel/nuevo` | Sube una imagen al carrusel |
 | POST | `/admin/carrusel/editar_link/<id>` | Cambia el enlace de una imagen |
 | POST | `/admin/carrusel/eliminar/<id>` | Quita una imagen |
+| POST | `/admin/carrusel/mover/<id>` | Cambia una imagen de lugar (`direccion=subir` o `bajar`) |
 | POST | `/admin/credenciales/actualizar` | Cambia usuario y contraseña (hash de Werkzeug) |
 | POST | `/admin/logout` | Cierra la sesión |
 

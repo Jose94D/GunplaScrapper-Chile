@@ -1,13 +1,29 @@
 <section id="carrusel" class="panel seccion-panel">
     <div class="seccion-panel-cabecera">
-        <h2>Carrusel del inicio</h2>
+        <div>
+            <h2>Carrusel del inicio</h2>
+            <p class="texto-tenue small mb-0">Se muestran en este orden. Usa las flechas para cambiarlo.</p>
+        </div>
         <span class="mono texto-suave small">{{ lista_carrusel|length }} {{ 'imagen' if lista_carrusel|length == 1 else 'imágenes' }}</span>
     </div>
     <div class="carrusel-lista">
         {% for id, nombre, enlace in lista_carrusel %}
         <div class="carrusel-item">
             <img src="{{ url_for('static', filename='carrusel/' ~ nombre) }}" alt="Imagen del carrusel {{ nombre }}">
-            <p class="mono small mb-2 text-truncate">{{ nombre }}</p>
+            <div class="carrusel-item-cabecera">
+                <span class="carrusel-posicion mono" title="Posición en el carrusel">{{ loop.index }}</span>
+                <p class="mono small mb-0 text-truncate">{{ nombre }}</p>
+                <div class="acciones-fila">
+                    {% for direccion, etiqueta, trazo, inactivo in [('subir', 'Mover antes', 'M12 19V5M5 12l7-7 7 7', loop.first), ('bajar', 'Mover después', 'M12 5v14M5 12l7 7 7-7', loop.last)] %}
+                    <form method="POST" action="{{ url_for('admin_bp.mover_carrusel', img_id=id) }}">{{ campo_csrf() }}
+                        <input type="hidden" name="direccion" value="{{ direccion }}">
+                        <button type="submit" class="boton-icono" aria-label="{{ etiqueta }}: {{ nombre }}" title="{{ etiqueta }}" {% if inactivo %}disabled{% endif %}>
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="{{ trazo }}"/></svg>
+                        </button>
+                    </form>
+                    {% endfor %}
+                </div>
+            </div>
             <form action="/admin/carrusel/editar_link/{{ id }}" method="POST" class="d-flex gap-2">
                 {{ campo_csrf() }}
                 <label for="enlace-{{ id }}" class="visually-hidden">Enlace de {{ nombre }}</label>

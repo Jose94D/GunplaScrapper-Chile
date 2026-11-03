@@ -1,0 +1,32 @@
+<section id="visitas" class="panel seccion-panel">
+    <div class="seccion-panel-cabecera">
+        <div>
+            <h2>Visitas del sitio</h2>
+            <p class="texto-suave small mb-0">Sin bots ni tus propias visitas como administrador.</p>
+        </div>
+        <div class="d-flex flex-wrap gap-2">
+            <div class="rango" role="group" aria-label="Período">
+                <button type="button" data-dias="7" aria-pressed="false">7 días</button>
+                <button type="button" data-dias="30" aria-pressed="true">30 días</button>
+                <button type="button" data-dias="90" aria-pressed="false">90 días</button>
+                <button type="button" data-dias="365" aria-pressed="false">1 año</button>
+                <button type="button" data-dias="0" aria-pressed="false">Todo</button>
+            </div>
+            <div class="rango" role="group" aria-label="Agrupar por">
+                <button type="button" data-agrupar="dia" aria-pressed="true">Día</button>
+                <button type="button" data-agrupar="semana" aria-pressed="false">Semana</button>
+                <button type="button" data-agrupar="mes" aria-pressed="false">Mes</button>
+            </div>
+        </div>
+    </div>
+    <dl class="visitas-cifras" aria-live="polite">
+        <div><dt>Visitas</dt><dd id="total-visitas">0</dd></div>
+        <div><dt>Personas únicas</dt><dd id="total-personas">0</dd></div>
+        <div><dt>Páginas vistas</dt><dd id="total-paginas">0</dd></div>
+    </dl>
+    <div class="grafico">
+        <canvas id="graficoVisitas" role="img" aria-label="Visitas y páginas vistas del sitio por período"></canvas>
+    </div>
+    <p class="texto-tenue small mt-2 mb-0">Una visita es una persona en un día: si vuelve otro día, suma otra. Las personas únicas se reconocen por una cookie anónima, así que quien cambia de navegador o la borra cuenta como nueva.</p>
+    <script id="datos-visitas" type="application/json">{{ serie_visitas|tojson }}</script>
+</section>

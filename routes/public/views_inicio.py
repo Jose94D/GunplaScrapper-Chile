@@ -1,13 +1,12 @@
 import json
+import secrets
 from datetime import datetime
-from flask import Blueprint, Response, abort, current_app, make_response, redirect, render_template, request, url_for
+from flask import Blueprint, Response, abort, current_app, redirect, render_template, request, session, url_for
 from markupsafe import escape
 
-# Importamos las herramientas de la base de datos y métricas
-from core.database import get_estadisticas_globales
-from core import carrusel, catalogo
+from core import carrusel, catalogo, visitas
 
-COOKIE_VISITA = 'visita_contada'
+COOKIE_VISITANTE = 'visitante'
 
 # =====================================================================
 # 1. BLUEPRINT DE INICIO (Página principal y Catálogo)
@@ -31,13 +30,7 @@ def crear_blueprint_inicio():
         page = request.args.get('page', 1, type=int)
         per_page = catalogo.por_pagina_valida(request.args.get('per_page', 24, type=int))
 
-        # --- B. Estadísticas y Componentes Globales ---
-        # 4.2: Solo contamos una visita por navegador por día (evita inflar el
-        # contador con recargas, F5, o vueltas atrás del mismo visitante).
-        fecha_hoy_str = datetime.now().strftime("%Y-%m-%d")
-        ya_contada_hoy = request.cookies.get(COOKIE_VISITA) == fecha_hoy_str
-        get_estadisticas_globales(incrementar_visita=not ya_contada_hoy)
-
+        # --- B. Componentes Globales ---
         carrusel_imgs = [(nombre, enlace) for _, nombre, enlace in carrusel.listar_imagenes()]
 
         # --- C. Catálogo filtrado, ordenado y paginado ---
@@ -48,22 +41,26 @@ def crear_blueprint_inicio():
 
         indicadores = catalogo.indicadores_precio([fila[0] for fila in datos])
 
-        response = make_response(render_template('public/inicio.html', datos=datos, indicadores=indicadores, carrusel_imgs=carrusel_imgs,
+        return render_template('public/inicio.html', datos=datos, indicadores=indicadores, carrusel_imgs=carrusel_imgs,
                                search_query=search_query, grado_filtro=grado_filtro,
                                sort_order=sort_order, page=page, per_page=per_page,
-                               total_pages=total_pages, resumen=catalogo.resumen_inicio(), proximo_escaneo=proximo_escaneo))
+                               total_pages=total_pages, resumen=catalogo.resumen_inicio(), proximo_escaneo=proximo_escaneo)
 
-        if not ya_contada_hoy:
-            # La cookie expira a medianoche (hora local del servidor): al día
-            # siguiente vuelve a contar una visita nueva para ese navegador.
-            ahora = datetime.now()
-            medianoche = ahora.replace(hour=23, minute=59, second=59, microsecond=0)
-            segundos_hasta_medianoche = int((medianoche - ahora).total_seconds()) + 1
-            # Solo la lee el servidor: ni el JavaScript de la página ni otros sitios necesitan verla
-            response.set_cookie(COOKIE_VISITA, fecha_hoy_str, max_age=segundos_hasta_medianoche, httponly=True,
-                                samesite='Lax', secure=current_app.config['SESSION_COOKIE_SECURE'])
-
-        return response
+    @inicio_bp.route('/visita', methods=['POST'])
+    def registrar_visita():
+        """Lo llama main.js al abrir cada página pública. Los bots que no ejecutan JavaScript nunca llegan aquí,
+        y tampoco se cuentan el administrador ni los rastreadores que se identifican como tales."""
+        respuesta = Response(status=204)
+        if 'admin_logged' in session or visitas.es_bot(request.headers.get('User-Agent')):
+            return respuesta
+        visitante = request.cookies.get(COOKIE_VISITANTE, '')
+        if not visitas.VISITANTE_VALIDO.match(visitante):
+            visitante = secrets.token_urlsafe(16)
+        visitas.registrar_visita(visitante)
+        # Se renueva en cada visita: dura un año desde la última. Solo la lee el servidor
+        respuesta.set_cookie(COOKIE_VISITANTE, visitante, max_age=365 * 24 * 3600, httponly=True,
+                             samesite='Lax', secure=current_app.config['SESSION_COOKIE_SECURE'])
+        return respuesta
 
     return inicio_bp
 
