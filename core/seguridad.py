@@ -49,4 +49,8 @@ def cabeceras_seguridad(app):
         respuesta.headers.setdefault('Content-Security-Policy', CSP)
         respuesta.headers.setdefault('X-Content-Type-Options', 'nosniff')  # no adivinar el tipo de un archivo
         respuesta.headers.setdefault('Referrer-Policy', 'strict-origin-when-cross-origin')  # a otros sitios solo llega el dominio
+        # HSTS: el navegador recuerda por un año que este sitio va siempre por https y nunca intenta http.
+        # Solo con HTTPS=1: en local (http) dejaría el sitio inaccesible en ese navegador
+        if app.config['SESSION_COOKIE_SECURE']:
+            respuesta.headers.setdefault('Strict-Transport-Security', 'max-age=31536000')
         return respuesta

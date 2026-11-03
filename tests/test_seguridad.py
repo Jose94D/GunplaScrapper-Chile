@@ -35,6 +35,14 @@ class TestCabeceras(unittest.TestCase):
             self.assertNotIn("unsafe-inline", h["Content-Security-Policy"], ruta)
             self.assertEqual(h["X-Content-Type-Options"], "nosniff", ruta)
             self.assertEqual(h["Referrer-Policy"], "strict-origin-when-cross-origin", ruta)
+            self.assertNotIn("Strict-Transport-Security", h, ruta)  # en local (http) no
+
+    def test_hsts_solo_con_https(self):
+        self.app.config["SESSION_COOKIE_SECURE"] = True
+        try:
+            self.assertEqual(self.cliente.get("/").headers["Strict-Transport-Security"], "max-age=31536000")
+        finally:
+            self.app.config["SESSION_COOKIE_SECURE"] = False
 
     def test_estaticos_con_version_se_guardan_un_anio(self):
         html = self.cliente.get("/faq").get_data(as_text=True)
