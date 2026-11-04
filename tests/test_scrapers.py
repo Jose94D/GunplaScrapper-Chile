@@ -57,6 +57,26 @@ class TestScrapers(unittest.TestCase):
                     self.assertTrue(p["url"].startswith("https://"))
                     self.assertTrue(p["imagen"] and p["imagen"].startswith("https://"))
 
+    def test_pagina_repetida_solo_con_descartados_termina(self):
+        """Odoo y Magento repiten la última página al pasarse del final: sin esto, el escaneo no termina nunca."""
+        import scrapers.geekz as geekz, scrapers.weplay as weplay
+        agotado_geekz = """<form class="oe_product_cart"><h6 itemprop="name" content="AGOTADO"></h6>
+            <a itemprop="url" href="/shop/agotado"></a><span itemprop="price">1000</span></form>"""
+        solo_tienda = """<div class="product-item-info"><div class="product-label unavailable"></div>
+            <a class="product-item-link" href="https://weplay.cl/kit">Kit</a></div>"""
+        for modulo, clase, tarjeta in ((geekz, "GeekzScraper", agotado_geekz), (weplay, "WeplayScraper", solo_tienda)):
+            with self.subTest(clase):
+                pedidas = []
+
+                def pedir(url, *a, **k):
+                    pedidas.append(url)
+                    self.assertLess(len(pedidas), 5, "no detectó la página repetida")
+                    return Respuesta(f"<html><body><ol>{tarjeta}</ol></body></html>")
+
+                with mock.patch.object(modulo, "pedir", pedir), mock.patch.object(modulo.time, "sleep"), mock.patch("core.logger.execute_query"):
+                    self.assertEqual(getattr(modulo, clase)().extraer_datos(), [])
+                self.assertEqual(len(pedidas), 2)
+
     def test_hobbytoys_descarta_agotados(self):
         import scrapers.hobbytoys as modulo
 

@@ -41,12 +41,6 @@ class GeekzScraper:
                 bucle_detectado = False
 
                 for form in tarjetas:
-                    # Solo se guardan productos con el badge verde de stock.
-                    # Si no está presente, el producto está agotado y se descarta.
-                    badge_stock = form.find('span', class_='dr-product-label-color-green')
-                    if not badge_stock or 'STOCK' not in badge_stock.get_text(strip=True).upper():
-                        continue
-
                     titulo_tag = form.find('h6', itemprop='name')
                     url_tag = form.find('a', itemprop='url')
                     if not titulo_tag or not url_tag or not url_tag.get('href'):
@@ -61,17 +55,25 @@ class GeekzScraper:
                     href = url_tag['href'].split('?')[0]
                     url_prod = href if href.startswith('http') else self.base_url + href
 
-                    # Precio real: viene limpio (sin formato) en el span itemprop="price"
-                    precio_tag = form.find('span', itemprop='price')
-                    if not precio_tag or not precio_tag.get_text(strip=True):
-                        continue
-                    precio_texto = precio_tag.get_text(strip=True)
-
+                    # Odoo repite la última página al pasarse del final. Se revisa antes de descartar agotados:
+                    # si esa página solo tiene agotados, de otro modo el bucle no terminaría nunca.
                     if url_prod in urls_vistas:
                         bucle_detectado = True
                         break
 
                     urls_vistas.add(url_prod)
+
+                    # Solo se guardan productos con el badge verde de stock.
+                    # Si no está presente, el producto está agotado y se descarta.
+                    badge_stock = form.find('span', class_='dr-product-label-color-green')
+                    if not badge_stock or 'STOCK' not in badge_stock.get_text(strip=True).upper():
+                        continue
+
+                    # Precio real: viene limpio (sin formato) en el span itemprop="price"
+                    precio_tag = form.find('span', itemprop='price')
+                    if not precio_tag or not precio_tag.get_text(strip=True):
+                        continue
+                    precio_texto = precio_tag.get_text(strip=True)
 
                     productos_extraidos.append({
                         'nombre_original': nombre_prod,

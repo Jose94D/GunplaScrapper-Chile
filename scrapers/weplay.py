@@ -39,12 +39,6 @@ class WeplayScraper:
                 bucle_detectado = False
 
                 for card in tarjetas:
-                    # Se excluyen productos "Disponible solo en tienda" (class 'unavailable'):
-                    # no se pueden comprar online, así que no representan un precio de compra real.
-                    etiqueta = card.find('div', class_='product-label')
-                    if etiqueta and 'unavailable' in etiqueta.get('class', []):
-                        continue
-
                     nombre_tag = card.find('a', class_='product-item-link')
                     if not nombre_tag or not nombre_tag.get('href'):
                         continue
@@ -52,17 +46,24 @@ class WeplayScraper:
                     url_prod = nombre_tag['href'].split('?')[0]
                     nombre_prod = nombre_tag.get_text(strip=True)
 
-                    # data-price-amount trae el precio limpio, sin formato ni símbolo de moneda
-                    precio_tag = card.find(attrs={'data-price-amount': True})
-                    if not precio_tag or not precio_tag.get('data-price-amount'):
-                        continue
-                    precio_texto = precio_tag['data-price-amount']
-
+                    # Antes de descartar: si la última página se repite y solo trae descartados, el bucle debe cortar igual
                     if url_prod in urls_vistas:
                         bucle_detectado = True
                         break
 
                     urls_vistas.add(url_prod)
+
+                    # Se excluyen productos "Disponible solo en tienda" (class 'unavailable'):
+                    # no se pueden comprar online, así que no representan un precio de compra real.
+                    etiqueta = card.find('div', class_='product-label')
+                    if etiqueta and 'unavailable' in etiqueta.get('class', []):
+                        continue
+
+                    # data-price-amount trae el precio limpio, sin formato ni símbolo de moneda
+                    precio_tag = card.find(attrs={'data-price-amount': True})
+                    if not precio_tag or not precio_tag.get('data-price-amount'):
+                        continue
+                    precio_texto = precio_tag['data-price-amount']
 
                     productos_extraidos.append({
                         'nombre_original': nombre_prod,
