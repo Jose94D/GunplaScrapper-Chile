@@ -57,6 +57,22 @@ class TestScrapers(unittest.TestCase):
                     self.assertTrue(p["url"].startswith("https://"))
                     self.assertTrue(p["imagen"] and p["imagen"].startswith("https://"))
 
+    def test_hobbytoys_descarta_agotados(self):
+        import scrapers.hobbytoys as modulo
+
+        def tarjeta(clase, nombre):
+            return f"""<article class="wpr-grid-item product {clase}"><div class="wpr-grid-item-inner">
+                <h2 class="wpr-grid-item-title"><a href="https://www.hobbytoys.cl/producto/{nombre}/">{nombre}</a></h2>
+                <div class="wpr-grid-item-price"><span class="amount">$10.000</span></div></div></article>"""
+
+        agotada = tarjeta("outofstock", "agotado")
+        # La tienda repite su última página, que solo tiene agotados: también debe cortar ahí
+        paginas = [tarjeta("instock", "con-stock") + agotada, agotada, agotada]
+        with mock.patch.object(modulo, "pedir", lambda *a, **k: Respuesta(paginas.pop(0))), mock.patch.object(modulo.time, "sleep"):
+            productos = modulo.HobbyToysScraper().extraer_datos()
+        self.assertEqual([p["nombre_original"] for p in productos], ["con-stock"])
+        self.assertEqual(len(paginas), 1)
+
 
 if __name__ == "__main__":
     unittest.main()

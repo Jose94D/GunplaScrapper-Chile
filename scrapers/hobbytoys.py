@@ -66,6 +66,12 @@ class HobbyToysScraper:
 
                     urls_vistas.add(url_prod)
 
+                    # El catálogo no muestra "agotado", pero WooCommerce lo marca en la clase del <article>.
+                    # Va después de urls_vistas: una última página repetida solo con agotados debe cortar el bucle.
+                    articulo = card.find_parent('article')
+                    if articulo and 'outofstock' in articulo.get('class', []):
+                        continue
+
                     productos_extraidos.append({
                         'nombre_original': nombre_prod,
                         'precio': limpiar_precio(precio_texto),
