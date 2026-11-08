@@ -55,6 +55,8 @@ class TestCabeceras(unittest.TestCase):
         self.assertIn("max-age=31536000", self.cliente.get("/static/fonts/ibm-plex-sans-latin.woff2").headers["Cache-Control"])
         # Un archivo inexistente responde 404 como siempre
         self.assertEqual(self.cliente.get("/static/no-existe.css?v=1").status_code, 404)
+        # El perfil UCP debe poder guardarse en caché o Shopify lo rechaza
+        self.assertEqual(self.cliente.get("/static/ucp-agente.json").headers["Cache-Control"], "public, max-age=86400")
 
     def test_paginas_de_error_propias(self):
         @self.app.route("/falla")  # antes de la primera petición: después Flask ya no acepta rutas nuevas

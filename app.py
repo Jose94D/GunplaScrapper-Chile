@@ -55,6 +55,11 @@ def cache_estaticos(respuesta):
         respuesta.cache_control.no_cache = None
         respuesta.cache_control.public = True
         respuesta.cache_control.max_age = UN_ANIO
+    elif request.endpoint == 'static' and (request.view_args or {}).get('filename') == 'ucp-agente.json':
+        # Shopify rechaza el perfil del scraper (UCP) si no se puede guardar en caché ("Invalid cache control")
+        respuesta.cache_control.no_cache = None
+        respuesta.cache_control.public = True
+        respuesta.cache_control.max_age = 24 * 3600
     return respuesta
 
 @app.before_request
