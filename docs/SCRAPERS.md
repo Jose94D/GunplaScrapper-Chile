@@ -67,13 +67,24 @@ Reglas que siguen todos:
 | Hangar019 | `hangar.py` | PrestaShop | `/8-gunpla?p=N` | |
 | Blaster Chile | `blaster.py` | Shopify | `/collections/model-kit`, filtrado por tipo Gundam, Bandai y disponibilidad | Usa `cloudscraper` (Cloudflare). Reintenta ante error 429 con espera creciente. |
 | ChileRobots | `chilerobots.py` | PrestaShop | `/10-gundam?page=N` | Si el nombre visible viene truncado (`...`), lo reconstruye desde la URL (`reconstruir_nombre_desde_url`). |
-| Irion | `irion.py` | Shopify | `/collections/gundam?page=N` | |
+| Irion | `irion.py` | Shopify (UCP) | `search_catalog` con "gundam", etiqueta GUNDAM y marca Bandai | Lee por UCP (ver abajo). Descarta los agotados. |
 | Geekz | `geekz.py` | Odoo | `/shop/category/hobby-model-kit-9/page/N` | Descarta los productos sin la etiqueta verde de stock. |
 | Weplay | `weplay.py` | Magento | `/figuras-y-juguetes/model-kits.html`, marca Bandai, `&p=N` | Descarta los "Disponible solo en tienda". |
-| LuffyToys | `luffytoys.py` | Shopify | `/collections/maqueta-armables/gundam?page=N` | |
-| HobbyToys | `hobbytoys.py` | WooCommerce | `/categoria-producto/model-kit/gundam-modelkit/page/N/` | |
+| LuffyToys | `luffytoys.py` | Shopify (UCP) | `search_catalog` con "gundam", etiquetas Maqueta Armable y Gundam | Lee por UCP. Arma la URL con el formato de su colección anterior para conservar el historial. |
+| HobbyToys | `hobbytoys.py` | WooCommerce | `/categoria-producto/model-kit/gundam-modelkit/page/N/` | Descarta los agotados por la clase `outofstock` de cada tarjeta. |
 
 Tiendas evaluadas y descartadas por su `robots.txt`: Mirax, Top8, Bluecard y Wargaming.
+
+### Tiendas Shopify por UCP
+
+Desde noviembre de 2026, Shopify responde `429 Too Many Requests` a las páginas de colección pedidas por scripts que no se identifican, incluso en la primera petición. Las tiendas publican en `/agents.md` cómo deben acceder los clientes automáticos; para leer el catálogo, el canal oficial es **UCP** (Universal Commerce Protocol).
+
+- `core/ucp.py` llama a la herramienta `search_catalog` del endpoint MCP de la tienda (`https://<tienda>/api/ucp/mcp`), recorre las páginas con el cursor y devuelve los productos. Ante cualquier error lanza una excepción, como el resto de los scrapers.
+- Cada consulta lleva la dirección del **perfil del scraper**, [`static/ucp-agente.json`](../static/ucp-agente.json), que Shopify descarga y valida contra el esquema de UCP. Solo declara la búsqueda en el catálogo: no puede comprar ni crear carritos. `payment_handlers` va vacío porque el esquema lo exige.
+- El perfil se sirve con `Cache-Control: public, max-age=86400`: con `no-cache`, Shopify lo rechaza. Como lo guarda un día, al cambiar el archivo hay que subir el `?v=` de `PERFIL` en `core/ucp.py`.
+- `search_catalog` busca por texto y también devuelve agotados: cada scraper filtra por etiquetas y por `availability` de sus variantes.
+- Si una tienda deja de responder por UCP, se puede desactivar con `TIENDAS_DESACTIVADAS` mientras se revisa.
+
 
 ## Normalización del catálogo
 

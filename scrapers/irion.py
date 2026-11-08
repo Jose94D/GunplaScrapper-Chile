@@ -1,92 +1,21 @@
-from bs4 import BeautifulSoup
-import time
 from core.logger import registrar_log
-from core.precios import limpiar_precio
-from core.peticiones import pedir
-from core.imagenes import url_imagen
+from core import ucp
+
 
 class IrionScraper:
+    """Irion (Shopify) por UCP: sus páginas de colección responden 429 a los scripts (ver core/ucp.py)."""
+
     def __init__(self):
-        self.base_url = "https://irion.cl"
-        # IMPORTANTE: no agregar '?sort_by=' ni múltiples 'filter.*' a esta URL.
-        # El robots.txt de irion.cl (Shopify) bloquea explícitamente esos patrones
-        # como "crawl traps" (Disallow: /collections/*sort_by* y /collections/*filter*&*filter*).
-        # Por eso se usa la colección 'gundam' sin parámetros, y el filtro por marca
-        # (Bandai) se hace acá abajo, en código, no vía query string.
-        self.coleccion_url = f"{self.base_url}/collections/gundam"
-        self.marca_objetivo = "bandai"
-        self.headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"}
+        self.dominio = "irion.cl"
 
     def extraer_datos(self):
-        pagina = 1
-        productos_extraidos = []
-        urls_vistas = set()
-
-        while True:
-            try:
-                # Paginación simple (?page=N), no está afectada por ninguna regla de Disallow.
-                url_pagina = self.coleccion_url if pagina == 1 else f"{self.coleccion_url}?page={pagina}"
-
-                res = pedir(url_pagina, headers=self.headers)
-                if res.status_code == 404 and pagina > 1:
-                    break  # algunas tiendas responden 404 al pasar la última página
-                res.raise_for_status()
-                soup = BeautifulSoup(res.text, 'html.parser')
-
-                # Cada producto viene envuelto en el elemento personalizado <product-card>
-                tarjetas = soup.find_all('product-card')
-
-                if not tarjetas:
-                    # No se detectaron productos en esta página: fin del catálogo.
-                    break
-
-                bucle_detectado = False
-
-                for card in tarjetas:
-                    # Filtramos solo la marca objetivo (Bandai); el resto de 'gundam'
-                    # incluye pinturas y accesorios de otras marcas.
-                    vendor_tag = card.find('div', class_='product-vendor')
-                    marca = vendor_tag.get_text(strip=True) if vendor_tag else ''
-                    if marca.strip().lower() != self.marca_objetivo:
-                        continue
-
-                    titulo_tag = card.find('h3', class_='product-card_title')
-                    n = titulo_tag.find('a') if titulo_tag else None
-                    if not n or not n.get('href'):
-                        continue
-
-                    # La URL trae parámetros de tracking de Shopify (_pos, _fid, _ss); se descartan
-                    # para que la publicación quede identificada por una URL estable y única.
-                    href = n['href'].split('?')[0]
-                    url_prod = href if href.startswith('http') else self.base_url + href
-                    nombre_prod = n.text.strip()
-
-                    # Precio efectivo (el que se paga, con o sin descuento)
-                    precio_tag = card.find('div', class_='price-sale')
-                    if not precio_tag or not precio_tag.text.strip():
-                        continue
-                    precio_texto = precio_tag.text.strip()
-
-                    if url_prod in urls_vistas:
-                        bucle_detectado = True
-                        break
-
-                    urls_vistas.add(url_prod)
-
-                    productos_extraidos.append({
-                        'nombre_original': nombre_prod,
-                        'precio': limpiar_precio(precio_texto),
-                        'url': url_prod,
-                        'imagen': url_imagen(card, self.base_url)
-                    })
-
-                if bucle_detectado:
-                    break
-                pagina += 1
-                time.sleep(2)
-
-            except Exception as e:
-                registrar_log(f"Error en Irion (Pág {pagina}): {str(e)}")
-                raise
-
-        return productos_extraidos
+        try:
+            productos = ucp.buscar_catalogo(self.dominio, "gundam")
+        except Exception as e:
+            registrar_log(f"Error en Irion (UCP): {e}")
+            raise
+        # Lo mismo que leía de la colección 'gundam': kits Bandai con stock. La búsqueda trae además pinturas,
+        # otras marcas y agotados. Algunos productos de Bandai no tienen la etiqueta, pero sí la marca en el título.
+        return [ucp.a_publicacion(p, p["url"].split("?")[0]) for p in productos
+                if "GUNDAM" in (p.get("tags") or []) and ("BANDAI" in (p.get("tags") or []) or "BANDAI" in p["title"].upper())
+                and ucp.disponible(p)]

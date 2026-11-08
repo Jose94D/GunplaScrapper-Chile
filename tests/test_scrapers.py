@@ -11,8 +11,9 @@ import unittest
 from unittest import mock
 
 PAGINAS = os.path.join(os.path.dirname(__file__), "paginas")
-SCRAPERS = {"hangar": "HangarScraper", "blaster": "BlasterScraper", "chilerobots": "ChileRobotsScraper", "irion": "IrionScraper",
-            "geekz": "GeekzScraper", "weplay": "WeplayScraper", "luffytoys": "LuffyToysScraper", "hobbytoys": "HobbyToysScraper"}
+# Irion y LuffyToys leen el catálogo por UCP, no HTML: sus pruebas están en TestUcp
+SCRAPERS = {"hangar": "HangarScraper", "blaster": "BlasterScraper", "chilerobots": "ChileRobotsScraper",
+            "geekz": "GeekzScraper", "weplay": "WeplayScraper", "hobbytoys": "HobbyToysScraper"}
 
 
 class Respuesta:
@@ -92,6 +93,76 @@ class TestScrapers(unittest.TestCase):
             productos = modulo.HobbyToysScraper().extraer_datos()
         self.assertEqual([p["nombre_original"] for p in productos], ["con-stock"])
         self.assertEqual(len(paginas), 1)
+
+
+class RespuestaUcp:
+    def __init__(self, cuerpo, status=200):
+        self.status_code, self.cuerpo = status, cuerpo
+
+    def json(self):
+        return self.cuerpo
+
+    def raise_for_status(self):
+        if self.status_code >= 400:
+            raise RuntimeError(self.status_code)
+
+
+def producto_ucp(titulo, handle, tags, disponible=True, precio=19990):
+    return {"title": titulo, "handle": handle, "url": f"https://tienda.cl/products/{handle}?_pos=1", "tags": tags,
+            "price_range": {"min": {"amount": precio, "currency": "CLP"}}, "media": [{"url": f"https://cdn.shopify.com/{handle}.jpg"}],
+            "variants": [{"availability": {"available": disponible}}]}
+
+
+def pagina_ucp(productos, cursor=None):
+    return {"result": {"structuredContent": {"products": productos, "pagination": {"has_next_page": bool(cursor), "cursor": cursor}}}}
+
+
+class TestUcp(unittest.TestCase):
+    """Irion y LuffyToys (Shopify) leen el catálogo por UCP: core/ucp.py y sus filtros."""
+
+    def correr(self, modulo, clase, paginas):
+        import core.ucp
+        pedidas = []
+
+        def pedir(url, json=None, **k):
+            pedidas.append(json["params"]["arguments"])
+            return paginas.pop(0)
+
+        with mock.patch.object(core.ucp, "pedir", pedir), mock.patch.object(core.ucp.time, "sleep"), mock.patch("core.logger.execute_query"):
+            return getattr(importlib.import_module(f"scrapers.{modulo}"), clase)().extraer_datos(), pedidas
+
+    def test_irion_kits_bandai_con_stock_en_todas_las_paginas(self):
+        paginas = [RespuestaUcp(pagina_ucp([producto_ucp("BANDAI HG ZAKU II", "zaku", ["BANDAI", "GUNDAM"]),
+                                            producto_ucp("BANDAI MG F91", "f91", ["BANDAI", "GUNDAM"], disponible=False),
+                                            producto_ucp("PINTURA GUNDAM MARKER", "marker", ["GUNDAM"])], cursor="c2")),
+                   RespuestaUcp(pagina_ucp([producto_ucp("BANDAI SD CROSS SILHOUETTE", "sd", ["GUNDAM", "Remate"], precio=7990)]))]
+        productos, pedidas = self.correr("irion", "IrionScraper", paginas)
+        self.assertEqual([(p["nombre_original"], p["precio"], p["url"]) for p in productos],
+                         [("BANDAI HG ZAKU II", 19990.0, "https://tienda.cl/products/zaku"),
+                          ("BANDAI SD CROSS SILHOUETTE", 7990.0, "https://tienda.cl/products/sd")])
+        self.assertEqual(productos[0]["imagen"], "https://cdn.shopify.com/zaku.jpg")
+        self.assertEqual(pedidas[1]["catalog"]["pagination"]["cursor"], "c2")
+        self.assertTrue(pedidas[0]["meta"]["ucp-agent"]["profile"].endswith("/static/ucp-agente.json?v=2"))
+
+    def test_luffytoys_solo_maquetas_y_url_de_su_coleccion(self):
+        paginas = [RespuestaUcp(pagina_ucp([producto_ucp("Gundam HG Jagd Doga Model Kit", "jagd-doga", ["Gundam", "Maqueta Armable", "Bandai"]),
+                                            producto_ucp("RX-78-2 Gundam Universe", "rx-78-2", ["Gundam", "Figuras Articuladas"])]))]
+        productos, _ = self.correr("luffytoys", "LuffyToysScraper", paginas)
+        self.assertEqual([p["url"] for p in productos], ["https://luffytoys.cl/collections/maqueta-armables/products/jagd-doga"])
+
+    def test_un_error_de_shopify_detiene_el_scraper(self):
+        error = {"error": {"code": -32001, "message": "UCP discovery failed", "data": {"content": "Missing payment handlers"}}}
+        with self.assertRaisesRegex(RuntimeError, "Missing payment handlers"):
+            self.correr("irion", "IrionScraper", [RespuestaUcp(error, status=422)])
+
+    def test_una_paginacion_que_no_termina_no_deja_el_escaneo_pegado(self):
+        import core.ucp
+        repetida = [RespuestaUcp(pagina_ucp([], cursor=f"c{i}")) for i in range(core.ucp.MAX_PAGINAS)]
+        with self.assertRaisesRegex(RuntimeError, "más de"):
+            self.correr("luffytoys", "LuffyToysScraper", repetida)
+        # El mismo cursor dos veces también corta (sin error: ya no hay páginas nuevas)
+        productos, pedidas = self.correr("luffytoys", "LuffyToysScraper", [RespuestaUcp(pagina_ucp([], cursor="x")), RespuestaUcp(pagina_ucp([], cursor="x"))])
+        self.assertEqual((productos, len(pedidas)), ([], 2))
 
 
 if __name__ == "__main__":

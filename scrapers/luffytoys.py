@@ -1,86 +1,21 @@
-from bs4 import BeautifulSoup
-import time
 from core.logger import registrar_log
-from core.precios import limpiar_precio
-from core.peticiones import pedir
-from core.imagenes import url_imagen
+from core import ucp
+
 
 class LuffyToysScraper:
+    """LuffyToys (Shopify) por UCP: sus páginas de colección responden 429 a los scripts (ver core/ucp.py)."""
+
     def __init__(self):
         self.base_url = "https://luffytoys.cl"
-        # IMPORTANTE: no agregar '?sort_by=' a esta URL. El robots.txt de luffytoys.cl
-        # (Shopify) bloquea explícitamente ese patrón como "crawl trap"
-        # (Disallow: /collections/*sort_by*). El orden de los resultados no nos
-        # importa para el scraping, así que se usa la colección sin ese parámetro.
-        self.coleccion_url = f"{self.base_url}/collections/maqueta-armables/gundam"
-        self.headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"}
+        self.dominio = "luffytoys.cl"
 
     def extraer_datos(self):
-        pagina = 1
-        productos_extraidos = []
-        urls_vistas = set()
-
-        while True:
-            try:
-                # Paginación simple (?page=N), no afectada por ninguna regla de Disallow.
-                url_pagina = self.coleccion_url if pagina == 1 else f"{self.coleccion_url}?page={pagina}"
-
-                res = pedir(url_pagina, headers=self.headers)
-                if res.status_code == 404 and pagina > 1:
-                    break  # algunas tiendas responden 404 al pasar la última página
-                res.raise_for_status()
-                soup = BeautifulSoup(res.text, 'html.parser')
-
-                # Cada producto viene envuelto en un contenedor con clase 'thumbnail'
-                tarjetas = soup.find_all('div', class_='thumbnail')
-
-                if not tarjetas:
-                    # No se detectaron productos en esta página: fin del catálogo.
-                    break
-
-                bucle_detectado = False
-
-                for card in tarjetas:
-                    enlace = card.find('a', class_='product-info__caption')
-                    if not enlace or not enlace.get('href'):
-                        continue
-
-                    nombre_tag = enlace.find('span', class_='title')
-                    nombre_prod = nombre_tag.get_text(strip=True) if nombre_tag else enlace.get_text(strip=True)
-                    if not nombre_prod:
-                        continue
-
-                    # Precio efectivo (con o sin descuento); el 'compare-at-price'
-                    # (precio tachado original) se ignora a propósito.
-                    precio_tag = enlace.find('span', class_='price')
-                    money_tag = precio_tag.find('span', class_='money') if precio_tag else None
-                    if not money_tag or not money_tag.get_text(strip=True):
-                        continue
-                    precio_texto = money_tag.get_text(strip=True)
-
-                    href = enlace['href'].split('?')[0]
-                    url_prod = href if href.startswith('http') else self.base_url + href
-
-                    if url_prod in urls_vistas:
-                        bucle_detectado = True
-                        break
-
-                    urls_vistas.add(url_prod)
-
-                    productos_extraidos.append({
-                        'nombre_original': nombre_prod,
-                        'precio': limpiar_precio(precio_texto),
-                        'url': url_prod,
-                        'imagen': url_imagen(card, self.base_url)
-                    })
-
-                if bucle_detectado:
-                    break
-                pagina += 1
-                time.sleep(2)
-
-            except Exception as e:
-                registrar_log(f"Error en LuffyToys (Pág {pagina}): {str(e)}")
-                raise
-
-        return productos_extraidos
+        try:
+            productos = ucp.buscar_catalogo(self.dominio, "gundam")
+        except Exception as e:
+            registrar_log(f"Error en LuffyToys (UCP): {e}")
+            raise
+        # Las etiquetas equivalen a la colección maqueta-armables/gundam que se leía antes (la búsqueda trae también figuras).
+        # La URL conserva el formato de esa colección para que cada kit siga en su misma publicación, con su historial.
+        return [ucp.a_publicacion(p, f"{self.base_url}/collections/maqueta-armables/products/{p['handle']}") for p in productos
+                if {"Maqueta Armable", "Gundam"} <= set(p.get("tags") or []) and ucp.disponible(p)]
