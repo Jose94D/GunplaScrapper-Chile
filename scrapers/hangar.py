@@ -48,7 +48,12 @@ class HangarScraper:
                         break 
                         
                     urls_vistas.add(url_prod)
-                    
+
+                    # El catálogo lista agotados con un aviso "Agotado" que solo se ve al pasar el mouse.
+                    # Va después de urls_vistas: una última página repetida solo con agotados debe cortar el bucle.
+                    if contenedor.find('span', class_='out-of-stock'):
+                        continue
+
                     productos_extraidos.append({
                         'nombre_original': nombre_prod,
                         'precio': limpiar_precio(precio_oferta),
