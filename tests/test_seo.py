@@ -60,6 +60,14 @@ class TestSeo(unittest.TestCase):
         self.assertEqual([(t["nombre"], t["es_mejor"], t["diferencia"]) for t in d["tiendas"]], [("B", True, None), ("A", False, "+$2.990")])
         self.assertEqual((d["tiendas_con_stock"], d["tiendas_total"], d["seguimiento_desde"]), (2, 2, "20/10/2026"))
 
+    def test_empate_en_el_mejor_precio_nombra_todas_las_tiendas(self):
+        execute_query("INSERT INTO tiendas (id, nombre) VALUES (2, 'B'), (3, 'C')", commit=True)
+        execute_query("INSERT INTO publicacion_producto (id, producto_id, tienda_id, url, precio, es_url_activa) VALUES (2, 45, 2, 'v', 27990, 1), (3, 45, 3, 'w', 27990, 1)", commit=True)
+        execute_query("INSERT INTO historial_precios (publicacion_producto_id, precio, fecha_registro) VALUES (2, 27990, '2026-10-28 12:00:00'), (3, 27990, '2026-10-28 12:00:00')", commit=True)
+        html = self.cliente.get("/producto/45-gfred-hg").get_data(as_text=True)
+        self.assertIn("en <strong>A</strong>, <strong>B</strong> y <strong>C</strong>", html)
+        self.assertEqual(html.count("Ver en "), 3)
+
     def test_url_sin_nombre_redirige_conservando_filtros(self):
         for ruta in ("/producto/45", "/producto/45-nombre-viejo"):
             r = self.cliente.get(ruta, query_string={"q": "gfred", "page": 2})

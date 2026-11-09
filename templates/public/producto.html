@@ -60,12 +60,14 @@
         </div>
 
         <div class="panel ficha-precio">
+            {# Si varias tiendas empatan en el mejor precio, se nombran todas y cada una tiene su botón #}
+            {% set mejores = tiendas|selectattr('es_mejor')|list %}
             {% if mejor_precio %}
             <div class="d-flex flex-wrap justify-content-between align-items-end gap-3">
                 <div>
                     <p class="texto-tenue small mb-0">Mejor precio hoy</p>
                     <p class="precio-grande mb-0">{{ mejor_precio }}</p>
-                    <p class="texto-suave mb-0">en <strong>{{ ficha.mejor_tienda }}</strong>{% if ficha.ahorro %} · {{ ficha.ahorro }} menos que la tienda más cara{% endif %}</p>
+                    <p class="texto-suave mb-0">en {% for t in mejores %}{% if not loop.first %}{{ ' y ' if loop.last else ', ' }}{% endif %}<strong>{{ t.nombre }}</strong>{% endfor %}{% if ficha.ahorro %} · {{ ficha.ahorro }} menos que la tienda más cara{% endif %}</p>
                 </div>
                 {% if ficha.minimo_historico or ficha.baja_pct %}
                 <div class="d-flex flex-wrap gap-2">
@@ -75,11 +77,11 @@
                 {% endif %}
             </div>
             <div class="d-flex flex-wrap gap-2">
-                {% for t in tiendas if t.es_mejor and t.url %}{% if loop.first %}
+                {% for t in mejores if t.url %}
                 <a href="{{ t.url }}" class="btn boton-acento boton-alto" target="_blank" rel="noopener">
                     Ver en {{ t.nombre }}
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="M7 17 17 7M9 7h8v8"/></svg>
-                </a>{% endif %}{% endfor %}
+                </a>{% endfor %}
                 <button type="button" class="btn boton-borde boton-alto" id="copiar-enlace">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M10 14a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1 1M14 10a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1-1"/></svg>
                     <span>Copiar enlace</span>
