@@ -47,13 +47,28 @@ NOMBRES_GRADO = {'HG': 'High Grade', 'MG': 'Master Grade', 'RG': 'Real Grade', '
                  'PG': 'Perfect Grade', 'FM': 'Full Mechanics', 'S/G': 'Sin grado'}
 
 
-def resumen_inicio(busqueda=''):
+def resumen_inicio(busqueda='', tienda=''):
     """Cifras de la cabecera del inicio: {'total', 'por_grado': [(grado, cantidad), ...], 'tiendas'}. Cuenta lo mismo que el catálogo público:
-    con `busqueda`, solo los kits cuyo nombre la contiene (los contadores de los filtros por grado)."""
-    conteo = dict(execute_query("SELECT grado, COUNT(*) FROM productos WHERE es_visible = 1 AND disponible = 1 AND nombre_estandar LIKE ? GROUP BY grado",
-                                (f"%{busqueda}%",), fetchall=True))
+    con `busqueda` o `tienda`, solo los kits que coinciden (los contadores de los filtros por grado)."""
+    conteo = dict(execute_query(f"SELECT grado, COUNT(*) FROM productos p WHERE es_visible = 1 AND disponible = 1 AND nombre_estandar LIKE ?"
+                                f"{EN_TIENDA if tienda else ''} GROUP BY grado",
+                                (f"%{busqueda}%",) + ((tienda,) if tienda else ()), fetchall=True))
     tiendas = execute_query("SELECT COUNT(*) FROM tiendas WHERE es_activa = 1", fetchone=True)[0]
     return {"total": sum(conteo.values()), "por_grado": [(g, conteo[g]) for g in GRADOS if conteo.get(g)], "tiendas": tiendas}
+
+
+# El kit está hoy en esa tienda (por nombre, el mismo que muestra la ficha)
+EN_TIENDA = """ AND EXISTS (SELECT 1 FROM publicacion_producto x JOIN tiendas xt ON xt.id = x.tienda_id
+                 WHERE x.producto_id = p.id AND x.es_url_activa = 1 AND xt.nombre = ?)"""
+
+
+def tiendas_con_stock():
+    """Nombres de las tiendas con al menos un kit en el catálogo público, para el filtro del inicio."""
+    return [f[0] for f in execute_query("""
+            SELECT DISTINCT t.nombre FROM tiendas t
+            JOIN publicacion_producto pp ON pp.tienda_id = t.id AND pp.es_url_activa = 1
+            JOIN productos p ON p.id = pp.producto_id AND p.es_visible = 1 AND p.disponible = 1
+            ORDER BY t.nombre COLLATE NOCASE""", fetchall=True)]
 
 
 def contar_sin_imagen():
@@ -66,11 +81,11 @@ def listar_catalogo_completo():
     return execute_query("SELECT id, nombre_estandar, grado FROM productos ORDER BY nombre_estandar ASC, id ASC", fetchall=True)
 
 
-def listar_catalogo_publico(busqueda='', grado='', orden='price_asc', pagina=1, por_pagina=24):
+def listar_catalogo_publico(busqueda='', grado='', orden='price_asc', pagina=1, por_pagina=24, tienda=''):
     """
     Productos visibles y disponibles para el inicio.
     Retorna ([(id, nombre, grado, precio_texto, imagen, tiendas), ...], total_paginas); imagen es la ruta dentro de static/ o None
-    y tiendas es cuántas lo tienen hoy.
+    y tiendas es cuántas lo tienen hoy. Con `tienda`, solo sus kits y con el precio de esa tienda.
     """
     # Mejor precio actual: el más bajo entre las tiendas que hoy lo tienen (misma regla que el panel).
     # Antes era el MIN de todo el historial, que mostraba precios viejos o de tiendas que ya no lo venden.
@@ -79,11 +94,12 @@ def listar_catalogo_publico(busqueda='', grado='', orden='price_asc', pagina=1, 
                 p.id,
                 p.nombre_estandar,
                 p.grado,
-                MIN(pp.precio) as precio_min_int,
+                MIN(CASE WHEN ? = '' OR t.nombre = ? THEN pp.precio END) as precio_min_int,
                 p.imagen_producto,
                 COUNT(DISTINCT pp.tienda_id) as tiendas
             FROM productos p
             LEFT JOIN publicacion_producto pp ON p.id = pp.producto_id AND pp.es_url_activa = 1
+            LEFT JOIN tiendas t ON t.id = pp.tienda_id
         """
 
     # Filtramos por visibilidad Y por disponibilidad: los productos "No disponible"
@@ -100,6 +116,9 @@ def listar_catalogo_publico(busqueda='', grado='', orden='price_asc', pagina=1, 
         params.append(grado)
 
     where_clause = " WHERE " + " AND ".join(where_conditions)
+    if tienda:
+        where_clause += EN_TIENDA
+        params.append(tienda)
     group_by_clause = " GROUP BY p.id, p.nombre_estandar, p.grado"
 
     if orden in ['price_asc', 'asc']: order_clause = " ORDER BY precio_min_int ASC"
@@ -117,7 +136,7 @@ def listar_catalogo_publico(busqueda='', grado='', orden='price_asc', pagina=1, 
     total_paginas = max(1, math.ceil(total_items / por_pagina))
 
     final_query = f"{query_select} {where_clause} {group_by_clause} {order_clause} LIMIT ? OFFSET ?"
-    params.extend([por_pagina, (pagina - 1) * por_pagina])
+    params = [tienda, tienda] + params + [por_pagina, (pagina - 1) * por_pagina]
     filas = execute_query(final_query, tuple(params), fetchall=True)
 
     return [(f[0], f[1], f[2], formatear_precio(f[3]), f[4], f[5]) for f in filas], total_paginas

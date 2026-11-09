@@ -1,9 +1,9 @@
 {% extends "base.html" %}
 {% from "public/_sin_imagen.html" import sin_imagen %}
 
-{# Enlace al inicio conservando búsqueda, grado, orden y cantidad; url_for omite los valores None #}
+{# Enlace al inicio conservando búsqueda, grado, tienda, orden y cantidad; url_for omite los valores None #}
 {% macro enlace(page=1, grado=grado_filtro, ancla='#catalogo') -%}
-{{ url_for('inicio_bp.index', q=search_query or None, grado=grado or None, sort=sort_order, per_page=per_page, page=page if page > 1 else None) }}{{ ancla }}
+{{ url_for('inicio_bp.index', q=search_query or None, grado=grado or None, tienda=tienda_filtro or None, sort=sort_order, per_page=per_page, page=page if page > 1 else None) }}{{ ancla }}
 {%- endmacro %}
 
 {% block banner %}
@@ -71,16 +71,17 @@
 
 <form action="{{ url_for('inicio_bp.index') }}#catalogo" method="GET" class="buscador" role="search">
     {% if grado_filtro %}<input type="hidden" name="grado" value="{{ grado_filtro }}">{% endif %}
+    {% if tienda_filtro %}<input type="hidden" name="tienda" value="{{ tienda_filtro }}">{% endif %}
     <input type="hidden" name="sort" value="{{ sort_order }}">
     <input type="hidden" name="per_page" value="{{ per_page }}">
     <label for="buscar" class="visually-hidden">Buscar maqueta</label>
     <input id="buscar" type="search" name="q" class="form-control" placeholder="Busca un modelo: Exia, Strike Freedom, Zaku…" value="{{ search_query }}">
     <button type="submit" class="btn boton-acento">Buscar</button>
-    {% if search_query %}<a href="{{ url_for('inicio_bp.index', grado=grado_filtro or None, sort=sort_order, per_page=per_page) }}#catalogo" class="btn boton-borde d-inline-flex align-items-center">Limpiar</a>{% endif %}
+    {% if search_query %}<a href="{{ url_for('inicio_bp.index', grado=grado_filtro or None, tienda=tienda_filtro or None, sort=sort_order, per_page=per_page) }}#catalogo" class="btn boton-borde d-inline-flex align-items-center">Limpiar</a>{% endif %}
 </form>
-{% if search_query %}
+{% if search_query or tienda_filtro %}
 {% set encontrados = dict(filtros.por_grado).get(grado_filtro, 0) if grado_filtro else filtros.total %}
-<p class="resultados-busqueda" role="status"><strong class="mono">{{ encontrados }}</strong> {{ 'resultado' if encontrados == 1 else 'resultados' }} para «{{ search_query }}»{% if grado_filtro %} en {{ grado_filtro }}{% endif %}</p>
+<p class="resultados-busqueda" role="status"><strong class="mono">{{ encontrados }}</strong> {{ 'resultado' if encontrados == 1 else 'resultados' }}{% if search_query %} para «{{ search_query }}»{% endif %}{% if grado_filtro %} en {{ grado_filtro }}{% endif %}{% if tienda_filtro %} en {{ tienda_filtro }}{% endif %}</p>
 {% endif %}
 
 <section id="catalogo" class="barra-filtros" aria-label="Filtros">
@@ -103,7 +104,12 @@
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="4" y="5" width="4" height="4" rx="1"/><rect x="4" y="15" width="4" height="4" rx="1"/><path d="M11 7h9M11 17h9"/></svg>
             </button>
         </div>
-        <label for="sort">Ordenar</label>
+        <label for="tienda" class="visually-hidden">Tienda</label>
+        <select name="tienda" id="tienda" class="form-select" data-autoenviar>
+            <option value="">Todas las tiendas</option>
+            {% for t in tiendas_filtro %}<option value="{{ t }}" {% if tienda_filtro == t %}selected{% endif %}>{{ t }}</option>{% endfor %}
+        </select>
+        <label for="sort" class="visually-hidden">Ordenar</label>
         <select name="sort" id="sort" class="form-select" data-autoenviar>
             <option value="price_asc" {% if sort_order in ['price_asc', 'asc'] %}selected{% endif %}>Menor precio</option>
             <option value="price_desc" {% if sort_order in ['price_desc', 'desc'] %}selected{% endif %}>Mayor precio</option>
@@ -122,7 +128,7 @@
     {% for id, nombre, grado, precio, imagen, tiendas in datos %}
     {% set ind = indicadores.get(id, {}) %}
     {% set sellos %}{% if ind.minimo_historico %}<span class="sello sello-chico">Mínimo histórico</span>{% endif %}{% if ind.baja_pct %}<span class="sello-baja">↓ {{ ind.baja_pct }} %<span class="visually-hidden"> en los últimos días</span></span>{% endif %}{% endset %}
-    <a href="{{ url_for('producto_bp.ver_grafico', id=id, slug=nombre|slug, q=search_query, grado=grado_filtro, sort=sort_order, per_page=per_page, page=page) }}" class="tarjeta">
+    <a href="{{ url_for('producto_bp.ver_grafico', id=id, slug=nombre|slug, q=search_query, grado=grado_filtro, tienda=tienda_filtro, sort=sort_order, per_page=per_page, page=page) }}" class="tarjeta">
         <div class="tarjeta-foto">
             {% if imagen %}<img src="{{ url_for('static', filename=imagen) }}" alt="" width="240" height="240" loading="lazy">
             {% else %}{{ sin_imagen() }}{% endif %}
@@ -134,7 +140,7 @@
             {% if sellos %}<span class="tarjeta-sellos sellos-lista">{{ sellos }}</span>{% endif %}
             <h3 class="tarjeta-nombre">{{ nombre }}</h3>
             <div class="tarjeta-pie">
-                <span class="tiendas">en {{ tiendas }} {{ 'tienda' if tiendas == 1 else 'tiendas' }}</span>
+                <span class="tiendas">{% if tienda_filtro %}en {{ tienda_filtro }}{% else %}en {{ tiendas }} {{ 'tienda' if tiendas == 1 else 'tiendas' }}{% endif %}</span>
                 <span class="precio">{{ precio }}</span>
             </div>
         </div>

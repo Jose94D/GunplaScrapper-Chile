@@ -130,6 +130,23 @@ class TestSeo(unittest.TestCase):
         self.assertEqual(re.sub(r"<[^>]+>", "", contador(q="zaku", grado="MG").group(1)), "1 resultado para «zaku» en MG")
         self.assertIn("&lt;b&gt;", contador(q="<b>").group(1))
 
+    def test_filtro_por_tienda(self):
+        execute_query("INSERT INTO tiendas (id, nombre) VALUES (2, 'B'), (3, 'Sin stock')", commit=True)
+        execute_query("INSERT INTO productos (id, nombre_estandar, grado, es_visible, disponible) VALUES (47, 'ZAKU II MG', 'MG', 1, 1)", commit=True)
+        execute_query("""INSERT INTO publicacion_producto (id, producto_id, tienda_id, url, precio, es_url_activa) VALUES
+                         (2, 45, 2, 'v', 30000, 1), (3, 47, 2, 'w', 40000, 1), (4, 47, 3, 'x', 1000, 0)""", commit=True)
+        html = lambda **q: self.cliente.get("/", query_string=q).get_data(as_text=True)
+        precios = lambda **q: re.findall(r'<span class="precio">(.*?)</span>', html(**q))
+        self.assertEqual(re.findall(r'<option value="([^"]+)"', html().split('id="tienda"')[1].split("</select>")[0]), ["A", "B"])
+        self.assertEqual(precios(), ["$27.990", "$40.000"])  # sin filtro: el mejor precio entre todas
+        self.assertEqual(precios(tienda="A"), ["$27.990"])
+        self.assertEqual(precios(tienda="B"), ["$30.000", "$40.000"])  # el precio de esa tienda, no el mejor
+        self.assertIn("en B</span>", html(tienda="B"))
+        self.assertIn('MG <span>1</span>', html(tienda="B"))
+        self.assertNotIn('MG <span>1</span>', html(tienda="A"))
+        self.assertIn("tienda=B", html(tienda="B").split('class="catalogo"')[1])  # la ficha recuerda el filtro
+        self.assertEqual(precios(tienda="Sin stock"), precios())  # tienda sin stock o inventada: se ignora
+
     def test_el_inicio_enlaza_a_la_url_con_nombre(self):
         self.assertIn('/producto/45-gfred-hg?', self.cliente.get("/").get_data(as_text=True))
 

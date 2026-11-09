@@ -26,6 +26,10 @@ def crear_blueprint_inicio():
         grado_filtro = request.args.get('grado', '')
         if grado_filtro == 'Todos':
             grado_filtro = ''
+        tiendas_filtro = catalogo.tiendas_con_stock()
+        tienda_filtro = request.args.get('tienda', '')
+        if tienda_filtro not in tiendas_filtro:  # nombre desconocido o tienda sin stock: se ignora
+            tienda_filtro = ''
         sort_order = request.args.get('sort', 'price_asc')
         page = request.args.get('page', 1, type=int)
         per_page = catalogo.por_pagina_valida(request.args.get('per_page', 24, type=int))
@@ -34,18 +38,20 @@ def crear_blueprint_inicio():
         carrusel_imgs = [(nombre, enlace) for _, nombre, enlace in carrusel.listar_imagenes()]
 
         # --- C. Catálogo filtrado, ordenado y paginado ---
-        datos, total_pages = catalogo.listar_catalogo_publico(search_query, grado_filtro, sort_order, page, per_page)
+        datos, total_pages = catalogo.listar_catalogo_publico(search_query, grado_filtro, sort_order, page, per_page, tienda_filtro)
 
         # Los escaneos programados son a las 00:00 y 12:00
         proximo_escaneo = "12:00" if datetime.now().hour < 12 else "00:00"
 
-        indicadores = catalogo.indicadores_precio([fila[0] for fila in datos])
+        # Los sellos hablan del mejor precio entre todas las tiendas: con una tienda elegida, la tarjeta muestra el de esa tienda
+        indicadores = {} if tienda_filtro else catalogo.indicadores_precio([fila[0] for fila in datos])
 
         return render_template('public/inicio.html', datos=datos, indicadores=indicadores, carrusel_imgs=carrusel_imgs,
                                search_query=search_query, grado_filtro=grado_filtro,
+                               tienda_filtro=tienda_filtro, tiendas_filtro=tiendas_filtro,
                                sort_order=sort_order, page=page, per_page=per_page,
                                total_pages=total_pages, resumen=catalogo.resumen_inicio(), proximo_escaneo=proximo_escaneo,
-                               filtros=catalogo.resumen_inicio(search_query))
+                               filtros=catalogo.resumen_inicio(search_query, tienda_filtro))
 
     @inicio_bp.route('/visita', methods=['POST'])
     def registrar_visita():
@@ -85,6 +91,7 @@ def crear_blueprint_producto():
         # --- A. Mantener parámetros ---
         q = request.args.get('q', '')
         grado = request.args.get('grado', '')
+        tienda = request.args.get('tienda', '')
         sort = request.args.get('sort', '')
         per_page = request.args.get('per_page', '')
         page = request.args.get('page', '')
@@ -114,6 +121,7 @@ def crear_blueprint_producto():
                                datasets_json=json.dumps(detalle["datasets"]),
                                q=q,
                                grado=grado,
+                               tienda=tienda,
                                sort=sort,
                                per_page=per_page,
                                page=page)

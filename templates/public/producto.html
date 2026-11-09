@@ -38,7 +38,7 @@
 {% endblock %}
 
 {% block content %}
-{% set volver = url_for('inicio_bp.index', q=q or None, grado=grado or None, sort=sort or None, per_page=per_page or None, page=page or None) ~ '#catalogo' %}
+{% set volver = url_for('inicio_bp.index', q=q or None, grado=grado or None, tienda=tienda or None, sort=sort or None, per_page=per_page or None, page=page or None) ~ '#catalogo' %}
 <nav aria-label="Ruta" class="ruta">
     <a href="{{ volver }}">Catálogo</a><span aria-hidden="true">/</span>
     <a href="{{ url_for('inicio_bp.index', grado=ficha.grado) }}#catalogo">{{ ficha.nombre_grado }}</a><span aria-hidden="true">/</span>
