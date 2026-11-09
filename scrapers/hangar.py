@@ -51,7 +51,8 @@ class HangarScraper:
 
                     # El catálogo lista agotados con un aviso "Agotado" que solo se ve al pasar el mouse.
                     # Va después de urls_vistas: una última página repetida solo con agotados debe cortar el bucle.
-                    if contenedor.find('span', class_='out-of-stock'):
+                    # Ese aviso es solo de la tienda online: si alguna sucursal lo tiene, sigue disponible.
+                    if contenedor.find('span', class_='out-of-stock') and not self.disponible_en_sucursal(url_prod):
                         continue
 
                     productos_extraidos.append({
@@ -71,3 +72,14 @@ class HangarScraper:
                 raise 
 
         return productos_extraidos
+
+    def disponible_en_sucursal(self, url):
+        """La ficha del producto dice "Disponible" o "Agotado" por tienda online y por cada sucursal física."""
+        time.sleep(1)
+        res = pedir(url, headers=self.headers)
+        if res.status_code == 404:  # el listado aún muestra algunos productos cuya ficha ya no existe
+            return False
+        res.raise_for_status()
+        soup = BeautifulSoup(res.text, 'html.parser')
+        return any(s.get_text(strip=True).lower() == 'disponible'
+                   for s in soup.find_all('span', class_='product_stocks_by_shop_content'))

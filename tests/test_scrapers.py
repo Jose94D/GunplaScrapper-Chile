@@ -39,6 +39,7 @@ class TestScrapers(unittest.TestCase):
         with mock.patch.object(modulo, "pedir", pedir), mock.patch.object(modulo.time, "sleep"), \
                 mock.patch("core.logger.execute_query"):
             scraper = getattr(modulo, SCRAPERS[tienda])()
+            scraper.disponible_en_sucursal = lambda url: False  # Hangar: sin fichas guardadas, sus agotados quedan fuera
             return scraper.extraer_datos(), pedidas
 
     def test_cada_tienda(self):
@@ -91,6 +92,33 @@ class TestScrapers(unittest.TestCase):
             productos = modulo.HobbyToysScraper().extraer_datos()
         self.assertEqual([p["nombre_original"] for p in productos], ["con-stock"])
         self.assertEqual(len(paginas), 1)
+
+    def test_hangar_conserva_agotados_online_con_stock_en_sucursal(self):
+        import scrapers.hangar as modulo
+
+        def tarjeta(nombre, agotado):
+            aviso = '<span class="availability"><span class="out-of-stock">Agotado</span></span>' if agotado else ''
+            return f"""<div class="product-container">{aviso}<a class="product-name" href="https://www.hangar019.cl/{nombre}.html">{nombre}</a>
+                <span class="price product-price">$ 14.990</span></div>"""
+
+        def ficha(*estados):
+            return "".join(f"<div class='shop_block'><span class='product_stocks_by_shop_label'>Tienda:</span>"
+                           f"<span class='product_stocks_by_shop_content'> {e} </span></div>" for e in estados)
+
+        respuestas = {"https://www.hangar019.cl/8-gunpla?p=1": tarjeta("online", False) + tarjeta("sucursal", True) + tarjeta("ninguna", True),
+                      "https://www.hangar019.cl/8-gunpla?p=2": "",
+                      "https://www.hangar019.cl/sucursal.html": ficha("Agotado", "Disponible"),
+                      "https://www.hangar019.cl/ninguna.html": ficha("Agotado", "Agotado")}
+        pedidas = []
+
+        def pedir(url, *a, **k):
+            pedidas.append(url)
+            return Respuesta(f"<html><body>{respuestas[url]}</body></html>")
+
+        with mock.patch.object(modulo, "pedir", pedir), mock.patch.object(modulo.time, "sleep"), mock.patch("core.logger.execute_query"):
+            productos = modulo.HangarScraper().extraer_datos()
+        self.assertEqual([p["nombre_original"] for p in productos], ["online", "sucursal"])
+        self.assertNotIn("https://www.hangar019.cl/online.html", pedidas)  # con stock online no abre la ficha
 
 
 class RespuestaUcp:

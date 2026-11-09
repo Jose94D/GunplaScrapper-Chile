@@ -64,7 +64,7 @@ Reglas que siguen todos:
 
 | Tienda | Archivo | Plataforma | Catálogo que recorre | Particularidades |
 |---|---|---|---|---|
-| Hangar019 | `hangar.py` | PrestaShop | `/8-gunpla?p=N` | Descarta los que traen el aviso oculto "Agotado" (`span.out-of-stock`). |
+| Hangar019 | `hangar.py` | PrestaShop | `/8-gunpla?p=N` | El aviso oculto "Agotado" (`span.out-of-stock`) es solo de la tienda online: para esos abre la ficha y conserva el kit si alguna sucursal dice "Disponible" (`product_stocks_by_shop_content`). Son ~80 fichas, así que el escaneo de Hangar tarda unos 3 minutos. |
 | Blaster Chile | `blaster.py` | Shopify (UCP) | `search_catalog` con una consulta por grado (HG, MG, RG, SD), solo con stock | Lee por UCP. Junta varias consultas porque la búsqueda no es un listado exhaustivo; filtra kits Gundam de Bandai. |
 | ChileRobots | `chilerobots.py` | PrestaShop | `/10-gundam?page=N` | Si el nombre visible viene truncado (`...`), lo reconstruye desde la URL (`reconstruir_nombre_desde_url`). |
 | Irion | `irion.py` | Shopify (UCP) | `search_catalog` con "gundam", etiqueta GUNDAM y marca Bandai | Lee por UCP (ver abajo). Descarta los agotados. |
