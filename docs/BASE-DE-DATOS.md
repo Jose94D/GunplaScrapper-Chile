@@ -1,6 +1,6 @@
 # Base de datos
 
-SQLite en un solo archivo, `precios_comunidad.db` (nombre definido en `config.py`). Las 9 tablas se crean al iniciar la app con `init_db()` en `core/database.py`, solo si no existen. Las claves foráneas están activas en cada conexión (`PRAGMA foreign_keys = ON`).
+SQLite en un solo archivo, `precios_comunidad.db` (nombre definido en `config.py`). Las 11 tablas se crean al iniciar la app con `init_db()` en `core/database.py`, solo si no existen. Las claves foráneas están activas en cada conexión (`PRAGMA foreign_keys = ON`).
 
 ## Diagrama
 
@@ -57,7 +57,7 @@ erDiagram
     }
 ```
 
-Tablas sin relaciones: `banners`, `visitas_diarias` y `logs`.
+Tablas sin relaciones: `banners`, `visitas_diarias`, `logs`, `duplicados_descartados` y `productos_fusionados`.
 
 ## Catálogo
 
@@ -176,6 +176,26 @@ Reemplaza a `visitas_mensuales`, que se inflaba con los bots: las bases antiguas
 | `nivel` | TEXT | `INFO` por defecto; por ahora no se usan otros niveles. |
 
 Se escribe con `registrar_log()` (`core/logger.py`), que además imprime el mensaje en la consola. Registra inicios de sesión, acciones del panel y cada etapa del scraping. El panel muestra los últimos eventos.
+
+### `duplicados_descartados`
+
+| Columna | Tipo | Descripción |
+|---|---|---|
+| `id_a` | INTEGER PK, FK → `productos.id` | |
+| `id_b` | INTEGER PK, FK → `productos.id` | |
+
+Pares que el administrador marcó como "No son el mismo": no se vuelven a sugerir como posibles duplicados.
+
+### `productos_fusionados`
+
+| Columna | Tipo | Descripción |
+|---|---|---|
+| `id_antiguo` | INTEGER PK | Producto que desapareció al fusionarse. |
+| `id_nuevo` | INTEGER | Producto que lo absorbió. |
+
+La ficha `/producto/<id_antiguo>` redirige con 301 a la del producto nuevo, conservando los filtros: Google y los enlaces ya compartidos siguen llegando al kit en vez de a un 404. Al fusionar, las filas que apuntaban al duplicado pasan a apuntar al principal, así nunca hay cadenas de redirecciones. Si se elimina el producto nuevo, sus filas se borran y esas fichas pasan a 404. Sin clave foránea, porque el destino puede volver a fusionarse.
+
+Las fusiones anteriores a esta tabla se recuperan una vez, al iniciar la app, desde los eventos "Fusión exitosa" de `logs`, que se conservan 90 días.
 
 ## Procesos que modifican los datos
 

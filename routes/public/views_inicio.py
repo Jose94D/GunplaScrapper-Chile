@@ -4,7 +4,7 @@ from datetime import datetime
 from flask import Blueprint, Response, abort, current_app, redirect, render_template, request, session, url_for
 from markupsafe import escape
 
-from core import carrusel, catalogo, visitas
+from core import carrusel, catalogo, productos, visitas
 
 COOKIE_VISITANTE = 'visitante'
 
@@ -92,6 +92,10 @@ def crear_blueprint_producto():
         # --- B. Datos de la ficha y del gráfico ---
         detalle = catalogo.detalle_producto(id)
         if not detalle:
+            # Un duplicado fusionado sigue llevando al kit que lo absorbió (301: Google traspasa la página)
+            destino = productos.destino_fusion(id)
+            if destino:
+                return redirect(url_for('producto_bp.ver_grafico', id=destino[0], slug=catalogo.slug(destino[1]), **request.args), 301)
             abort(404)
 
         # Una sola URL por producto (/producto/45-gfred-hg): la sin nombre o con nombre viejo redirige, sin perder los filtros

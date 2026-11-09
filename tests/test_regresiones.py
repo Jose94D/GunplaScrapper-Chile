@@ -60,9 +60,10 @@ class PanelTemporal(BaseTemporal):
         app.register_blueprint(crear_blueprint_admin(getattr(self, "manager", None)))
         app.register_blueprint(crear_blueprint_admin_login("admin", "clave"))
         from routes.public.views_institucional import crear_blueprint_institucional
-        from routes.public.views_inicio import crear_blueprint_inicio
+        from routes.public.views_inicio import crear_blueprint_inicio, crear_blueprint_producto
         app.register_blueprint(crear_blueprint_institucional())  # el footer enlaza a estas páginas
         app.register_blueprint(crear_blueprint_inicio())  # y el menú y el panel, al catálogo
+        app.register_blueprint(crear_blueprint_producto())
         from core.seguridad import proteger_csrf
         proteger_csrf(app)
         self.cliente = app.test_client()
@@ -91,6 +92,26 @@ class TestFusion(PanelTemporal):
         self.assertEqual(execute_query("SELECT id FROM productos", fetchall=True), [(1,)])
         self.assertEqual(execute_query("SELECT producto_id FROM publicacion_producto ORDER BY id", fetchall=True), [(1,), (1,)])
         self.assertEqual(execute_query("SELECT COUNT(*) FROM historial_precios", fetchone=True)[0], 1)
+
+    def test_la_ficha_del_duplicado_redirige_al_principal(self):
+        execute_query("INSERT INTO productos (id, nombre_estandar) VALUES (3, 'KYRIOS GUNDAM (VER 2) HG')", commit=True)
+        self.fusionar("2", "3")
+        self.fusionar("1", "2")  # 3 ya redirigía a 2: ahora va directo a 1, sin cadena de redirecciones
+        for viejo in ("/producto/2-gundam-kyrios-hg?q=kyrios", "/producto/3"):
+            r = self.cliente.get(viejo)
+            self.assertEqual((r.status_code, r.location.split("?")[0]), (301, "/producto/1-kyrios-gundam-hg"), viejo)
+        self.assertIn("q=kyrios", self.cliente.get("/producto/2?q=kyrios").location)
+        self.assertEqual(self.cliente.get("/producto/99").status_code, 404)
+        # Si después se elimina el principal, las fichas fusionadas en él pasan a 404 (no redirigen a otro 404)
+        self.post("/admin/producto/eliminar/1")
+        self.assertEqual(self.cliente.get("/producto/2").status_code, 404)
+
+    def test_fusiones_anteriores_se_recuperan_del_registro(self):
+        from core.database import init_db
+        execute_query("INSERT INTO logs (accion) VALUES ('Fusión exitosa: El producto 2 fue fusionado hacia 1')", commit=True)
+        execute_query("DELETE FROM productos WHERE id = 2", commit=True)
+        init_db()
+        self.assertEqual(self.cliente.get("/producto/2").status_code, 301)
 
     def test_ids_iguales_no_hace_nada(self):
         self.fusionar("1", "1")

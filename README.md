@@ -123,7 +123,7 @@ Cada tienda se evaluó contra su `robots.txt` antes de integrarla. Mirax, Top8, 
 
 ### Base de datos
 
-Versión simplificada con las tablas principales; el detalle de las 9 tablas, con sus columnas, está en [docs/BASE-DE-DATOS.md](docs/BASE-DE-DATOS.md).
+Versión simplificada con las tablas principales; el detalle de las 11 tablas, con sus columnas, está en [docs/BASE-DE-DATOS.md](docs/BASE-DE-DATOS.md).
 
 ```mermaid
 erDiagram

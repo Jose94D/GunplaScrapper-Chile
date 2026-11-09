@@ -1,3 +1,4 @@
+import re
 import sqlite3
 from contextlib import contextmanager
 from datetime import datetime
@@ -151,13 +152,30 @@ def init_db():
         FOREIGN KEY (id_b) REFERENCES productos(id) ON DELETE CASCADE
     )''')
 
+    # 9.2 Producto que desapareció al fusionarse → producto que lo absorbió: su ficha redirige ahí en vez de dar 404
+    # (Google y los enlaces compartidos siguen llegando al kit). Sin clave foránea: el destino puede fusionarse otra vez
+    c.execute('''CREATE TABLE IF NOT EXISTS productos_fusionados (
+        id_antiguo INTEGER PRIMARY KEY,
+        id_nuevo INTEGER NOT NULL
+    )''')
+
     # 10. Índices para las uniones y filtros que crecen con el historial (~350.000 filas por año):
     # con un año simulado, el panel pasa de ~240 a ~80 ms y la ficha de producto de ~65 a ~8 ms.
     c.execute("CREATE INDEX IF NOT EXISTS idx_publicacion_producto ON publicacion_producto(producto_id)")
     c.execute("CREATE INDEX IF NOT EXISTS idx_publicacion_tienda ON publicacion_producto(tienda_id)")
     c.execute("CREATE INDEX IF NOT EXISTS idx_historial_publicacion ON historial_precios(publicacion_producto_id, fecha_registro)")
     c.execute("CREATE INDEX IF NOT EXISTS idx_historial_fecha ON historial_precios(fecha_registro)")
-    
+
+    # Fusiones hechas antes de existir productos_fusionados: se recuperan del registro de eventos (dura 90 días),
+    # en orden, para que sus fichas también redirijan. Solo con la tabla vacía: después, cada fusión se guarda sola
+    if not c.execute("SELECT 1 FROM productos_fusionados LIMIT 1").fetchone():
+        for (accion,) in c.execute("SELECT accion FROM logs WHERE accion LIKE 'Fusión exitosa:%' ORDER BY id").fetchall():
+            ids = re.search(r"producto (\d+) fue fusionado hacia (\d+)", accion)
+            if ids:
+                antiguo, nuevo = int(ids[1]), int(ids[2])
+                c.execute("UPDATE productos_fusionados SET id_nuevo = ? WHERE id_nuevo = ?", (nuevo, antiguo))
+                c.execute("INSERT OR REPLACE INTO productos_fusionados (id_antiguo, id_nuevo) VALUES (?, ?)", (antiguo, nuevo))
+
     conn.commit()
     conn.close()
 

@@ -27,6 +27,12 @@ def alternar_visibilidad(id):
     return nuevo_estado
 
 
+def destino_fusion(id):
+    """(id, nombre) del producto que absorbió al `id` fusionado, o None si ese id nunca se fusionó."""
+    return execute_query("""SELECT p.id, p.nombre_estandar FROM productos_fusionados f JOIN productos p ON p.id = f.id_nuevo
+                            WHERE f.id_antiguo = ?""", (id,), fetchone=True)
+
+
 def eliminar_producto(id):
     """Borra el producto con sus publicaciones, historial e imagen, todo o nada."""
     fila = execute_query("SELECT imagen_producto FROM productos WHERE id = ?", (id,), fetchone=True)
@@ -34,6 +40,7 @@ def eliminar_producto(id):
         conn.execute("DELETE FROM historial_precios WHERE publicacion_producto_id IN (SELECT id FROM publicacion_producto WHERE producto_id = ?)", (id,))
         conn.execute("DELETE FROM publicacion_producto WHERE producto_id = ?", (id,))
         conn.execute("DELETE FROM productos WHERE id = ?", (id,))
+        conn.execute("DELETE FROM productos_fusionados WHERE id_nuevo = ?", (id,))  # sus fichas fusionadas pasan a 404
     if fila:
         borrar_archivo(fila[0])
     registrar_log(f"Producto eliminado completamente del catálogo ID: {id}")
@@ -51,6 +58,9 @@ def fusionar_productos(id_principal, id_duplicado):
             conn.execute("""UPDATE productos SET imagen_producto = (SELECT imagen_producto FROM productos WHERE id = ?)
                             WHERE id = ? AND (imagen_producto IS NULL OR imagen_producto = '')""", (id_duplicado, id_principal))
             conn.execute("DELETE FROM productos WHERE id = ?", (id_duplicado,))
+            # Su ficha redirige al principal, igual que las que ya redirigían al duplicado (sin cadenas de redirecciones)
+            conn.execute("UPDATE productos_fusionados SET id_nuevo = ? WHERE id_nuevo = ?", (id_principal, id_duplicado))
+            conn.execute("INSERT OR REPLACE INTO productos_fusionados (id_antiguo, id_nuevo) VALUES (?, ?)", (id_duplicado, id_principal))
         registrar_log(f"Fusión exitosa: El producto {id_duplicado} fue fusionado hacia {id_principal}")
         return True, "Productos fusionados exitosamente."
     except Exception as e:

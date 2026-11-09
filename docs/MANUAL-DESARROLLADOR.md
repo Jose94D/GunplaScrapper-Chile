@@ -330,7 +330,7 @@ sequenceDiagram
 
 ## 8. Modelo de datos
 
-Nueve tablas en SQLite. El detalle de columnas y procesos está en [BASE-DE-DATOS.md](BASE-DE-DATOS.md) con el diagrama de relaciones.
+Once tablas en SQLite. El detalle de columnas y procesos está en [BASE-DE-DATOS.md](BASE-DE-DATOS.md) con el diagrama de relaciones.
 
 ```mermaid
 erDiagram
