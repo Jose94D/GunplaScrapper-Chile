@@ -47,9 +47,11 @@ NOMBRES_GRADO = {'HG': 'High Grade', 'MG': 'Master Grade', 'RG': 'Real Grade', '
                  'PG': 'Perfect Grade', 'FM': 'Full Mechanics', 'S/G': 'Sin grado'}
 
 
-def resumen_inicio():
-    """Cifras de la cabecera del inicio: {'total', 'por_grado': [(grado, cantidad), ...], 'tiendas'}. Cuenta lo mismo que el catálogo público."""
-    conteo = dict(execute_query("SELECT grado, COUNT(*) FROM productos WHERE es_visible = 1 AND disponible = 1 GROUP BY grado", fetchall=True))
+def resumen_inicio(busqueda=''):
+    """Cifras de la cabecera del inicio: {'total', 'por_grado': [(grado, cantidad), ...], 'tiendas'}. Cuenta lo mismo que el catálogo público:
+    con `busqueda`, solo los kits cuyo nombre la contiene (los contadores de los filtros por grado)."""
+    conteo = dict(execute_query("SELECT grado, COUNT(*) FROM productos WHERE es_visible = 1 AND disponible = 1 AND nombre_estandar LIKE ? GROUP BY grado",
+                                (f"%{busqueda}%",), fetchall=True))
     tiendas = execute_query("SELECT COUNT(*) FROM tiendas WHERE es_activa = 1", fetchone=True)[0]
     return {"total": sum(conteo.values()), "por_grado": [(g, conteo[g]) for g in GRADOS if conteo.get(g)], "tiendas": tiendas}
 

@@ -44,7 +44,8 @@ def crear_blueprint_inicio():
         return render_template('public/inicio.html', datos=datos, indicadores=indicadores, carrusel_imgs=carrusel_imgs,
                                search_query=search_query, grado_filtro=grado_filtro,
                                sort_order=sort_order, page=page, per_page=per_page,
-                               total_pages=total_pages, resumen=catalogo.resumen_inicio(), proximo_escaneo=proximo_escaneo)
+                               total_pages=total_pages, resumen=catalogo.resumen_inicio(), proximo_escaneo=proximo_escaneo,
+                               filtros=catalogo.resumen_inicio(search_query))
 
     @inicio_bp.route('/visita', methods=['POST'])
     def registrar_visita():

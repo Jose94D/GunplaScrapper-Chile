@@ -81,9 +81,11 @@
 
 <section id="catalogo" class="barra-filtros" aria-label="Filtros">
     <nav class="chips" aria-label="Filtrar por grado">
-        <a href="{{ enlace(grado=None) }}" class="chip {% if not grado_filtro %}active{% endif %}" {% if not grado_filtro %}aria-current="true"{% endif %}>Todos <span>{{ resumen.total }}</span></a>
-        {% for g, cantidad in resumen.por_grado %}
-        <a href="{{ enlace(grado=g) }}" class="chip {% if grado_filtro == g %}active{% endif %}" {% if grado_filtro == g %}aria-current="true"{% endif %}>{{ g }} <span>{{ cantidad }}</span></a>
+        {# Los mismos grados de siempre, con la cantidad que coincide con la búsqueda (0 si no hay ninguno) #}
+        {% set conteo = dict(filtros.por_grado) %}
+        <a href="{{ enlace(grado=None) }}" class="chip {% if not grado_filtro %}active{% endif %}" {% if not grado_filtro %}aria-current="true"{% endif %}>Todos <span>{{ filtros.total }}</span></a>
+        {% for g, _ in resumen.por_grado %}
+        <a href="{{ enlace(grado=g) }}" class="chip {% if grado_filtro == g %}active{% endif %}" {% if grado_filtro == g %}aria-current="true"{% endif %}>{{ g }} <span>{{ conteo.get(g, 0) }}</span></a>
         {% endfor %}
     </nav>
     <form action="{{ url_for('inicio_bp.index') }}#catalogo" method="GET" class="controles">

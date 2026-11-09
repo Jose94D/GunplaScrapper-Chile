@@ -1,6 +1,7 @@
 """URLs con nombre, metadatos para compartir, sitemap.xml y robots.txt."""
 import importlib
 import os
+import re
 import sys
 import tempfile
 import unittest
@@ -110,6 +111,15 @@ class TestSeo(unittest.TestCase):
             self.assertIn('href="https://www.ejemplo.cl/faq"', r.get_data(as_text=True))
             # Un POST no se redirige (se perdería el formulario)
             self.assertNotEqual(self.cliente.post("/visita", base_url="http://ejemplo.cl", headers={"User-Agent": "Mozilla/5.0"}).status_code, 301)
+
+    def test_los_filtros_por_grado_cuentan_la_busqueda(self):
+        execute_query("""INSERT INTO productos (id, nombre_estandar, grado, es_visible, disponible) VALUES
+                         (47, 'ZAKU II HG', 'HG', 1, 1), (48, 'ZAKU II MG', 'MG', 1, 1), (49, 'EXIA MG', 'MG', 1, 1)""", commit=True)
+        chips = lambda q: re.findall(r'class="chip[^"]*"[^>]*>(\S+) <span>(\d+)</span>', self.cliente.get("/", query_string={"q": q}).get_data(as_text=True))
+        self.assertEqual(chips(""), [("Todos", "4"), ("HG", "2"), ("MG", "2")])
+        self.assertEqual(chips("zaku"), [("Todos", "2"), ("HG", "1"), ("MG", "1")])
+        self.assertEqual(chips("exia"), [("Todos", "1"), ("HG", "0"), ("MG", "1")])  # el grado sin resultados queda con 0
+        self.assertIn("<dd>4</dd>", self.cliente.get("/?q=exia").get_data(as_text=True))  # la cabecera sigue contando todo
 
     def test_el_inicio_enlaza_a_la_url_con_nombre(self):
         self.assertIn('/producto/45-gfred-hg?', self.cliente.get("/").get_data(as_text=True))
