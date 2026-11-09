@@ -89,6 +89,9 @@ class TestSeo(unittest.TestCase):
         self.assertEqual(html.count('rel="canonical"'), 1)
         self.assertIn('"lowPrice": 27990', html)  # datos de Google: precio como número, no "$27.990"
         self.assertIn('"priceCurrency": "CLP"', html)
+        # Sin stock no hay oferta: Google rechaza un Product sin "offers", así que no se declara
+        execute_query("UPDATE publicacion_producto SET es_url_activa = 0", commit=True)
+        self.assertNotIn('"@type": "Product"', self.cliente.get("/producto/45-gfred-hg").get_data(as_text=True))
 
     def test_paginas_con_imagen_y_descripcion_propias(self):
         html = self.cliente.get("/faq").get_data(as_text=True)
@@ -120,6 +123,12 @@ class TestSeo(unittest.TestCase):
         self.assertEqual(chips("zaku"), [("Todos", "2"), ("HG", "1"), ("MG", "1")])
         self.assertEqual(chips("exia"), [("Todos", "1"), ("HG", "0"), ("MG", "1")])  # el grado sin resultados queda con 0
         self.assertIn("<dd>4</dd>", self.cliente.get("/?q=exia").get_data(as_text=True))  # la cabecera sigue contando todo
+        # Contador de resultados bajo el buscador: solo al buscar, con el grado elegido y la búsqueda escapada
+        contador = lambda **q: re.search(r'class="resultados-busqueda"[^>]*>(.*?)</p>', self.cliente.get("/", query_string=q).get_data(as_text=True))
+        self.assertIsNone(contador())
+        self.assertEqual(re.sub(r"<[^>]+>", "", contador(q="zaku").group(1)), "2 resultados para «zaku»")
+        self.assertEqual(re.sub(r"<[^>]+>", "", contador(q="zaku", grado="MG").group(1)), "1 resultado para «zaku» en MG")
+        self.assertIn("&lt;b&gt;", contador(q="<b>").group(1))
 
     def test_el_inicio_enlaza_a_la_url_con_nombre(self):
         self.assertIn('/producto/45-gfred-hg?', self.cliente.get("/").get_data(as_text=True))

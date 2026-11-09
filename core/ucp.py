@@ -16,12 +16,14 @@ POR_PAGINA = 50
 MAX_PAGINAS = 40  # tope de seguridad: una paginación que nunca termina no deja el escaneo pegado
 
 
-def buscar_catalogo(dominio, consulta):
+def buscar_catalogo(dominio, consulta, filtros=None):
     """Todos los productos que devuelve search_catalog para `consulta`, recorriendo sus páginas.
     Lanza una excepción ante cualquier error: un scraper nunca debe devolver un catálogo a medias."""
     productos, cursor, cursores_vistos = [], None, set()
     for _ in range(MAX_PAGINAS):
         catalogo = {"query": consulta, "context": {"address_country": "CL", "currency": "CLP"}, "pagination": {"limit": POR_PAGINA}}
+        if filtros:  # p. ej. {"available": True}: Shopify corta la búsqueda en 1000 resultados, filtrar en origen la achica
+            catalogo["filters"] = filtros
         if cursor:
             catalogo["pagination"]["cursor"] = cursor
         res = pedir(f"https://{dominio}/api/ucp/mcp", headers={"Accept": "application/json"}, json={
@@ -33,13 +35,15 @@ def buscar_catalogo(dominio, consulta):
             res.raise_for_status()
             raise
         if "error" in datos:  # p. ej. el perfil no se pudo leer: Shopify lo explica en data.content
-            raise RuntimeError(f"UCP {res.status_code}: {datos['error'].get('message')} ({(datos['error'].get('data') or {}).get('content')})")
+            raise RuntimeError(f"UCP {res.status_code}: {json.dumps(datos['error'], ensure_ascii=False)[:300]}")
         res.raise_for_status()
         resultado = datos["result"]
         if resultado.get("isError"):
             raise RuntimeError(f"UCP: {json.dumps(resultado, ensure_ascii=False)[:300]}")
         pagina = resultado.get("structuredContent") or json.loads(resultado["content"][0]["text"])
-        productos += pagina.get("products", [])
+        for p in pagina.get("products", []):
+            p.setdefault("url", f"https://{dominio}/products/{p['handle']}")  # algunos productos vienen sin url
+            productos.append(p)
         paginacion = pagina.get("pagination") or {}
         cursor = paginacion.get("cursor")
         if not paginacion.get("has_next_page") or not cursor or cursor in cursores_vistos:

@@ -101,7 +101,7 @@ Consecuencias prácticas:
 | Servidor | Waitress | 3.0.2 | Servidor WSGI de producción, multiplataforma |
 | Plantillas | Jinja2 | (con Flask) | Autoescape activado |
 | Base de datos | SQLite | (stdlib) | Modo WAL, claves foráneas activas |
-| Scraping | Requests, BeautifulSoup4, cloudscraper | 2.34.2 / 4.15.0 / 1.2.71 | cloudscraper solo para la tienda tras Cloudflare |
+| Scraping | Requests, BeautifulSoup4 | 2.34.2 / 4.15.0 | Las tiendas Shopify (Blaster, Irion, LuffyToys) se leen por UCP, su canal oficial ([SCRAPERS.md](SCRAPERS.md#tiendas-shopify-por-ucp)) |
 | Tareas | APScheduler | 3.11.3 | Trigger `cron` dentro del proceso |
 | Imágenes | Pillow | 13.0.0 | Reducción a WebP de 400 px y validación de subidas |
 | Reportes | openpyxl | 3.1.5 | Exportación del historial a `.xlsx` |

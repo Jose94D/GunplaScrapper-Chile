@@ -78,6 +78,10 @@
     <button type="submit" class="btn boton-acento">Buscar</button>
     {% if search_query %}<a href="{{ url_for('inicio_bp.index', grado=grado_filtro or None, sort=sort_order, per_page=per_page) }}#catalogo" class="btn boton-borde d-inline-flex align-items-center">Limpiar</a>{% endif %}
 </form>
+{% if search_query %}
+{% set encontrados = dict(filtros.por_grado).get(grado_filtro, 0) if grado_filtro else filtros.total %}
+<p class="resultados-busqueda" role="status"><strong class="mono">{{ encontrados }}</strong> {{ 'resultado' if encontrados == 1 else 'resultados' }} para «{{ search_query }}»{% if grado_filtro %} en {{ grado_filtro }}{% endif %}</p>
+{% endif %}
 
 <section id="catalogo" class="barra-filtros" aria-label="Filtros">
     <nav class="chips" aria-label="Filtrar por grado">

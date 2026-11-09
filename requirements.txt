@@ -3,7 +3,6 @@ Werkzeug==3.1.9
 python-dotenv==1.2.4
 requests==2.34.2
 beautifulsoup4==4.15.0
-cloudscraper==1.2.71
 APScheduler==3.11.3
 openpyxl==3.1.5
 waitress==3.0.2

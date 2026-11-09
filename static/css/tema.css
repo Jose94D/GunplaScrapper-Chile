@@ -125,6 +125,8 @@ a:hover { color: var(--acento-texto); }
 .buscador .form-control { height: 52px; border-radius: 10px; background: var(--superficie); border-color: var(--borde-fuerte); color: var(--texto); font-size: 16px; padding: 0 18px; }
 .buscador .form-control::placeholder { color: var(--texto-tenue); }
 .buscador .btn { height: 52px; padding: 0 24px; }
+.resultados-busqueda { margin: -10px 0 16px; color: var(--texto-suave); font-size: 14px; }
+.resultados-busqueda strong { color: var(--texto); }
 .barra-filtros { background: var(--translucido); padding: 16px 0; border-top: 1px solid var(--borde); border-bottom: 1px solid var(--borde); display: flex; flex-wrap: wrap; gap: 12px; align-items: center; justify-content: space-between; }
 .chips { display: flex; flex-wrap: wrap; gap: 8px; }
 .chip { height: 44px; padding: 0 14px; border-radius: 22px; border: 1px solid var(--borde-fuerte); background: var(--superficie); color: var(--texto); font-size: 14px; font-weight: 500; display: inline-flex; align-items: center; gap: 8px; }

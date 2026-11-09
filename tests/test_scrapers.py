@@ -11,8 +11,8 @@ import unittest
 from unittest import mock
 
 PAGINAS = os.path.join(os.path.dirname(__file__), "paginas")
-# Irion y LuffyToys leen el catálogo por UCP, no HTML: sus pruebas están en TestUcp
-SCRAPERS = {"hangar": "HangarScraper", "blaster": "BlasterScraper", "chilerobots": "ChileRobotsScraper",
+# Blaster, Irion y LuffyToys leen el catálogo por UCP, no HTML: sus pruebas están en TestUcp
+SCRAPERS = {"hangar": "HangarScraper", "chilerobots": "ChileRobotsScraper",
             "geekz": "GeekzScraper", "weplay": "WeplayScraper", "hobbytoys": "HobbyToysScraper"}
 
 
@@ -39,8 +39,6 @@ class TestScrapers(unittest.TestCase):
         with mock.patch.object(modulo, "pedir", pedir), mock.patch.object(modulo.time, "sleep"), \
                 mock.patch("core.logger.execute_query"):
             scraper = getattr(modulo, SCRAPERS[tienda])()
-            if hasattr(scraper, "session"):
-                scraper.session = mock.Mock()  # Blaster visita la portada antes: sin red en las pruebas
             return scraper.extraer_datos(), pedidas
 
     def test_cada_tienda(self):
@@ -149,6 +147,18 @@ class TestUcp(unittest.TestCase):
                                             producto_ucp("RX-78-2 Gundam Universe", "rx-78-2", ["Gundam", "Figuras Articuladas"])]))]
         productos, _ = self.correr("luffytoys", "LuffyToysScraper", paginas)
         self.assertEqual([p["url"] for p in productos], ["https://luffytoys.cl/collections/maqueta-armables/products/jagd-doga"])
+
+    def test_blaster_junta_consultas_y_filtra_kits_bandai(self):
+        kit = producto_ucp("HG 1/144 ZAKU II - Model Kit Articulado - Bandai", "zaku", ["Gundam", "Model Kit", "HG - High Grade"])
+        sdcs = producto_ucp("SD GUNDAM CROSS SILHOUETTE FREEDOM - Model Kit Articulado - Bandai", "sdcs", ["Gundam", "Model Kit"])
+        herramienta = producto_ucp("Cuchilla - Herramientas Model Kit - Dspiae", "cuchilla", ["Gundam", "Model Kit", "Herramientas Model Kit"])
+        otra_marca = producto_ucp("Keroro - Model Kit - Otro", "keroro", ["Gundam", "Model Kit", "HG - High Grade"])
+        # Cuatro consultas (una por grado); el mismo kit en varias se guarda una sola vez
+        paginas = [RespuestaUcp(pagina_ucp([kit, herramienta])), RespuestaUcp(pagina_ucp([kit, sdcs])),
+                   RespuestaUcp(pagina_ucp([otra_marca])), RespuestaUcp(pagina_ucp([]))]
+        productos, pedidas = self.correr("blaster", "BlasterScraper", paginas)
+        self.assertEqual(sorted(p["url"] for p in productos), ["https://tienda.cl/products/sdcs", "https://tienda.cl/products/zaku"])
+        self.assertEqual([p["catalog"]["filters"] for p in pedidas], [{"available": True}] * 4)
 
     def test_un_error_de_shopify_detiene_el_scraper(self):
         error = {"error": {"code": -32001, "message": "UCP discovery failed", "data": {"content": "Missing payment handlers"}}}

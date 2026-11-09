@@ -28,12 +28,13 @@
 {% set producto = {"@context": "https://schema.org", "@type": "Product", "name": nombre_estandar, "url": url_producto,
                    "category": ficha.nombre_grado, "brand": {"@type": "Brand", "name": "Bandai"}} %}
 {% if imagen %}{% set _ = producto.update({"image": url_sitio ~ url_for('static', filename=imagen)}) %}{% endif %}
+{# Google exige "offers" en todo Product: sin stock no hay oferta que declarar, así que la ficha no se marca como producto #}
 {% if ficha.precio_minimo %}
 {% set _ = producto.update({"offers": {"@type": "AggregateOffer", "priceCurrency": "CLP", "lowPrice": ficha.precio_minimo,
                                         "highPrice": ficha.precio_maximo, "offerCount": ficha.tiendas_con_stock,
                                         "availability": "https://schema.org/InStock"}}) %}
-{% endif %}
 <script type="application/ld+json">{{ producto|tojson }}</script>
+{% endif %}
 {% endblock %}
 
 {% block content %}

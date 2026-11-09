@@ -115,7 +115,7 @@ Cada tienda se evaluó contra su `robots.txt` antes de integrarla. Mirax, Top8, 
 |---|---|
 | Servidor y plantillas | Python + Flask (Blueprints) + Jinja2 |
 | Base de datos | SQLite, con migraciones no disruptivas al iniciar |
-| Scraping | Requests + BeautifulSoup4; cloudscraper para la tienda protegida por Cloudflare |
+| Scraping | Requests + BeautifulSoup4; las tiendas Shopify por UCP, su canal oficial para clientes automáticos |
 | Tareas programadas | APScheduler (trigger `cron`, dentro del mismo proceso) |
 | Gráficos | Chart.js |
 | Reportes | openpyxl (`.xlsx`) |

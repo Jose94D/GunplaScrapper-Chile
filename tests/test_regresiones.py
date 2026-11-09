@@ -273,14 +273,6 @@ class TestReintentos(unittest.TestCase):
         r, llamadas, esperas = self.pedir([respuesta(404)])
         self.assertEqual((r.status_code, llamadas, esperas), (404, 1, []))
 
-    def test_blaster_usa_su_sesion_y_su_espera(self):
-        from core.peticiones import pedir
-        sesion = mock.Mock()
-        sesion.get.side_effect = [respuesta(429), respuesta(200)]
-        with mock.patch("core.peticiones.time.sleep") as dormir:
-            self.assertEqual(pedir("https://b.cl", sesion=sesion, espera_base=15).status_code, 200)
-        dormir.assert_called_once_with(15)
-
 
 PAGINA_HANGAR = '<div class="product-container"><a class="product-name" href="https://www.hangar019.cl/kit-{n}">Kit {n} HG</a><span class="product-price">$19.990</span></div>'
 

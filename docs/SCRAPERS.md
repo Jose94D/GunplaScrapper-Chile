@@ -65,7 +65,7 @@ Reglas que siguen todos:
 | Tienda | Archivo | Plataforma | Catálogo que recorre | Particularidades |
 |---|---|---|---|---|
 | Hangar019 | `hangar.py` | PrestaShop | `/8-gunpla?p=N` | Descarta los que traen el aviso oculto "Agotado" (`span.out-of-stock`). |
-| Blaster Chile | `blaster.py` | Shopify | `/collections/model-kit`, filtrado por tipo Gundam, Bandai y disponibilidad | Usa `cloudscraper` (Cloudflare). Reintenta ante error 429 con espera creciente. |
+| Blaster Chile | `blaster.py` | Shopify (UCP) | `search_catalog` con una consulta por grado (HG, MG, RG, SD), solo con stock | Lee por UCP. Junta varias consultas porque la búsqueda no es un listado exhaustivo; filtra kits Gundam de Bandai. |
 | ChileRobots | `chilerobots.py` | PrestaShop | `/10-gundam?page=N` | Si el nombre visible viene truncado (`...`), lo reconstruye desde la URL (`reconstruir_nombre_desde_url`). |
 | Irion | `irion.py` | Shopify (UCP) | `search_catalog` con "gundam", etiqueta GUNDAM y marca Bandai | Lee por UCP (ver abajo). Descarta los agotados. |
 | Geekz | `geekz.py` | Odoo | `/shop/category/hobby-model-kit-9/page/N` | Descarta los productos sin la etiqueta verde de stock. |
@@ -82,7 +82,8 @@ Desde noviembre de 2026, Shopify responde `429 Too Many Requests` a las páginas
 - `core/ucp.py` llama a la herramienta `search_catalog` del endpoint MCP de la tienda (`https://<tienda>/api/ucp/mcp`), recorre las páginas con el cursor y devuelve los productos. Ante cualquier error lanza una excepción, como el resto de los scrapers.
 - Cada consulta lleva la dirección del **perfil del scraper**, [`static/ucp-agente.json`](../static/ucp-agente.json), que Shopify descarga y valida contra el esquema de UCP. Solo declara la búsqueda en el catálogo: no puede comprar ni crear carritos. `payment_handlers` va vacío porque el esquema lo exige.
 - El perfil se sirve con `Cache-Control: public, max-age=86400`: con `no-cache`, Shopify lo rechaza. Como lo guarda un día, al cambiar el archivo hay que subir el `?v=` de `PERFIL` en `core/ucp.py`.
-- `search_catalog` busca por texto y también devuelve agotados: cada scraper filtra por etiquetas y por `availability` de sus variantes.
+- `search_catalog` busca por texto y también devuelve agotados: cada scraper filtra por etiquetas y por `availability` de sus variantes. Con `filters: {"available": true}` la tienda filtra en origen; conviene en catálogos grandes, porque la búsqueda se corta en 1000 resultados.
+- **Límite de consultas:** UCP responde `429 Rate limit exceeded` con una espera larga (más de media hora) si se consulta mucho seguido. Cada escaneo debe hacer las menos consultas posibles; no repetir pruebas en bucle contra la tienda.
 - Si una tienda deja de responder por UCP, se puede desactivar con `TIENDAS_DESACTIVADAS` mientras se revisa.
 
 
