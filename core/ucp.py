@@ -12,7 +12,7 @@ from core.peticiones import pedir
 
 # Shopify guarda el perfil en caché un día: al cambiar ucp-agente.json, subir ?v= para que lo vuelva a leer
 PERFIL = (URL_SITIO or "https://www.gunplascraper-chile.cl") + "/static/ucp-agente.json?v=2"
-POR_PAGINA = 50
+POR_PAGINA = 250  # menos consultas por escaneo: UCP limita las consultas seguidas (429 con espera de más de media hora)
 MAX_PAGINAS = 40  # tope de seguridad: una paginación que nunca termina no deja el escaneo pegado
 
 
